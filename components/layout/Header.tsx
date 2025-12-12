@@ -4,88 +4,91 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react'; // <-- 1. Import useState
-import { Menu, X } from 'lucide-react'; // <-- Import icons for menu and close
+import { useState } from 'react';
+import { Menu, X } from 'lucide-react';
 
-// Define the main navigation items
+// Navigation items with correct routing
 const navItems = [
-  'Institute', 'Courses', 'Internship', 'Training', 
-  'Admission', 'Events', 'Books', 'Reach Us'
+  { label: "Institute", path: "/institute" },
+  { label: "Courses", path: "/courses" },
+  { label: "Internship", path: "/internship" },
+  { label: "Training", path: "/training" },
+  { label: "Admission", path: "/admission" },
+  { label: "Events", path: "/events" },
+  { label: "Books", path: "/books" },
+  { label: "Reach Us", path: "/contact" }
 ];
 
 const Header = () => {
-  // 2. Initialize State: Tracks whether the mobile menu is open (false by default)
-  const [isMenuOpen, setIsMenuOpen] = useState(false); 
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Function to toggle the menu state
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
     <header className="sticky top-0 z-40 bg-white shadow-md">
       <div className="flex items-center justify-between h-20 px-4 md:px-12 xl:px-24">
-        
-        {/* Logo and Institute Name (Left Side) */}
+
+        {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
-          {/* ... (Logo Image component remains the same) ... */}
           <Image 
             src="/logo/logo.png"
             alt="SIFS Forensic Science Institute Logo"
             width={100}
             height={100}
           />
-          {/*<span className="text-xl font-bold text-gray-800 hidden sm:block">
-            FORENSIC SCIENCE INSTITUTE
-  </span>*/}
         </Link>
-        
-        {/* Desktop Navigation (Center) */}
+
+        {/* Desktop Navigation */}
         <nav className="hidden lg:flex flex-1 justify-center space-x-6">
-          {navItems.map((item) => (
-            <Link key={item} href={`/${item.toLowerCase().replace(/\s/g, '-')}`} 
-                  className="text-gray-700 hover:text-indigo-600 font-medium transition-colors">
-              {item}
+          {navItems.map(({ label, path }) => (
+            <Link
+              key={label}
+              href={path}
+              className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+            >
+              {label}
             </Link>
           ))}
         </nav>
 
-        {/* CTA Button and Mobile Menu Toggle (Right Side) */}
+        {/* Right Section */}
         <div className="flex items-center space-x-4">
-          <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-lg transition-colors shadow-lg hidden lg:block">
+          <button className="bg-gradient-to-r from-[#3E58EE] to-[#B565E7] 
+          hover:from-[#354ED8] hover:to-[#A24EDC] text-white font-medium py-2 px-6 rounded-lg transition-colors shadow-lg hidden lg:block">
             Sign Up
           </button>
-          
-          {/* 3. Mobile Menu Toggle Button */}
+
+          {/* Mobile Menu Button */}
           <button 
             className="lg:hidden p-2 text-gray-700 hover:text-indigo-600"
-            onClick={toggleMenu} // <-- Attach the click handler
+            onClick={toggleMenu}
             aria-expanded={isMenuOpen}
-            aria-controls="mobile-menu"
           >
-            {/* Show X icon when menu is open, otherwise show Menu icon */}
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
       </div>
 
-      {/* 4. Conditional Mobile Menu Content (Full-width, drops down) */}
+      {/* Mobile Dropdown Menu */}
       <div 
         id="mobile-menu" 
         className={`lg:hidden transition-all duration-300 ease-in-out overflow-hidden ${
-          isMenuOpen ? 'max-h-screen border-t border-gray-100' : 'max-h-0' // <-- Toggles visibility
+          isMenuOpen ? "max-h-screen border-t border-gray-100" : "max-h-0"
         }`}
       >
         <nav className="flex flex-col py-4 px-4 sm:px-6 space-y-2">
-          {navItems.map((item) => (
-            <Link key={item} href={`/${item.toLowerCase().replace(/\s/g, '-')}`} 
-                  className="text-gray-700 hover:bg-indigo-50 block py-2 px-3 rounded-md font-medium"
-                  onClick={toggleMenu} // Close menu when a link is clicked
+          {navItems.map(({ label, path }) => (
+            <Link
+              key={label}
+              href={path}
+              className="text-gray-700 hover:bg-indigo-50 block py-2 px-3 rounded-md font-medium"
+              onClick={toggleMenu}
             >
-              {item}
+              {label}
             </Link>
           ))}
-          {/* Include the Sign Up button for mobile */}
+
+          {/* Mobile Button */}
           <button className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-lg transition-colors shadow-lg">
             Sign Up
           </button>
