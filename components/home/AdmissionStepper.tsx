@@ -3,6 +3,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 // Define the structure for a single step
 interface Step {
@@ -161,9 +162,20 @@ const AdmissionStepper: React.FC = () => {
           className="text-center mb-12 sm:mb-16"
           variants={headerItemVariants}
         >
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 inline-block relative">
-            Process of Admission
-            <span className="absolute left-1/2 -bottom-2 transform -translate-x-1/2 h-1 w-2/3 bg-orange-400 rounded-full"></span>
+          <h2 className="text-2xl font-semibold text-black">
+            Process of{" "}
+            <span className="relative inline-block">
+              <span className="relative z-10">Admission</span>
+
+              {/* Yellow underline image */}
+              <Image
+                src="/yellow-underline.png"
+                alt=""
+                width={200}
+                height={16}
+                className="absolute left-0 -bottom-2 z-0"
+              />
+            </span>
           </h2>
           <p className="mt-2 text-sm text-gray-500">
             Education made easy! customized just for you.

@@ -8,6 +8,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import { Navigation } from "swiper/modules";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 // --- Interfaces for Training ---
 interface Training {
@@ -214,8 +215,21 @@ const TrainingInternshipSection: React.FC = () => {
       >
         {/* Title */}
         <motion.div className="mb-12" variants={itemSlideUpVariants}>
-          <h1 className="text-xl md:text-2xl lg:text-4xl font-semibold text-gray-900 pt-6">
-            Professional Forensic Training <br /> & Internship
+          <h1 className="text-2xl font-semibold text-black pt-6">
+            Professional{" "}
+            <span className="relative inline-block">
+              <span className="relative z-10">Forensic Training</span>
+
+              {/* Yellow underline */}
+              <Image
+                src="/yellow-underline.png"
+                alt=""
+                width={260}
+                height={18}
+                className="absolute left-0 -bottom-2 z-0"
+              />
+            </span>
+            <br /> & Internship
           </h1>
         </motion.div>
 

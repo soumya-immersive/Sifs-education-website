@@ -2,6 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 // --- Framer Motion Variants ---
 
@@ -102,11 +103,23 @@ export default function AboutUs() {
           </motion.button>
 
           {/* Heading */}
-          <motion.h2 
-            className="mb-4 text-3xl font-extrabold text-gray-900 md:text-4xl"
+          <motion.h2
+            className="mb-4 text-2xl text-black"
             variants={textItemVariants}
           >
-            Learn Anywhere, Any Time
+            <span className="relative inline-block text-2xl font-semibold text-black">
+              <span className="relative z-10">Learn Any</span>
+
+              {/* Yellow underline */}
+              <Image
+                src="/yellow-underline.png"
+                alt=""
+                width={140}
+                height={14}
+                className="absolute left-0 -bottom-1 z-0"
+              />
+            </span>{" "}
+            <span className="font-semibold">where, Any Time</span>
           </motion.h2>
 
           {/* Paragraph */}

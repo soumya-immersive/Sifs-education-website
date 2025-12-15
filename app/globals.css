@@ -164,3 +164,25 @@ body {
   background-size: 1rem;
   padding-right: 2.5rem;
 }
+
+
+/* Bottom pagination style */
+.achievement-swiper .swiper-pagination {
+  bottom: 85px !important;
+  left: 0 !important;
+  text-align: left;
+}
+
+.achievement-swiper .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  background-color: #D08522; /* orange */
+  opacity: 0.3;
+  transition: all 0.3s ease;
+}
+
+.achievement-swiper .swiper-pagination-bullet-active {
+  opacity: 1;
+  width: 20px;
+  border-radius: 8px;
+}

@@ -97,7 +97,7 @@ const Footer: React.FC = () => {
       >
         {/* CTA Banner */}
         <motion.div
-          className="relative z-10 mx-auto -mb-20 max-w-7xl px-4 sm:px-6 lg:px-8"
+          className="z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:-top-20"
           variants={ctaBannerVariants}
         >
           <div

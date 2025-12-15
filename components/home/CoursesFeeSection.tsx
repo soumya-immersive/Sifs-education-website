@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { motion, Variants } from "framer-motion";
+import Image from "next/image";
 
 // Tabs
 const tabs = [
@@ -81,8 +82,20 @@ export default function CoursePricing() {
       >
         {/* Header */}
         <motion.div variants={itemSlideUpVariants}>
-          <h2 className="text-3xl font-extrabold text-gray-900">
-            Courses & <span className="text-purple-600">Training Fee</span>
+          <h2 className="text-2xl font-semibold text-black">
+            Courses &{" "}
+            <span className="relative inline-block">
+              <span className="relative z-10">Training Fee</span>
+
+              {/* Yellow underline */}
+              <Image
+                src="/yellow-underline.png"
+                alt=""
+                width={180}
+                height={16}
+                className="absolute left-0 -bottom-2 z-0"
+              />
+            </span>
           </h2>
           <p className="text-gray-500 text-sm mt-2 max-w-2xl mx-auto">
             Invest in Your Knowledge: Discover the Right Courses and Training Fees That Fit You

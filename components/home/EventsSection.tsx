@@ -146,9 +146,23 @@ export default function EventsSection() {
         <div className="mb-8 flex items-center justify-between gap-4">
           <motion.div variants={headerItemVariants}>
             <p className="text-sm font-normal text-[#3A58EE]">Upcoming Events</p>
-            <h2 className="mt-1 text-2xl font-extrabold text-black md:text-3xl">
-              Explore <span className="text-sky-600">Events</span>
+            <h2 className="mt-1 text-2xl font-semibold text-black">
+              <span className="relative inline-block">
+                <span className="relative z-10">
+                  Explore Events
+                </span>
+
+                {/* Yellow underline */}
+                <Image
+                  src="/yellow-underline.png"
+                  alt=""
+                  width={200}
+                  height={14}
+                  className="absolute left-1/2 -translate-x-1/2 -bottom-1 z-0"
+                />
+              </span>
             </h2>
+
           </motion.div>
 
           <motion.button

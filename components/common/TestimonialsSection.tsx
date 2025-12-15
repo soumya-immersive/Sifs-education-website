@@ -130,7 +130,7 @@ const TestimonialsSection: React.FC = () => {
         </motion.div>
 
         {/* -------- Swiper Carousel -------- */}
-        <motion.div className="relative" variants={itemSlideUpVariants}>
+        <motion.div className="relative mb-12" variants={itemSlideUpVariants}>
           <Swiper
             onSwiper={(swiper) => {
               swiperRef.current = swiper;

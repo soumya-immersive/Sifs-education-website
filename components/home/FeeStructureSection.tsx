@@ -112,89 +112,93 @@ const ApplyForensicLearning = () => {
                     {/* RIGHT COLUMN (FORM) */}
                     <div className="lg:w-1/2">
                         <div className="absolute bg-white p-8 rounded-xl shadow-2xl -bottom-18">
-                            <form className="space-y-4">
-                                {/* Form Grid */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {[
-                                        "Full name",
-                                        "Email",
-                                        "Phone number",
-                                        "Country",
-                                        "Learning type",
-                                        "Learning sub type",
-                                    ].map((label) => (
-                                        <div key={label}>
-                                            <label className="sr-only">{label}</label>
+                        <form className="space-y-4">
+  {/* Form Grid */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {[
+      "Full name",
+      "Email",
+      "Phone number",
+      "Country",
+      "Learning type",
+      "Learning sub type",
+    ].map((label) => (
+      <div key={label}>
+        <label className="sr-only">{label}</label>
 
-                                            {label.includes("name") ||
-                                            label.includes("Email") ||
-                                            label.includes("number") ? (
-                                                <input
-                                                    type={
-                                                        label.includes("Email")
-                                                            ? "email"
-                                                            : label.includes("number")
-                                                            ? "tel"
-                                                            : "text"
-                                                    }
-                                                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg
-                                                    focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                                    placeholder={label}
-                                                />
-                                            ) : (
-                                                <select
-                                                    defaultValue=""
-                                                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg
-                                                    focus:outline-none appearance-none focus:ring-2 focus:ring-purple-500"
-                                                >
-                                                    <option value="" disabled hidden>
-                                                        {label}
-                                                    </option>
-                                                    <option>Option 1</option>
-                                                    <option>Option 2</option>
-                                                </select>
-                                            )}
-                                        </div>
-                                    ))}
+        {label.includes("name") ||
+        label.includes("Email") ||
+        label.includes("number") ? (
+          <input
+            type={
+              label.includes("Email")
+                ? "email"
+                : label.includes("number")
+                ? "tel"
+                : "text"
+            }
+            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg
+            text-black placeholder:text-black
+            focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder={label}
+          />
+        ) : (
+          <select
+            defaultValue=""
+            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg
+            text-black
+            focus:outline-none appearance-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="" disabled hidden>
+              {label}
+            </option>
+            <option className="text-black">Option 1</option>
+            <option className="text-black">Option 2</option>
+          </select>
+        )}
+      </div>
+    ))}
 
-                                    {/* Courses (Full Width) */}
-                                    <div className="md:col-span-2">
-                                        <select
-                                            defaultValue=""
-                                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg
-                                            focus:outline-none appearance-none focus:ring-2 focus:ring-purple-500"
-                                        >
-                                            <option value="" disabled hidden>
-                                                Courses
-                                            </option>
-                                            <option>Forensic Science</option>
-                                            <option>Criminology</option>
-                                        </select>
-                                    </div>
-                                </div>
+    {/* Courses (Full Width) */}
+    <div className="md:col-span-2">
+      <select
+        defaultValue=""
+        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg
+        text-black
+        focus:outline-none appearance-none focus:ring-2 focus:ring-purple-500"
+      >
+        <option value="" disabled hidden>
+          Courses
+        </option>
+        <option className="text-black">Forensic Science</option>
+        <option className="text-black">Criminology</option>
+      </select>
+    </div>
+  </div>
 
-                                {/* Submit Button */}
-                                <button
-                                    type="submit"
-                                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold 
-                                    py-3 px-6 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-colors flex items-center justify-center mt-6"
-                                >
-                                    <span>Send Message</span>
-                                    <svg
-                                        className="ml-2 w-5 h-5"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M17 8l4 4m0 0l-4 4m4-4H3"
-                                        />
-                                    </svg>
-                                </button>
-                            </form>
+  {/* Submit Button */}
+  <button
+    type="submit"
+    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold 
+    py-3 px-6 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-colors flex items-center justify-center mt-6"
+  >
+    <span>Send Message</span>
+    <svg
+      className="ml-2 w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M17 8l4 4m0 0l-4 4m4-4H3"
+      />
+    </svg>
+  </button>
+</form>
+
                         </div>
                     </div>
                 </div>
