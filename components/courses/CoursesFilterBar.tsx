@@ -1,9 +1,32 @@
+"use client";
+
 import { Search } from "lucide-react";
+import { motion, Variants } from "framer-motion";
+
+/* ---------------- Animations ---------------- */
+
+const container: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.12,
+    },
+  },
+};
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: "easeOut" },
+  },
+};
 
 export default function CoursesFilterBar() {
   return (
     <section className="max-w-7xl mx-auto px-4 mt-8">
-      <div
+      <motion.div
         className="
           bg-white rounded-xl shadow-sm
           px-4 py-3
@@ -12,9 +35,16 @@ export default function CoursesFilterBar() {
           gap-4
           lg:justify-between
         "
+        variants={container}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
       >
         {/* LEFT: Search */}
-        <div className="flex w-full lg:max-w-md">
+        <motion.div
+          variants={fadeUp}
+          className="flex w-full lg:max-w-md"
+        >
           <input
             type="text"
             placeholder="What do you want to learn?"
@@ -42,10 +72,13 @@ export default function CoursesFilterBar() {
           >
             <Search className="w-4 h-4" />
           </button>
-        </div>
+        </motion.div>
 
         {/* RIGHT: Filters */}
-        <div className="flex w-full lg:w-auto gap-3 justify-between lg:justify-end">
+        <motion.div
+          variants={fadeUp}
+          className="flex w-full lg:w-auto gap-3 justify-between lg:justify-end"
+        >
           <select className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-full lg:w-auto">
             <option>Skill Level</option>
           </select>
@@ -57,8 +90,8 @@ export default function CoursesFilterBar() {
           <select className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-full lg:w-auto">
             <option>Newest</option>
           </select>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }

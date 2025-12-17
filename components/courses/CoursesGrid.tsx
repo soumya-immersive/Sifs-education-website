@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { motion, Variants } from "framer-motion";
 import CourseCard from "./CourseCard";
+
+/* ---------------- Data ---------------- */
 
 const courses = [
   {
@@ -52,6 +55,26 @@ const courses = [
 
 const ITEMS_PER_LOAD = 3;
 
+/* ---------------- Animations ---------------- */
+
+const container: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.12,
+    },
+  },
+};
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: "easeOut" },
+  },
+};
+
 export default function CoursesGrid() {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
   const [loading, setLoading] = useState(false);
@@ -70,15 +93,32 @@ export default function CoursesGrid() {
 
   return (
     <section className="max-w-7xl mx-auto px-4 mt-10">
-      {/* Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* GRID */}
+      <motion.div
+        className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+        variants={container}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
         {courses.slice(0, visibleCount).map((course) => (
-          <CourseCard key={course.slug} course={course} />
+          <motion.div
+            key={course.slug}
+            variants={fadeUp}
+          >
+            <CourseCard course={course} />
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
-      {/* Actions */}
-      <div className="flex justify-center mt-12">
+      {/* ACTIONS */}
+      <motion.div
+        variants={fadeUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        className="flex justify-center mt-12"
+      >
         {/* Load More */}
         {visibleCount < courses.length && (
           <button
@@ -111,20 +151,19 @@ export default function CoursesGrid() {
           <button
             onClick={handleLoadLess}
             className="
-                bg-gradient-to-r from-purple-500 to-indigo-600
-                text-white
-                px-8 py-3
-                rounded-lg
-                text-sm font-medium
-                hover:bg-gray-300
-                transition
-                cursor-pointer
+              bg-gradient-to-r from-purple-500 to-indigo-600
+              text-white
+              px-8 py-3
+              rounded-lg
+              text-sm font-medium
+              transition
+              cursor-pointer
             "
           >
             Load Less ↑
           </button>
         )}
-      </div>
+      </motion.div>
     </section>
   );
 }

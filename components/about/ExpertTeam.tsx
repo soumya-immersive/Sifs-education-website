@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 const experts = [
   {
@@ -57,9 +60,11 @@ export default function ExpertTeam() {
             </h2>
           </div>
 
-          <button className="cursor-pointer px-5 py-2 rounded-lg text-sm text-white
+          <button
+            className="cursor-pointer px-5 py-2 rounded-lg text-sm text-white
             bg-gradient-to-r from-violet-600 to-indigo-600
-            hover:from-violet-700 hover:to-indigo-700 transition">
+            hover:from-violet-700 hover:to-indigo-700 transition"
+          >
             Explore All Team →
           </button>
         </div>
@@ -67,8 +72,11 @@ export default function ExpertTeam() {
         {/* TEAM GRID */}
         <div className="grid md:grid-cols-4 gap-6">
           {experts.map((item, i) => (
-            <div
+            <motion.div
               key={i}
+              whileHover="hover"
+              initial="rest"
+              animate="rest"
               className="relative rounded-xl overflow-hidden shadow-md group text-center"
             >
               {/* IMAGE */}
@@ -87,15 +95,24 @@ export default function ExpertTeam() {
               />
 
               {/* TEXT ABOVE OVERLAY */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 text-white z-10">
+              <motion.div
+                variants={{
+                  rest: { scale: 1 },
+                  hover: {
+                    scale: 1.12,
+                    transition: { duration: 0.35, ease: "easeOut" },
+                  },
+                }}
+                className="absolute bottom-0 left-0 right-0 p-4 text-white z-10"
+              >
                 <p className="font-semibold leading-tight">
                   {item.name}
                 </p>
                 <p className="text-xs opacity-90 text-[#D08522]">
                   {item.role}
                 </p>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           ))}
         </div>
 

@@ -1,21 +1,53 @@
+"use client";
+
+import { motion, Variants } from "framer-motion";
+
+/* ---------------- Animations ---------------- */
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.12 },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 14 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.35, ease: "easeOut" },
+  },
+};
+
 export default function PaymentDetails() {
   return (
-    <div className="bg-white">
+    <motion.div
+      className="bg-white"
+      variants={containerVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.3 }}
+    >
       {/* Title */}
-      <h3 className="text-md font-medium text-[#4559ED] mb-4">
+      <motion.h3
+        variants={itemVariants}
+        className="text-md font-medium text-[#4559ED] mb-4"
+      >
         Payment Details
-      </h3>
+      </motion.h3>
 
       <div className="grid md:grid-cols-2 gap-6 text-sm text-gray-700">
         
         {/* LEFT */}
-        <div className="space-y-3">
+        <motion.div variants={itemVariants} className="space-y-3">
           <p className="font-medium text-md mb-1 text-[#6B7385]">
             International Student:
           </p>
 
           <p className="text-[#D08522] font-semibold">
-            PayPal:forensicdocument@gmail.com
+            PayPal: forensicdocument@gmail.com
           </p>
 
           <hr className="my-4 border-gray-200" />
@@ -62,18 +94,21 @@ export default function PaymentDetails() {
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* RIGHT */}
-        <div className="flex flex-col items-start md:items-center">
+        <motion.div
+          variants={itemVariants}
+          className="flex flex-col items-start md:items-center"
+        >
           <img
             src="/course/qr.png"
             alt="QR Code"
             className="w-60 border border-gray-200 rounded-lg p-2 bg-white"
           />
-        </div>
+        </motion.div>
 
       </div>
-    </div>
+    </motion.div>
   );
 }

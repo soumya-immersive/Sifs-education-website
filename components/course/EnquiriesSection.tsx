@@ -3,6 +3,26 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import Image from "next/image";
+import { motion, Variants } from "framer-motion";
+
+/* ---------------- Animations ---------------- */
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.12 },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 14 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.35, ease: "easeOut" },
+  },
+};
 
 const faqs = [
   {
@@ -25,68 +45,77 @@ const faqs = [
 ];
 
 export default function EnquiriesSection() {
-  const [openIndex, setOpenIndex] = useState(0);
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section className="relative mb-12 px-4 py-16">
+    <motion.section
+      className="relative mb-12 px-4 py-16"
+      variants={containerVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.3 }}
+    >
+      {/* Zigzag */}
+      <div className="absolute top-0 left-0 w-full">
+        <Image
+          src="/course/zigzag.png"
+          alt="Divider"
+          width={1920}
+          height={60}
+          className="w-full h-auto object-contain"
+          priority
+        />
+      </div>
 
-        <div className="absolute top-0 left-0 w-full">
-            <Image
-            src="/course/zigzag.png"
-            alt="Divider"
-            width={1920}
-            height={60}
-            className="w-full h-auto object-contain"
-            priority
-            />
-        </div>
-        <div className="max-w-7xl mx-auto ">
-      
-            <h2 className="text-xl md:text-2xl font-semibold text-black text-center mb-8">
-                Enquiries from Forensic Learners
-            </h2>
+      <div className="max-w-7xl mx-auto">
+        <motion.h2
+          variants={itemVariants}
+          className="text-xl md:text-2xl font-semibold text-black text-center mb-8"
+        >
+          Enquiries from Forensic Learners
+        </motion.h2>
 
-            {/* FAQ List */}
-            <div className="space-y-4">
-                {faqs.map((faq, index) => {
-                const isOpen = openIndex === index;
+        {/* FAQ List */}
+        <motion.div variants={containerVariants} className="space-y-4">
+          {faqs.map((faq, index) => {
+            const isOpen = openIndex === index;
 
-                return (
-                    <div key={index}>
-                    {/* Question */}
-                    <button
-                        onClick={() => setOpenIndex(isOpen ? -1 : index)}
-                        className={`w-full flex items-center justify-between px-5 py-4 rounded-lg text-left transition ${
-                        isOpen
-                            ? "bg-[#D08522] text-white"
-                            : "bg-[#F0F0F0] text-gray-700"
-                        }`}
-                    >
-                        <div className="text-sm font-medium">
-                        {faq.question}{" "}
-                        <span className="font-semibold">
-                            - {faq.author}
-                        </span>
-                        </div>
+            return (
+              <motion.div key={index} variants={itemVariants}>
+                {/* Question */}
+                <button
+                  onClick={() => setOpenIndex(isOpen ? null : index)}
+                  className={`w-full flex items-center justify-between px-5 py-4 rounded-lg text-left transition ${
+                    isOpen
+                      ? "bg-[#D08522] text-white"
+                      : "bg-[#F0F0F0] text-gray-700"
+                  }`}
+                >
+                  <div className="text-sm font-medium">
+                    {faq.question}{" "}
+                    <span className="font-semibold">
+                      - {faq.author}
+                    </span>
+                  </div>
 
-                        {isOpen ? (
-                        <ChevronDown className="w-5 h-5 shrink-0" />
-                        ) : (
-                        <ChevronRight className="w-5 h-5 shrink-0" />
-                        )}
-                    </button>
+                  {isOpen ? (
+                    <ChevronDown className="w-5 h-5 shrink-0" />
+                  ) : (
+                    <ChevronRight className="w-5 h-5 shrink-0" />
+                  )}
+                </button>
 
-                    {/* Answer */}
-                    {isOpen && faq.answer && (
-                        <div className="px-5 pt-4 text-sm text-gray-600 leading-relaxed">
-                        {faq.answer}
-                        </div>
-                    )}
-                    </div>
-                );
-                })}
-            </div>
-        </div>
-    </section>
+                {/* Answer */}
+                {isOpen && faq.answer && (
+                  <div className="px-5 pt-4 text-sm text-gray-600 leading-relaxed">
+                    {faq.answer}
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      </div>
+    </motion.section>
   );
 }

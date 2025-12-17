@@ -1,12 +1,52 @@
+"use client";
+
 import Image from "next/image";
+import { motion, Variants } from "framer-motion";
+
+/* ---------------- Animations (Scroll Only) ---------------- */
+
+const container: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+};
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" },
+  },
+};
+
+const scaleFade: Variants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.5, ease: "easeOut" },
+  },
+};
 
 export default function MissionVision() {
   return (
-    <section className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-6">
-
-        {/* MAIN IMAGE (TOP) */}
-        <div className="rounded-2xl overflow-hidden shadow-lg mb-14">
+    <section className="py-20 bg-white overflow-hidden">
+      <motion.div
+        className="max-w-7xl mx-auto px-6"
+        variants={container}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        {/* MAIN IMAGE */}
+        <motion.div
+          variants={fadeUp}
+          className="rounded-2xl overflow-hidden shadow-lg mb-14"
+        >
           <Image
             src="/about-us/mission-bg.png"
             alt="Students learning together"
@@ -15,14 +55,15 @@ export default function MissionVision() {
             className="w-full h-[360px] md:h-[420px] object-cover"
             priority
           />
-        </div>
+        </motion.div>
 
-        {/* THREE INFO CARDS */}
-        <div className="grid md:grid-cols-3 gap-8">
-
+        {/* INFO CARDS */}
+        <motion.div
+          className="grid md:grid-cols-3 gap-8"
+          variants={container}
+        >
           {/* CARD 1 */}
-          <div className="bg-white p-6">
-            {/* Icon + Title inline */}
+          <motion.div variants={scaleFade} className="bg-white p-6">
             <div className="flex items-center gap-3 mb-3">
               <Image
                 src="/about-us/mission.png"
@@ -30,17 +71,19 @@ export default function MissionVision() {
                 width={40}
                 height={40}
               />
-              <h3 className="font-semibold text-black text-lg">Our Mission</h3>
+              <h3 className="font-semibold text-black text-lg">
+                Our Mission
+              </h3>
             </div>
 
             <p className="text-sm text-gray-600 leading-relaxed">
               Our mission is to empower individuals with the essential forensic
               expertise to promote justice on a global scale.
             </p>
-          </div>
+          </motion.div>
 
           {/* CARD 2 */}
-          <div className="bg-white p-6">
+          <motion.div variants={scaleFade} className="bg-white p-6">
             <div className="flex items-center gap-3 mb-3">
               <Image
                 src="/about-us/vision.png"
@@ -48,17 +91,20 @@ export default function MissionVision() {
                 width={40}
                 height={40}
               />
-              <h3 className="font-semibold text-black text-lg">Our Vision</h3>
+              <h3 className="font-semibold text-black text-lg">
+                Our Vision
+              </h3>
             </div>
 
             <p className="text-sm text-gray-600 leading-relaxed">
               We visualize a society where forensic science plays a fundamental
-              role in promoting justice, truth, security, and the well-being of communities.
+              role in promoting justice, truth, security, and the well-being of
+              communities.
             </p>
-          </div>
+          </motion.div>
 
           {/* CARD 3 */}
-          <div className="bg-white p-6">
+          <motion.div variants={scaleFade} className="bg-white p-6">
             <div className="flex items-center gap-3 mb-3">
               <Image
                 src="/about-us/purpose.png"
@@ -66,17 +112,18 @@ export default function MissionVision() {
                 width={40}
                 height={40}
               />
-              <h3 className="font-semibold text-black text-lg">Our Purpose</h3>
+              <h3 className="font-semibold text-black text-lg">
+                Our Purpose
+              </h3>
             </div>
 
             <p className="text-sm text-gray-600 leading-relaxed">
-              Our purpose is to excel in promoting knowledge, revealing the truth,
-              and training forensic professionals across borders.
+              Our purpose is to excel in promoting knowledge, revealing the
+              truth, and training forensic professionals across borders.
             </p>
-          </div>
-
-        </div>
-      </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }

@@ -1,4 +1,36 @@
+"use client";
+
 import Image from "next/image";
+import { motion, Variants } from "framer-motion";
+
+/* ---------------- Animations (Scroll Only) ---------------- */
+
+const container: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+};
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" },
+  },
+};
+
+const fadeLeft: Variants = {
+  hidden: { opacity: 0, x: -40 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.7, ease: "easeOut" },
+  },
+};
 
 export default function InitiativesSection() {
   return (
@@ -8,15 +40,26 @@ export default function InitiativesSection() {
         backgroundImage: "url('/about-us/initiatives-bg.png')",
       }}
     >
-      <div className="max-w-7xl mx-auto px-6">
+      <motion.div
+        className="max-w-7xl mx-auto px-6"
+        variants={container}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
 
         {/* OUTER LIGHT GRAY CARD */}
-        <div className="bg-[#F5F6FA] rounded-2xl p-10">
-
+        <motion.div
+          variants={fadeUp}
+          className="bg-[#F5F6FA] rounded-2xl p-10"
+        >
           <div className="grid lg:grid-cols-2 gap-10 items-center">
 
             {/* LEFT GRAY PANEL */}
-            <div className="bg-[#F5F6FA] rounded-2xl p-4">
+            <motion.div
+              variants={fadeLeft}
+              className="bg-[#F5F6FA] rounded-2xl p-4"
+            >
               <Image
                 src="/about-us/initiatives.png"
                 alt="Student"
@@ -24,11 +67,17 @@ export default function InitiativesSection() {
                 height={520}
                 className="rounded-xl object-cover"
               />
-            </div>
+            </motion.div>
 
             {/* RIGHT GRAY PANEL */}
-            <div className="bg-[#F5F6FA] rounded-2xl p-6">
-              <h2 className="text-2xl font-semibold text-black mb-4">
+            <motion.div
+              variants={fadeUp}
+              className="bg-[#F5F6FA] rounded-2xl p-6"
+            >
+              <motion.h2
+                variants={fadeUp}
+                className="text-2xl font-semibold text-black mb-4"
+              >
                 SIFS India’s{" "}
                 <span className="relative inline-block">
                   <span className="relative z-10">Educational</span>
@@ -43,21 +92,27 @@ export default function InitiativesSection() {
                   />
                 </span>{" "}
                 Initiatives
-              </h2>
+              </motion.h2>
 
-              <p className="text-sm text-gray-600 leading-relaxed mb-8">
+              <motion.p
+                variants={fadeUp}
+                className="text-sm text-gray-600 leading-relaxed mb-8"
+              >
                 We also conduct several awareness programs, webinars, workshops,
                 and conferences round the year covering various famous forensic
                 cases and insights on the latest developments in forensics,
                 giving you the opportunity to learn new findings and also
                 present your research work to the world.
-              </p>
+              </motion.p>
 
               {/* LISTS */}
-              <div className="grid sm:grid-cols-2 gap-8 text-sm">
+              <motion.div
+                variants={container}
+                className="grid sm:grid-cols-2 gap-8 text-sm"
+              >
 
                 {/* LEFT COLUMN */}
-                <div>
+                <motion.div variants={fadeUp}>
                   <p className="font-semibold mb-3 text-black">
                     Offline and Online Forensic Courses:
                   </p>
@@ -89,10 +144,10 @@ export default function InitiativesSection() {
                       Professionals
                     </li>
                   </ul>
-                </div>
+                </motion.div>
 
                 {/* RIGHT COLUMN */}
-                <div>
+                <motion.div variants={fadeUp}>
                   <p className="font-semibold mb-3 text-black">
                     Hands-on Forensic Training for:
                   </p>
@@ -110,15 +165,15 @@ export default function InitiativesSection() {
                       Students and Professionals
                     </li>
                   </ul>
-                </div>
+                </motion.div>
 
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
           </div>
-        </div>
+        </motion.div>
 
-      </div>
+      </motion.div>
     </section>
   );
 }

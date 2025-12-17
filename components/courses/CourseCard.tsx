@@ -1,9 +1,40 @@
+"use client";
+
 import Link from "next/link";
+import { motion, Variants } from "framer-motion";
+
+/* ---------------- Animations ---------------- */
+
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: "easeOut" },
+  },
+};
+
+const buttonVariants: Variants = {
+  hover: {
+    y: -2,
+    transition: { duration: 0.2, ease: "easeOut" },
+  },
+};
 
 export default function CourseCard({ course }: any) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition">
-      
+    <motion.div
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      whileHover={{ y: -6 }}
+      className="
+        bg-white rounded-xl border border-gray-100
+        shadow-sm hover:shadow-md
+        transition
+      "
+    >
+      {/* IMAGE */}
       <div className="h-44 rounded-t-xl overflow-hidden">
         <img
           src={course.image}
@@ -12,6 +43,7 @@ export default function CourseCard({ course }: any) {
         />
       </div>
 
+      {/* CONTENT */}
       <div className="p-4">
         <p className="text-xs text-[#D08522] font-medium mb-1">
           {course.code}
@@ -25,13 +57,20 @@ export default function CourseCard({ course }: any) {
           {course.description}
         </p>
 
-        <Link
-          href={`/courses/${course.slug}`}
-          className="cursor-pointer inline-block bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-8 py-3 rounded-lg text-sm font-medium"
-        >
-          Enroll Now →
-        </Link>
+        <motion.div variants={buttonVariants} whileHover="hover">
+          <Link
+            href={`/courses/${course.slug}`}
+            className="
+              cursor-pointer inline-block
+              bg-gradient-to-r from-purple-500 to-indigo-600
+              text-white px-8 py-3 rounded-lg
+              text-sm font-medium
+            "
+          >
+            Enroll Now →
+          </Link>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
