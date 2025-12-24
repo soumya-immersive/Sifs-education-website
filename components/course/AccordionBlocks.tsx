@@ -4,6 +4,12 @@ import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 
+import { Course } from "../../data/courses";
+
+interface Props {
+  course: Course;
+}
+
 const SECTIONS = ["Curriculum", "FAQ", "Case Studies", "Reviews"];
 
 /* ---------------- Animations ---------------- */
@@ -37,7 +43,7 @@ const accordionContent: Variants = {
   },
 };
 
-export default function AccordionBlocks() {
+export default function AccordionBlocks({ course }: Props) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (

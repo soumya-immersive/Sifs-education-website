@@ -1,6 +1,11 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
+import { Course } from "../../data/courses";
+
+interface Props {
+  course: Course;
+}
 
 /* ---------------- Animations ---------------- */
 
@@ -22,7 +27,7 @@ const fadeUp: Variants = {
   },
 };
 
-export default function CourseInfo() {
+export default function CourseInfo({ course }: Props) {
   return (
     <motion.div
       className="bg-white relative mt-10"

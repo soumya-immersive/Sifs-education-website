@@ -2,6 +2,12 @@
 
 import { motion, Variants } from "framer-motion";
 
+import { Course } from "../../data/courses";
+
+interface Props {
+  course: Course;
+}
+
 /* ---------------- Animations ---------------- */
 
 const containerVariants: Variants = {
@@ -21,7 +27,7 @@ const itemVariants: Variants = {
   },
 };
 
-export default function PaymentDetails() {
+export default function PaymentDetails({ course }: Props) {
   return (
     <motion.div
       className="bg-white"

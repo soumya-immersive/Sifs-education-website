@@ -3,13 +3,55 @@
 import { useState } from "react";
 import { motion, Variants } from "framer-motion";
 import CourseCard from "./CourseCard";
-import { Course } from "@/data/courses";
 
-/* ---------------- Props ---------------- */
+/* ---------------- Data ---------------- */
 
-interface Props {
-  courses: Course[];
-}
+const courses = [
+  {
+    slug: "forensic-investigation-1",
+    code: "FSP 101",
+    title: "Forensic Science and Criminal Investigation",
+    description:
+      "Learn crime scene analysis and criminal investigation techniques.",
+    image: "/courses/course1.png",
+  },
+  {
+    slug: "fingerprint-analysis-1",
+    code: "FSP 102",
+    title: "Fingerprint Examination and Analysis",
+    description: "Learn scientific fingerprint identification methods.",
+    image: "/courses/course2.png",
+  },
+  {
+    slug: "document-examination-1",
+    code: "FSP 103",
+    title: "Document and Handwriting Examination",
+    description: "Examine questioned documents and handwriting.",
+    image: "/courses/course3.png",
+  },
+  {
+    slug: "fingerprint-analysis-2",
+    code: "FSP 104",
+    title: "Fingerprint Examination and Analysis",
+    description: "Learn scientific fingerprint identification methods.",
+    image: "/courses/course2.png",
+  },
+  {
+    slug: "document-examination-2",
+    code: "FSP 105",
+    title: "Document and Handwriting Examination",
+    description: "Examine questioned documents and handwriting.",
+    image: "/courses/course3.png",
+  },
+  {
+    slug: "forensic-investigation-2",
+    code: "FSP 106",
+    title: "Forensic Science and Criminal Investigation",
+    description:
+      "Learn crime scene analysis and criminal investigation techniques.",
+    image: "/courses/course1.png",
+  },
+];
 
 const ITEMS_PER_LOAD = 3;
 
@@ -33,9 +75,7 @@ const fadeUp: Variants = {
   },
 };
 
-/* ---------------- Component ---------------- */
-
-export default function CoursesGrid({ courses }: Props) {
+export default function CoursesGrid() {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
   const [loading, setLoading] = useState(false);
 
@@ -44,22 +84,12 @@ export default function CoursesGrid({ courses }: Props) {
     setTimeout(() => {
       setVisibleCount((prev) => prev + ITEMS_PER_LOAD);
       setLoading(false);
-    }, 800);
+    }, 2000);
   };
 
   const handleLoadLess = () => {
     setVisibleCount(ITEMS_PER_LOAD);
   };
-
-  if (!courses || courses.length === 0) {
-    return (
-      <section className="max-w-7xl mx-auto px-4 mt-16 text-center">
-        <p className="text-gray-500 text-lg">
-          No courses available for this program.
-        </p>
-      </section>
-    );
-  }
 
   return (
     <section className="max-w-7xl mx-auto px-4 mt-10">
@@ -72,7 +102,10 @@ export default function CoursesGrid({ courses }: Props) {
         viewport={{ once: true }}
       >
         {courses.slice(0, visibleCount).map((course) => (
-          <motion.div key={course.id} variants={fadeUp}>
+          <motion.div
+            key={course.slug}
+            variants={fadeUp}
+          >
             <CourseCard course={course} />
           </motion.div>
         ))}
@@ -86,15 +119,20 @@ export default function CoursesGrid({ courses }: Props) {
         viewport={{ once: true }}
         className="flex justify-center mt-12"
       >
-        {visibleCount < courses.length ? (
+        {/* Load More */}
+        {visibleCount < courses.length && (
           <button
             onClick={handleLoadMore}
             disabled={loading}
             className="
               bg-gradient-to-r from-purple-500 to-indigo-600
-              text-white px-8 py-3 rounded-lg
-              text-sm font-medium flex items-center gap-2
+              text-white
+              px-8 py-3
+              rounded-lg
+              text-sm font-medium
+              flex items-center gap-2
               disabled:opacity-70
+              cursor-pointer
             "
           >
             {loading ? (
@@ -106,13 +144,20 @@ export default function CoursesGrid({ courses }: Props) {
               <>Load More →</>
             )}
           </button>
-        ) : (
+        )}
+
+        {/* Load Less */}
+        {visibleCount >= courses.length && (
           <button
             onClick={handleLoadLess}
             className="
               bg-gradient-to-r from-purple-500 to-indigo-600
-              text-white px-8 py-3 rounded-lg
+              text-white
+              px-8 py-3
+              rounded-lg
               text-sm font-medium
+              transition
+              cursor-pointer
             "
           >
             Load Less ↑

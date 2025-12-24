@@ -2,6 +2,11 @@
 
 import { Linkedin, Twitter } from "lucide-react";
 import { motion, Variants } from "framer-motion";
+import { Course } from "@/data/courses";
+
+interface Props {
+  course: Course;
+}
 
 /* ---------------- Animations ---------------- */
 
@@ -51,7 +56,7 @@ const includeItems = [
   },
 ];
 
-export default function CourseSidebar() {
+export default function CourseSidebar({ course }: Props) {
   return (
     <motion.div
       className="sticky top-28 space-y-6"

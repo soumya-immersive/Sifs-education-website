@@ -1,7 +1,8 @@
 "use client";
 
-import { Star } from "lucide-react";
 import { motion, Variants } from "framer-motion";
+import { Star } from "lucide-react";
+import { Course } from "../../data/courses";
 
 /* ---------------- Animations ---------------- */
 
@@ -23,11 +24,21 @@ const fadeUp: Variants = {
   },
 };
 
-export default function CourseHero() {
+/* ---------------- Component ---------------- */
+
+interface Props {
+  course: Course;
+}
+
+export default function CourseHero({ course }: Props) {
   return (
     <section
       className="relative bg-cover bg-center bg-no-repeat py-24 overflow-hidden"
-      style={{ backgroundImage: "url('/course/hero-bg.png')" }}
+      style={{
+        backgroundImage: `url(${
+          course.bannerImage || "/course/hero-bg.png"
+        })`,
+      }}
     >
       <motion.div
         className="relative max-w-7xl mx-auto px-4"
@@ -47,7 +58,7 @@ export default function CourseHero() {
             mb-3
           "
         >
-          FSP 101
+          {course.courseCode}
         </motion.span>
 
         {/* Title */}
@@ -55,7 +66,7 @@ export default function CourseHero() {
           variants={fadeUp}
           className="text-2xl lg:text-3xl font-bold text-gray-900 mb-3 max-w-3xl"
         >
-          Forensic Science and Criminal Investigation
+          {course.title}
         </motion.h1>
 
         {/* Rating */}
@@ -65,11 +76,16 @@ export default function CourseHero() {
         >
           <div className="flex text-yellow-400">
             {[...Array(5)].map((_, i) => (
-              <Star key={i} size={16} fill="currentColor" />
+              <Star
+                key={i}
+                size={16}
+                fill={i < Math.round(course.rating) ? "currentColor" : "none"}
+              />
             ))}
           </div>
+
           <span className="text-sm text-gray-600">
-            (150+ Ratings)
+            ({course.reviewsCount}+ Ratings)
           </span>
         </motion.div>
       </motion.div>

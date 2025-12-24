@@ -43,7 +43,7 @@ export default function ContactPage() {
 
     return (
         <motion.div
-            className="w-full"
+            className="w-full mb-12"
             initial="hidden"
             animate="visible"
             variants={fadeUp}

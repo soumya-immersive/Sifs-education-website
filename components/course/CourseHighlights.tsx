@@ -2,6 +2,11 @@
 
 import Image from "next/image";
 import { motion, Variants } from "framer-motion";
+import { Course } from "../../data/courses";
+
+interface Props {
+  course: Course;
+}
 
 /* ---------------- Animations ---------------- */
 
@@ -23,7 +28,7 @@ const fadeUp: Variants = {
   },
 };
 
-export default function CourseHighlights() {
+export default function CourseHighlights({ course }: Props) {
   return (
     <motion.div
       className="bg-white"
