@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { Menu, X, ChevronDown, ChevronRight } from "lucide-react";
 import { coursePrograms } from "../../data/coursePrograms";
+import { internshipPrograms } from "../../data/internshipPrograms";
+
 
 /* -------------------------
    Navigation Configuration
@@ -28,10 +30,10 @@ const navItems = [
   },
   {
     label: "Internship",
-    children: [
-      { label: "Lab based Internship", path: "/internship/lab" },
-      { label: "Online Internship", path: "/internship/online" },
-    ],
+    children: internshipPrograms.map((program) => ({
+      label: program.label,
+      path: `/internships/${program.slug}`,
+    })),
   },
   { label: "Training", path: "/training" },
   { label: "Admission", path: "/admission" },
