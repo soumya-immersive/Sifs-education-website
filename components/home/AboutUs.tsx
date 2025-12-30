@@ -59,7 +59,7 @@ export default function AboutUs() {
     <section className="bg-white py-16 relative overflow-hidden">
       {/* Decorative Image 1 - Top Right */}
       <motion.div 
-        className="absolute right-16 bottom-10 z-10 hidden xl:block"
+        className="absolute right-172 bottom-10 z-10 hidden xl:block"
         animate={{
           y: [-8, 8, -8],
           rotate: [-2, 2, -2],
@@ -81,7 +81,7 @@ export default function AboutUs() {
 
       {/* Decorative Image 2 - Bottom Left */}
       <motion.div 
-        className="absolute left-16 bottom-20 z-10 hidden lg:block"
+        className="absolute left-72 bottom-20 z-10 hidden lg:block"
         animate={{
           y: [-10, 10, -10],
           rotate: [-1, 1, -1],
@@ -104,7 +104,7 @@ export default function AboutUs() {
 
       {/* Decorative Image 3 - Right Side */}
       <motion.div 
-        className="absolute right-16 top-1/2 -translate-y-1/2 z-10 hidden lg:block"
+        className="absolute right-72 top-1/2 -translate-y-1/2 z-10 hidden lg:block"
         animate={{
           y: [-6, 6, -6],
           rotate: [1, -1, 1],

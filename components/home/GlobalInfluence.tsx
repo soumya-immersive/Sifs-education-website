@@ -63,7 +63,7 @@ export default function GlobalInfluence() {
     <section className="bg-white py-16 relative overflow-hidden">
       {/* Left decorative stars */}
       <motion.div 
-        className="absolute left-12 md:left-16 bottom-10 z-10 hidden lg:block"
+        className="absolute left-48 md:left-48 bottom-1 -translate-y-1/2 z-10 hidden lg:block"
         animate={{
           y: [-10, 10, -10],
           transition: {
@@ -84,7 +84,7 @@ export default function GlobalInfluence() {
 
       {/* Right decorative leaf */}
       <motion.div 
-        className="absolute right-12 md:right-16 top-1/2 -translate-y-1/2 z-10 hidden lg:block"
+        className="absolute ight-72 md:right-72 top-1/2 -translate-y-1/2 z-0 hidden lg:block"
         animate={{
           y: [-12, 12, -12],
           transition: {

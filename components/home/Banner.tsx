@@ -50,19 +50,16 @@ const imageVariant = {
   },
 };
 
-const statItem = (delay: number) => ({
-  initial: { opacity: 0, y: 20, scale: 0.9 },
-  animate: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      duration: 0.6,
-      delay,
-      ease: easeOutCubic,
-    },
+// Floating animation for stat boxes (same as previous components)
+const floatingAnimation = {
+  y: [-8, 8, -8],
+  rotate: [-1, 1, -1],
+  transition: {
+    duration: 4,
+    repeat: Infinity,
+    ease: "easeInOut",
   },
-});
+};
 
 export default function Banner() {
   return (
@@ -176,46 +173,71 @@ export default function Banner() {
             />
           </motion.div>
 
-          {/* FLOATING TAG */}
-          <motion.div
-            {...statItem(0.5)}
-            className="absolute -top-6 right-10 bg-white p-4 rounded-xl shadow-xl"
-          >
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-pink-500" />
-              <span className="font-semibold text-black text-md">
-                Learn at your <br /> own pace
-              </span>
-            </div>
-          </motion.div>
+          {/* FLOATING TAG - "Learn at your own pace" */}
+<motion.div
+  className="absolute -top-6 right-10 bg-white p-4 rounded-xl shadow-xl"
+  animate={{
+    y: [-8, 8, -8],
+    rotate: [-1, 1, -1],
+    transition: {
+      duration: 4,
+      repeat: Infinity,
+      ease: "easeInOut",
+    },
+  }}
+>
+  <div className="flex items-center gap-2">
+    <Sparkles className="w-5 h-5 text-pink-500" />
+    <span className="font-semibold text-black text-md">
+      Learn at your <br /> own pace
+    </span>
+  </div>
+</motion.div>
 
-          {/* LEFT STAT */}
-          <motion.div
-            {...statItem(0.7)}
-            className="absolute top-1/2 -left-10 bg-white py-3 px-4 rounded-xl shadow-xl"
-          >
-            <div className="flex items-center gap-3">
-              <GraduationCap className="w-6 h-6 text-indigo-600" />
-              <div>
-                <span className="block font-extrabold text-black text-lg mb-0">36k+</span>
-                <span className="text-xs text-black">
-                  Enrolled Students
-                </span>
-              </div>
-            </div>
-          </motion.div>
+{/* LEFT STAT - "36k+ Enrolled Students" */}
+<motion.div
+  className="absolute top-1/2 -left-10 bg-white py-3 px-4 rounded-xl shadow-xl"
+  animate={{
+    y: [-10, 10, -10],
+    rotate: [-2, 2, -2],
+    transition: {
+      duration: 4.5,
+      repeat: Infinity,
+      ease: "easeInOut",
+      delay: 0.3,
+    },
+  }}
+>
+  <div className="flex items-center gap-3">
+    <GraduationCap className="w-6 h-6 text-indigo-600" />
+    <div>
+      <span className="block font-extrabold text-black text-lg mb-0">36k+</span>
+      <span className="text-xs text-black">Enrolled Students</span>
+    </div>
+  </div>
+</motion.div>
 
-          {/* RIGHT STAT */}
-          <motion.div
-            {...statItem(0.9)}
-            className="absolute bottom-4 right-0 bg-white py-3 px-4 rounded-xl shadow-xl"
-          >
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span className="font-extrabold text-black text-lg">99% <br /> <span className="text-xs font-normal text-black">Satisfied</span></span>
-              
-            </div>
-          </motion.div>
+{/* RIGHT STAT - "99% Satisfied" */}
+<motion.div
+  className="absolute bottom-4 right-0 bg-white py-3 px-4 rounded-xl shadow-xl"
+  animate={{
+    y: [-6, 6, -6],
+    rotate: [1, -1, 1],
+    transition: {
+      duration: 3.5,
+      repeat: Infinity,
+      ease: "easeInOut",
+      delay: 0.6,
+    },
+  }}
+>
+  <div className="flex items-center gap-2">
+    <CheckCircle className="w-5 h-5 text-green-600" />
+    <span className="font-extrabold text-black text-lg">99% <br /> 
+      <span className="text-xs font-normal text-black">Satisfied</span>
+    </span>
+  </div>
+</motion.div>
         </div>
       </motion.div>
     </div>
