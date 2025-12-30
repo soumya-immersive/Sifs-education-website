@@ -2,7 +2,7 @@
 
 import { Linkedin, Twitter } from "lucide-react";
 import { motion, Variants } from "framer-motion";
-import { Course } from "@/data/courses";
+import { Course } from "../../data/courses";
 
 interface Props {
   course: Course;

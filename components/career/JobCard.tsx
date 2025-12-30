@@ -1,93 +1,69 @@
 "use client";
 import { FC } from "react";
-import Image from "next/image";
-
 
 interface JobCardProps {
   title: string;
   experience: string;
   deadline: string;
-  workExperience: string;
+  educationalExperience: string;
 }
 
-const JobCard: FC<JobCardProps> = ({
-  title,
-  experience,
-  deadline,
-  workExperience,
-}) => {
+const JobCard: FC<JobCardProps> = ({ title, experience, deadline, educationalExperience }) => {
   return (
-    <div className="border rounded-xl shadow-sm hover:shadow-md transition bg-white relative">
-      
-      {/* Header */}
-      <div className="pb-4 border-b p-6">
-        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>as
-      </div>
-
-      {/* Experience Label */}
-      <div className="mt-4 px-6">
-        <span className="inline-block px-3 py-1 text-sm border rounded-lg bg-blue-50 border-blue-200 text-blue-700 font-medium">
-          {experience}
-        </span>
-      </div>
-
-      {/* Details */}
-      <div className="space-y-4 text-sm p-6">
-
-        {/* Deadline */}
-        <div className="flex items-start gap-3">
-          <Image
-            src="/deadline-job.png"
-            alt="Calendar Icon"
-            width={40}
-            height={40}
-            className="mt-0.5"
-          />
-          <div>
-            <p className="font-medium text-gray-900">Deadline:</p>
-            <p className="text-gray-700">{deadline}</p>
-          </div>
+    <div className="border-2 border-blue-50 rounded-2xl bg-white p-6 shadow-sm hover:shadow-md transition-all mb-4">
+      <div className="flex flex-col w-full">
+        
+        {/* Top Row: Title and Badge */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+          <span className="px-4 py-1 text-xs border border-blue-200 bg-blue-50 text-blue-600 font-bold rounded-lg uppercase">
+            {experience}
+          </span>
         </div>
 
-        {/* Work Experience */}
-        <div className="flex items-start gap-3">
-          <Image
-            src="/work-job.png"
-            alt="Work Icon"
-            width={40}
-            height={40}
-            className="mt-0.5"
-          />
-          <div>
-            <p className="font-medium text-gray-900">Work Experience:</p>
-            <p className="text-gray-700 min-h-8">{workExperience}</p>
+        {/* Divider line */}
+        <div className="h-[1px] bg-gray-100 w-full mb-6" />
+
+        {/* Bottom Row: Info and Button */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+          
+          {/* Column 1: Educational Experience (Spans 6 columns) */}
+          <div className="md:col-span-6">
+            <p className="text-[10px] font-black text-black uppercase mb-1 tracking-tight">
+              Educational Experience:
+            </p>
+            <p className="text-sm text-gray-600 leading-snug">
+              {educationalExperience}
+            </p>
           </div>
+
+          {/* Column 2: Deadline (Spans 3 columns) */}
+          <div className="md:col-span-3">
+            <p className="text-[10px] font-black text-black uppercase mb-1 tracking-tight">
+              Deadline:
+            </p>
+            <p className="text-sm text-gray-600 font-medium">
+              {deadline}
+            </p>
+          </div>
+
+          {/* Column 3: Button (Spans 3 columns) */}
+          <div className="md:col-span-3 flex justify-end">
+            <button className="group whitespace-nowrap bg-gradient-to-r from-[#4F65F1] to-[#9B66E4] text-white py-3 px-6 rounded-xl font-normal flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all w-full md:w-auto min-w-[140px]">
+              Apply Now
+              <svg 
+                className="w-5 h-5 transition-transform group-hover:translate-x-1" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24" 
+                strokeWidth="2.5"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </button>
+          </div>
+          
         </div>
-      </div>
-
-      {/* Button */}
-      <div className="px-6 py-2">
-        <button
-          className="w-1/2 text-white py-2 px-1 rounded-lg font-medium flex items-center justify-center gap-2 transition 
-          bg-gradient-to-r from-[#3E58EE] to-[#B565E7] 
-          hover:from-[#354ED8] hover:to-[#A24EDC]  absolute -bottom-5"
-        >
-
-          Apply Now 
-          <svg
-              className="ml-2 w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M17 8l4 4m0 0l-4 4m4-4H3"
-              ></path>
-            </svg>
-        </button>
       </div>
     </div>
   );

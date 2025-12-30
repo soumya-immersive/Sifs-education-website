@@ -23,7 +23,7 @@ const fadeUp: Variants = {
   },
 };
 
-export default function CoursesFilterBar() {
+export default function TrainingFilterBar() {
   return (
     <section className="max-w-7xl mx-auto px-4 mt-8">
       <motion.div
@@ -47,7 +47,7 @@ export default function CoursesFilterBar() {
         >
           <input
             type="text"
-            placeholder="What do you want to learn?"
+            placeholder="Search training (e.g. Corporate, Hands-on)"
             className="
               w-full
               border border-r-0
@@ -79,16 +79,29 @@ export default function CoursesFilterBar() {
           variants={fadeUp}
           className="flex w-full lg:w-auto gap-3 justify-between lg:justify-end"
         >
+          {/* Training Type */}
           <select className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-full lg:w-auto">
-            <option>Skill Level</option>
+            <option>Training Type</option>
+            <option>Corporate Training</option>
+            <option>Onsite Training</option>
+            <option>Hands-on Training</option>
+            <option>Online Training</option>
           </select>
 
+          {/* Mode */}
           <select className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-full lg:w-auto">
-            <option>Duration</option>
+            <option>Mode</option>
+            <option>Online</option>
+            <option>Onsite</option>
+            <option>Hybrid</option>
           </select>
 
+          {/* Level */}
           <select className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-full lg:w-auto">
-            <option>Newest</option>
+            <option>Level</option>
+            <option>Beginner</option>
+            <option>Intermediate</option>
+            <option>Advanced</option>
           </select>
         </motion.div>
       </motion.div>

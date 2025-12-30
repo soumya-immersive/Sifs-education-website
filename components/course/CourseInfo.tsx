@@ -1,10 +1,11 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
-import { Course } from "../../data/courses";
+import { Course } from "../../data/courses"; // 1. Changed from Book to Course
+import { Info } from "lucide-react";
 
 interface Props {
-  course: Course;
+  course: Course; // 2. Updated prop name
 }
 
 /* ---------------- Animations ---------------- */
@@ -36,78 +37,71 @@ export default function CourseInfo({ course }: Props) {
       whileInView="visible"
       viewport={{ once: true }}
     >
-      {/* Decorative lines (top-left like screenshot) */}
-      <motion.div
+      {/* Decorative lines (top-left) */}
+      {/*<motion.div
         variants={fadeUp}
-        className="absolute -top-2 -left-2 w-12 h-12 bg-[url('/course/lines.svg')] bg-contain bg-no-repeat"
-      />
+        className="absolute -top-2 -left-2 w-12 h-12 bg-[url('/books/lines-blue.svg')] bg-contain bg-no-repeat opacity-50"
+      />*/}
 
       {/* Header */}
       <motion.div
         variants={fadeUp}
-        className="flex items-center justify-between mb-4"
+        className="flex items-center justify-between mb-6 border-b border-gray-50 pb-4"
       >
-        <h2 className="text-lg font-semibold text-gray-900">
-          Course Info
-        </h2>
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-blue-50 rounded-lg">
+            <Info className="w-5 h-5 text-blue-600" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900">
+            About this Course
+          </h2>
+        </div>
 
-        <div className="text-xs text-gray-500 text-right">
-          <span className="ml-2 block font-semiBold text-md text-black">
-            Dec Batch 2025
+        <div className="text-right">
+          <span className="block font-bold text-sm text-blue-600 uppercase tracking-tight">
+            2025 Edition
           </span>
-          <span className="text-xs font-normal text-black block">
-            Last Date to Register : 25th Dec 2025
+          <span className="text-xs font-medium text-gray-400 block">
+            Professional Program
           </span>
         </div>
       </motion.div>
 
-      {/* Description */}
+      {/* Description / Overview */}
       <motion.div
-        className="space-y-3 text-sm text-gray-600 leading-relaxed"
+        className="space-y-4 text-sm md:text-base text-gray-600 leading-relaxed"
         variants={container}
       >
-        <motion.p variants={fadeUp}>
-          The Forensic Science & Criminal Investigation Online Course offered by
-          SIFS India is perfect for students looking to gain an in-depth
-          understanding of forensic science as a whole.
+        {/* 3. Changed 'book.overview' to 'course.description' (or your actual property) */}
+        <motion.p variants={fadeUp} className="font-medium text-gray-800">
+          {course.description || "Comprehensive learning program designed for forensic professionals."}
         </motion.p>
 
         <motion.p variants={fadeUp}>
-          You will learn the science behind solving crimes, the techniques used by
-          expert investigators to identify, gather, preserve, and analyze
-          evidence, and gain valuable knowledge and skills to excel in this
-          field.
+          This certificate program on <strong>{course.title}</strong> serves as an essential resource 
+          for students, practitioners, and forensic enthusiasts. It bridges the gap between 
+          theoretical principles and practical field application.
         </motion.p>
 
         <motion.p variants={fadeUp}>
-          All the pre-recorded sessions are delivered by subject matter experts
-          and are loaded with real-life case studies, preparing you to face
-          real-world challenges in forensic investigations.
+          Guided by industry veterans, the curriculum delves into the intricacies of evidence analysis, 
+          legal frameworks, and the evolving landscape of criminal investigation. Every module is 
+          meticulously designed to include the latest advancements in forensic technology.
         </motion.p>
 
         <motion.p variants={fadeUp}>
-          Associate Degree Program comprises of three levels: Level 1
-          (certificate), Level 2 (diploma), and Level 3 (Post Graduate Diploma),
-          and the entire curriculum is divided among these levels.
+          Participants will find a structured approach to complex topics. The inclusion of real-life 
+          case studies provides a narrative backbone to the technical data, making it both an 
+          educational powerhouse and an engaging learning experience.
         </motion.p>
 
-        <motion.p variants={fadeUp}>
-          A few of the topics you will learn about include forensic science
-          fundamentals, crime scene investigation, cyber crimes, fingerprint and
-          questioned document examination, wildlife forensics, drug and alcohol
-          abuse, investigation across cases, crime investigation techniques, the
-          role of forensic dentistry, sexual offenses, the role of insects in
-          forensics, forensic facial reconstruction, disaster victim
-          identification, forensic psychology, the significance of serological
-          evidence, photographing crime scenes, forensic ballistics, forensic
-          physics, and using toxicological findings for legal purposes.
-        </motion.p>
-
-        <motion.p variants={fadeUp}>
-          So if you are passionate about solving mysteries and looking for a
-          career that combines science with justice, join this course and begin
-          your forensic journey.
-        </motion.p>
+        <motion.div 
+          variants={fadeUp}
+          className="p-4 bg-gray-50 rounded-xl border border-gray-100 italic text-gray-500 text-sm"
+        >
+          * This program is part of the SIFS India standard training series and matches 
+          the requirements for professional certification in forensic sciences.
+        </motion.div>
       </motion.div>
     </motion.div>
   );

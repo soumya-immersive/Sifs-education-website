@@ -4,7 +4,8 @@ import React from "react";
 
 interface PageBannerProps {
   title: string;
-  subtitle?: string;
+  // Option 1: Reference from the React namespace
+  subtitle?: React.ReactNode; 
   bgImage: string; 
 }
 

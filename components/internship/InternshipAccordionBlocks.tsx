@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { Internship } from "@/data/internships";
+import { Internship } from "../../data/internships";
 
 interface Props {
   internship: Internship;

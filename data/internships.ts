@@ -10,6 +10,7 @@ export interface Internship {
   rating: number;
   reviewsCount: number;
   bannerImage: string;
+  highlights?: string[];
 }
 
 export const internships: Internship[] = [
@@ -25,6 +26,11 @@ export const internships: Internship[] = [
     rating: 4.8,
     reviewsCount: 150,
     bannerImage: "/internship/hero-bg.png",
+    highlights: [
+      "Live Cyber Crime Case Studies",
+      "Network Forensic Tools Training",
+      "Digital Evidence Collection Protocols"
+    ]
   },
   {
     id: 2,
@@ -38,5 +44,10 @@ export const internships: Internship[] = [
     rating: 4.8,
     reviewsCount: 150,
     bannerImage: "/internship/hero-bg.png",
+    highlights: [
+      "Live Cyber Crime Case Studies",
+      "Network Forensic Tools Training",
+      "Digital Evidence Collection Protocols"
+    ]
   },
 ];

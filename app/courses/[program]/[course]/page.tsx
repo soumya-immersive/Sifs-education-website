@@ -9,15 +9,15 @@ import AccordionBlocks from "../../../../components/course/AccordionBlocks";
 import PaymentDetails from "../../../../components/course/PaymentDetails";
 import EnquiriesSection from "../../../../components/course/EnquiriesSection";
 
-interface Props {
+interface PageProps {
   params: Promise<{
     program: string;
     course: string;
   }>;
 }
 
-export default async function CourseDetailsPage({ params }: Props) {
-  const { program, course: courseSlug } = await params; // ✅ FIX
+export default async function CourseDetailsPage({ params }: PageProps) {
+  const { program, course: courseSlug } = await params; 
 
   const course = courses.find(
     (c) =>

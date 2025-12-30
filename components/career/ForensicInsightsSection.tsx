@@ -170,7 +170,7 @@ const ForensicInsights: React.FC = () => {
   ];
 
   return (
-    <div className="bg-white py-8 px-0 md:py-16 md:px-0 mt-12">
+    <div className="bg-white py-8 px-0 md:py-16 md:px-0 mt-2 ">
       <motion.div
         className="mx-auto max-w-7xl"
         initial="hidden"

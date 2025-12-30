@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, Variants } from "framer-motion";
 import CourseCard from "./CourseCard";
-import { Course } from "@/data/courses";
+import { Course } from "../../data/courses";
 
 /* ---------------- Props ---------------- */
 

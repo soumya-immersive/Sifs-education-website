@@ -2,15 +2,9 @@
 
 import { motion, Variants } from "framer-motion";
 
-/* ---------------- Animations ---------------- */
-
 const container: Variants = {
   hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.15,
-    },
-  },
+  visible: { transition: { staggerChildren: 0.15 } },
 };
 
 const fadeUp: Variants = {
@@ -31,46 +25,56 @@ const scaleFade: Variants = {
   },
 };
 
-export default function CoursesHero() {
+interface Category {
+  label: string;
+  slug: string;
+  image?: string;
+}
+
+interface Props {
+  category: Category;
+}
+
+export default function BooksHero({ category }: Props) {
   return (
     <section
-      className="relative py-16
-        bg-[url('/courses/hero-bg.png')]
-        bg-cover bg-center bg-no-repeat
-        overflow-hidden"
+      className="relative py-16 bg-[url('/books/hero-bg.png')] 
+      bg-cover bg-center bg-no-repeat overflow-hidden border-b border-gray-100"
     >
       <motion.div
-        className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6"
+        className="relative z-10 max-w-7xl mx-auto px-4 flex flex-col md:flex-row
+        items-center justify-between gap-8"
         variants={container}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
       >
-        {/* Left */}
-        <motion.div variants={container}>
+        {/* LEFT CONTENT */}
+        <motion.div variants={container} className="text-center md:text-left">
           <motion.h1
             variants={fadeUp}
             className="text-3xl font-bold text-gray-900"
           >
-            Courses
+            {category.label}
           </motion.h1>
 
           <motion.p
             variants={fadeUp}
             className="text-sm text-gray-600 mt-1"
           >
-            Associate Degree Program
+            Explore our {category.label.toLowerCase()}
           </motion.p>
         </motion.div>
 
-        {/* Right Image */}
+        {/* RIGHT IMAGE / BOOK MOCKUP */}
         <motion.div
           variants={scaleFade}
-          className="w-full md:w-[400px] h-[200px] rounded-xl overflow-hidden"
+          className="w-full md:w-[400px] h-[200px]
+          rounded-xl overflow-hidden"
         >
           <img
-            src="/courses/hero.png"
-            alt="Courses"
+            src={category.image || "/books/hero.png"}
+            alt={`${category.label} Books`}
             className="w-full h-full object-cover"
           />
         </motion.div>

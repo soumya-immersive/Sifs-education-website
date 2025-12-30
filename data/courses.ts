@@ -9,6 +9,7 @@ export interface Course {
   courseCode: string;
 
   heroImage: string;
+  description?: string;
 
   // 🔹 NEW (used by CourseHero & cards)
   rating: number;
@@ -29,6 +30,7 @@ export const courses: Course[] = [
     rating: 4.8,
     reviewsCount: 150,
     bannerImage: "/course/hero-bg.png",
+    description: "An advanced program covering latent print development and identification techniques."
   },
   {
     id: 2,
@@ -42,6 +44,7 @@ export const courses: Course[] = [
     rating: 4.6,
     reviewsCount: 98,
     bannerImage: "/course/hero-bg.png",
+    description: "An advanced program covering latent print development and identification techniques."
   },
   {
     id: 3,
@@ -55,6 +58,7 @@ export const courses: Course[] = [
     rating: 4.7,
     reviewsCount: 75,
     bannerImage: "/course/hero-bg.png",
+    description: "An advanced program covering latent print development and identification techniques."
   },
   {
     id: 4,
@@ -68,6 +72,7 @@ export const courses: Course[] = [
     rating: 4.9,
     reviewsCount: 210,
     bannerImage: "/course/hero-bg.png",
+    description: "An advanced program covering latent print development and identification techniques."
   },
   {
     id: 5,
@@ -81,5 +86,6 @@ export const courses: Course[] = [
     rating: 4.5,
     reviewsCount: 60,
     bannerImage: "/course/hero-bg.png",
+    description: "An advanced program covering latent print development and identification techniques."
   },
 ];
