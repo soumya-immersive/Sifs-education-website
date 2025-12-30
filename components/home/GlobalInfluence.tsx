@@ -15,7 +15,7 @@ const partners = [
 ];
 
 // --------------------
-//     VARIANTS FIXED
+//    VARIANTS FIXED
 // --------------------
 
 // Main container (stagger)
@@ -38,7 +38,7 @@ const logoItemVariants = {
     opacity: 1,
     scale: 1,
     transition: {
-      type: spring,       // FIXED
+      type: spring,
       stiffness: 100,
       damping: 14,
     },
@@ -52,7 +52,7 @@ const textItemVariants = {
     y: 0,
     opacity: 1,
     transition: {
-      ease: easeOut,      // FIXED
+      ease: easeOut,
       duration: 0.5,
     },
   },
@@ -60,7 +60,50 @@ const textItemVariants = {
 
 export default function GlobalInfluence() {
   return (
-    <section className="bg-white py-16">
+    <section className="bg-white py-16 relative overflow-hidden">
+      {/* Left decorative stars */}
+      <motion.div 
+        className="absolute left-12 md:left-16 bottom-10 z-10 hidden lg:block"
+        animate={{
+          y: [-10, 10, -10],
+          transition: {
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut",
+          },
+        }}
+      >
+        <Image
+          src="/global-influence/stars.png"
+          alt="Decorative stars"
+          width={60}
+          height={60}
+          className="max-w-full h-auto opacity-70"
+        />
+      </motion.div>
+
+      {/* Right decorative leaf */}
+      <motion.div 
+        className="absolute right-12 md:right-16 top-1/2 -translate-y-1/2 z-10 hidden lg:block"
+        animate={{
+          y: [-12, 12, -12],
+          transition: {
+            duration: 3.5,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 0.3,
+          },
+        }}
+      >
+        <Image
+          src="/global-influence/leaf.png"
+          alt="Decorative leaf"
+          width={60}
+          height={60}
+          className="max-w-full h-auto opacity-70"
+        />
+      </motion.div>
+
       <div className="mx-auto max-w-7xl px-4">
         <motion.div
           className="relative"

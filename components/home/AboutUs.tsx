@@ -54,12 +54,78 @@ const checklistItemVariants = {
   }
 };
 
-
 export default function AboutUs() {
   return (
-    <section className="bg-white py-16">
-      <div className="mx-auto flex max-w-7xl flex-col items-center gap-12 px-4 lg:flex-row lg:items-start lg:gap-16">
+    <section className="bg-white py-16 relative overflow-hidden">
+      {/* Decorative Image 1 - Top Right */}
+      <motion.div 
+        className="absolute right-16 bottom-10 z-10 hidden xl:block"
+        animate={{
+          y: [-8, 8, -8],
+          rotate: [-2, 2, -2],
+          transition: {
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut",
+          },
+        }}
+      >
+        <Image
+          src="/about-us/deco-2.png"
+          alt="Decorative element"
+          width={80}
+          height={80}
+          className="max-w-full h-auto opacity-70"
+        />
+      </motion.div>
 
+      {/* Decorative Image 2 - Bottom Left */}
+      <motion.div 
+        className="absolute left-16 bottom-20 z-10 hidden lg:block"
+        animate={{
+          y: [-10, 10, -10],
+          rotate: [-1, 1, -1],
+          transition: {
+            duration: 4.5,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 0.5,
+          },
+        }}
+      >
+        <Image
+          src="/about-us/deco-1.png"
+          alt="Decorative element"
+          width={80}
+          height={80}
+          className="max-w-full h-auto opacity-70"
+        />
+      </motion.div>
+
+      {/* Decorative Image 3 - Right Side */}
+      <motion.div 
+        className="absolute right-16 top-1/2 -translate-y-1/2 z-10 hidden lg:block"
+        animate={{
+          y: [-6, 6, -6],
+          rotate: [1, -1, 1],
+          transition: {
+            duration: 3.5,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1,
+          },
+        }}
+      >
+        <Image
+          src="/about-us/deco-3.png"
+          alt="Decorative element"
+          width={80}
+          height={80}
+          className="max-w-full h-auto opacity-70"
+        />
+      </motion.div>
+
+      <div className="mx-auto flex max-w-7xl flex-col items-center gap-12 px-4 lg:flex-row lg:items-start lg:gap-16">
         {/* Left: Image + Badge */}
         <motion.div 
           className="relative w-full max-w-md"
@@ -69,9 +135,11 @@ export default function AboutUs() {
           viewport={{ once: true, amount: 0.3 }}
         >
           <div className="overflow-hidden rounded-[120px]">
-            <img
+            <Image
               src="/home-about.png"
               alt="Students learning online"
+              width={500}
+              height={500}
               className="h-full w-full object-cover"
             />
           </div>
@@ -104,13 +172,11 @@ export default function AboutUs() {
 
           {/* Heading */}
           <motion.h2
-            className="mb-4 text-2xl text-black"
+            className="mb-4 text-2xl text-black md:text-3xl"
             variants={textItemVariants}
           >
-            <span className="relative inline-block text-2xl font-semibold text-black">
+            <span className="relative inline-block text-2xl font-semibold text-black md:text-3xl">
               <span className="relative z-10">Learn Any</span>
-
-              {/* Yellow underline */}
               <Image
                 src="/yellow-underline.png"
                 alt=""
@@ -124,7 +190,7 @@ export default function AboutUs() {
 
           {/* Paragraph */}
           <motion.p 
-            className="mb-6 text-md text-[#6B7385]"
+            className="mb-6 text-md text-[#6B7385] leading-relaxed"
             variants={textItemVariants}
           >
             Online learning is one of the most flexible ways to gain knowledge,
@@ -143,7 +209,6 @@ export default function AboutUs() {
 
           {/* Checklist Grid */}
           <div className="grid grid-cols-1 gap-4 text-sm text-gray-700 sm:grid-cols-2">
-
             {/* List 1 */}
             <motion.ul 
               className="space-y-2"
