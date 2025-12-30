@@ -166,7 +166,7 @@ export default function Banner() {
             whileInView="visible"
             variants={imageVariant}
             viewport={{ once: true }}
-            className="relative w-[420px] h-[550px] md:w-[490px] md:h-[620px] rotate-45 overflow-hidden rounded-3xl shadow-xl"
+            className="relative w-[420px] h-[550px] md:w-[490px] md:h-[620px] rotate-45 overflow-hidden rounded-3xl"
           >
             <Image
               src="/banner.png"
@@ -183,8 +183,8 @@ export default function Banner() {
           >
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-pink-500" />
-              <span className="font-semibold text-sm">
-                Learn at your own pace
+              <span className="font-semibold text-black text-md">
+                Learn at your <br /> own pace
               </span>
             </div>
           </motion.div>
@@ -197,8 +197,8 @@ export default function Banner() {
             <div className="flex items-center gap-3">
               <GraduationCap className="w-6 h-6 text-indigo-600" />
               <div>
-                <span className="block font-extrabold text-lg">36k+</span>
-                <span className="text-xs text-gray-500">
+                <span className="block font-extrabold text-black text-lg mb-0">36k+</span>
+                <span className="text-xs text-black">
                   Enrolled Students
                 </span>
               </div>
@@ -212,8 +212,8 @@ export default function Banner() {
           >
             <div className="flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-green-600" />
-              <span className="font-extrabold text-lg">99%</span>
-              <span className="text-xs text-gray-500">Satisfied</span>
+              <span className="font-extrabold text-black text-lg">99% <br /> <span className="text-xs font-normal text-black">Satisfied</span></span>
+              
             </div>
           </motion.div>
         </div>
