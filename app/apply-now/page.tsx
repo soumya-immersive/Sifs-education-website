@@ -69,10 +69,10 @@ export default function CourseRegistrationForm() {
               </div>
             </div>
 
-            <p className="text-[14px] font-normal text-black">Course Price :</p>
+            <p className="text-[14px] font-normal text-black mb-0">Course Price :</p>
 
             <div className="flex border border-gray-200 rounded-md overflow-hidden">
-              <div className="bg-[#FFB800] flex items-center justify-center px-4">
+              <div className="bg-[#FFB800] flex items-center justify-center">
                 <Search className="text-white w-4 h-4 -rotate-90" />
               </div>
               <input 
@@ -105,7 +105,7 @@ export default function CourseRegistrationForm() {
                 </div>
               ))}
               
-              <div className="space-y-1">
+              <div className="space-y-1 mb-3">
                 <label className="text-[14px] font-normal text-black ml-1">Country</label>
                 <div className="relative">
                   <select className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm appearance-none outline-none text-black bg-white">
@@ -116,7 +116,7 @@ export default function CourseRegistrationForm() {
                 </div>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1 mb-3">
                 <label className="text-[14px] font-normal text-black ml-1">Qualification</label>
                 <input type="text" placeholder="Last Qualification" className="w-full border border-gray-200 rounded-md px-4 py-2 text-sm outline-none bg-white placeholder:text-gray-400 text-gray-400 " />
               </div>
