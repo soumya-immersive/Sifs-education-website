@@ -6,7 +6,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { Navigation } from "swiper/modules";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import Image from "next/image";
 
 // --- Interfaces ---
@@ -55,14 +55,23 @@ const trainingCategories = [
 ];
 
 // --- Framer Motion Variants ---
-const sectionContainerVariants = {
+// Adding explicit 'Variants' type to ensure compatibility
+const sectionContainerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { delayChildren: 0.1, staggerChildren: 0.1 } },
 };
 
-const itemSlideUpVariants = {
+const itemSlideUpVariants: Variants = {
   hidden: { y: 30, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] } },
+  visible: { 
+    y: 0, 
+    opacity: 1, 
+    transition: { 
+        duration: 0.6, 
+        // Use 'as const' to tell TypeScript these are exactly 4 numbers (a tuple)
+        ease: [0.25, 0.1, 0.25, 1] as const 
+    } 
+  },
 };
 
 // --- Sub-Components ---
