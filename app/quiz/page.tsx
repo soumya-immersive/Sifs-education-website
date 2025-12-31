@@ -4,6 +4,7 @@ import { useState } from "react";
 import PageBanner from "../../components/common/PageBanner";
 import { motion, easeOut } from "framer-motion";
 import { Calendar, User, ChevronDown, ChevronRight, ChevronsLeft, ChevronLeft, ChevronsRight } from "lucide-react";
+import Image from "next/image";
 
 export default function QuizZonePage() {
     const [activeTab, setActiveTab] = useState("2020");
@@ -56,8 +57,20 @@ export default function QuizZonePage() {
                             Quiz 169
                         </span>
                         <h2 className="text-3xl font-bold text-gray-900 mt-4">
-                            Welcome <span className="underline decoration-[#FFB800]">to</span> the Quiz!
-                        </h2>
+  Welcome{" "}
+  <span className="relative inline-block">
+    <span className="relative z-10">to</span>
+    <Image
+      src="/yellow-underline.png"
+      alt=""
+      width={80}
+      height={14}
+      className="absolute left-0 -bottom-1 z-0"
+    />
+  </span>{" "}
+  the Quiz!
+</h2>
+
                         
                         <div className="text-gray-600 text-sm space-y-4 leading-relaxed">
                             <p className="italic font-medium">"Achieving Better Understanding and Higher Knowledge is the Best Reward in Life"</p>
@@ -97,8 +110,22 @@ export default function QuizZonePage() {
                     {/* LEFT: QUIZ HUB */}
                     <div className="lg:col-span-2">
                         <motion.div variants={fadeUp}>
-                            <p className="text-[#3E58EE] text-xs font-semibold">Explore our all of the quizzes!</p>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-6">Forensic <span className="underline decoration-[#FFB800]">Quiz</span> Hub</h3>
+                            <p className="text-[#3E58EE] text-sm font-medium">Explore our all of the quizzes!</p>
+                            <h3 className="text-2xl font-medium text-black mb-12">
+  Foren{" "}
+  <span className="relative inline-block">
+    <span className="relative z-10">sic Quiz</span>
+    <Image
+      src="/yellow-underline.png"
+      alt=""
+      width={100}
+      height={14}
+      className="absolute left-0 -bottom-1 z-0"
+    />
+  </span>{" "}
+  Hub
+</h3>
+
                             
                             {/* Year Tabs */}
                             <div className="flex gap-8 border-b border-gray-200 mb-8 overflow-x-auto">
@@ -121,13 +148,18 @@ export default function QuizZonePage() {
                                     <div key={idx} className="border rounded-lg overflow-hidden bg-white">
                                         <button 
                                             onClick={() => setOpenQuiz(openQuiz === idx ? null : idx)}
-                                            className={`w-full flex items-center justify-between p-4 text-sm font-bold text-left transition-colors ${openQuiz === idx ? "bg-[#F97316] text-white" : "bg-gray-100 text-gray-700"}`}
-                                        >
-                                            <span>Quiz {idx}: History of Indian Forensics | 2nd to 4th July 2020</span>
+                                            className={`w-full flex items-center justify-between p-4 text-sm font-medium text-left transition-all duration-300 ${
+                                                openQuiz === idx 
+                                                ? "bg-gradient-to-r from-[#D08522] to-[#FF9F20] text-white shadow-lg hover:shadow-xl hover:from-[#D08522]/90 hover:to-[#FF9F20]/90" 
+                                                : "bg-[#EBEBEB] text-[#777777] hover:bg-gray-200"
+                                            }`}
+                                            >
+                                            <span><b>Quiz</b> {idx}: History of Indian Forensics | 2nd to 4th July 2020</span>
                                             {openQuiz === idx ? <ChevronDown size={18}/> : <ChevronRight size={18}/>}
                                         </button>
+
                                         {openQuiz === idx && (
-                                            <div className="p-6 text-[12px] text-gray-600 space-y-3 leading-relaxed border-t">
+                                            <div className="p-6 text-[14px] text-[#6B7385] space-y-3 leading-relaxed border-t font-regular">
                                                 <p className="italic font-medium">"Achieving Better Understanding and Higher Knowledge is the Best Reward in Life"</p>
                                                 <p>In addition, SIFS India always believes to bring the act of learning into your behavior...</p>
                                                 <div className="pt-2">
@@ -159,26 +191,26 @@ export default function QuizZonePage() {
 
                     {/* RIGHT: APPLICANT FORM */}
                     <motion.div variants={fadeUp}>
-                        <div className="bg-white rounded-2xl border shadow-sm sticky top-6">
-                            <h3 className="text-lg font-bold text-gray-900 p-6 border-b">Applicant Details</h3>
+                        <div className="bg-white rounded-2xl border sticky top-6">
+                            <h3 className="text-lg font-bold text-black p-4 border-b border-[#D9D9D9]">Applicant Details</h3>
                             <div className="p-6 space-y-4">
                                 <div>
-                                    <label className="text-[11px] font-semibold text-gray-500 mb-1 block">Name as printed on certificate</label>
+                                    <label className="text-[14px] font-mrdium text-black mb-0 block">Name as printed on certificate</label>
                                     <input type="text" className="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" />
                                 </div>
                                 <div>
-                                    <label className="text-[11px] font-semibold text-gray-500 mb-1 block">E-mail</label>
+                                    <label className="text-[14px] font-mrdium text-black mb-0 block">E-mail</label>
                                     <input type="email" className="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" />
                                 </div>
                                 <div>
-                                    <label className="text-[11px] font-semibold text-gray-500 mb-1 block">Organization/Institution name</label>
+                                    <label className="text-[14px] font-mrdium text-black mb-0 block">Organization/Institution name</label>
                                     <input type="text" className="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" />
                                 </div>
                                 <div>
-                                    <label className="text-[11px] font-semibold text-gray-500 mb-1 block">Mobile number</label>
+                                    <label className="text-[14px] font-mrdium text-black mb-0 block">Mobile number</label>
                                     <input type="text" className="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" />
                                 </div>
-                                <button className="w-full mt-4 bg-gradient-to-r from-[#3E58EE] to-[#B565E7] text-white py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2">
+                                <button className="w-1/2 mt-4 bg-gradient-to-r from-[#3E58EE] to-[#B565E7] text-white py-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2">
                                     Attempt Quiz Now →
                                 </button>
                             </div>

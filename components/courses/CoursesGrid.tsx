@@ -35,6 +35,8 @@ const fadeUp: Variants = {
 
 /* ---------------- Component ---------------- */
 
+/* ---------------- Component ---------------- */
+
 export default function CoursesGrid({ courses }: Props) {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
   const [loading, setLoading] = useState(false);
@@ -49,6 +51,8 @@ export default function CoursesGrid({ courses }: Props) {
 
   const handleLoadLess = () => {
     setVisibleCount(ITEMS_PER_LOAD);
+    // Optional: Scroll back up to the top of the grid smoothly
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (!courses || courses.length === 0) {
@@ -78,47 +82,50 @@ export default function CoursesGrid({ courses }: Props) {
         ))}
       </motion.div>
 
-      {/* ACTIONS */}
-      <motion.div
-        variants={fadeUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        className="flex justify-center mt-12"
-      >
-        {visibleCount < courses.length ? (
-          <button
-            onClick={handleLoadMore}
-            disabled={loading}
-            className="
-              bg-gradient-to-r from-purple-500 to-indigo-600
-              text-white px-8 py-3 rounded-lg
-              text-sm font-medium flex items-center gap-2
-              disabled:opacity-70
-            "
-          >
-            {loading ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Loading...
-              </>
-            ) : (
-              <>Load More →</>
-            )}
-          </button>
-        ) : (
-          <button
-            onClick={handleLoadLess}
-            className="
-              bg-gradient-to-r from-purple-500 to-indigo-600
-              text-white px-8 py-3 rounded-lg
-              text-sm font-medium
-            "
-          >
-            Load Less ↑
-          </button>
-        )}
-      </motion.div>
+      {/* ACTIONS - Only show if total courses > 3 */}
+      {courses.length > ITEMS_PER_LOAD && (
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="flex justify-center mt-12"
+        >
+          {visibleCount < courses.length ? (
+            <button
+              onClick={handleLoadMore}
+              disabled={loading}
+              className="
+                bg-gradient-to-r from-purple-500 to-indigo-600
+                text-white px-8 py-3 rounded-lg
+                text-sm font-medium flex items-center gap-2
+                disabled:opacity-70 transition-all hover:shadow-lg
+              "
+            >
+              {loading ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>Load More →</>
+              )}
+            </button>
+          ) : (
+            // Only shows "Load Less" if we are currently showing more than the initial row
+            <button
+              onClick={handleLoadLess}
+              className="
+                bg-gradient-to-r from-purple-500 to-indigo-600
+                text-white px-8 py-3 rounded-lg
+                text-sm font-medium transition-all hover:shadow-lg
+              "
+            >
+              Load Less ↑
+            </button>
+          )}
+        </motion.div>
+      )}
     </section>
   );
 }
