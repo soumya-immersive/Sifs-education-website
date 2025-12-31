@@ -25,15 +25,15 @@ const Topbar = () => {
 
       {/* Right Side: Auxiliary Links */}
       <div className="flex items-center space-x-6">
-        <a href="#" className="hover:text-indigo-600 transition-colors">
+        <a href="/courses/associate-degree" className="hover:text-indigo-600 transition-colors">
           Study online
         </a>
         <span className="text-gray-300">|</span>
-        <a href="#" className="hover:text-indigo-600 transition-colors">
+        <a href="/events" className="hover:text-indigo-600 transition-colors">
           Forensic Events
         </a>
         <span className="text-gray-300">|</span>
-        <a href="#" className="hover:text-indigo-600 transition-colors">
+        <a href="/gallery" className="hover:text-indigo-600 transition-colors">
           Journey at Glance
         </a>
       </div>

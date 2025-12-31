@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Sparkles, CheckCircle, GraduationCap } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -62,6 +63,12 @@ const floatingAnimation = {
 };
 
 export default function Banner() {
+  const router = useRouter();
+
+  const handleApplyClick = () => {
+    router.push("/apply-now");
+  };
+
   return (
     <div className="relative overflow-hidden pt-16 pb-32">
       {/* SOFT BACKGROUND */}
@@ -124,22 +131,15 @@ export default function Banner() {
               </svg>
             </button>
 
-            <button className="flex items-center border border-gray-300 text-gray-700 font-semibold py-3 px-8 rounded-xl hover:bg-gray-100 transition">
-              Apply Now
-              <svg
-                className="ml-2 w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M17 8l4 4m0 0l-4 4m4-4H3"
-                />
-              </svg>
-            </button>
+            <button 
+      onClick={handleApplyClick}
+      className="flex items-center border border-gray-300 text-gray-700 font-semibold py-3 px-8 rounded-xl hover:bg-gray-100 transition"
+    >
+      Apply Now
+      <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+      </svg>
+    </button>
           </motion.div>
 
           {/* ZIGZAG */}
