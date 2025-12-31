@@ -4,6 +4,7 @@
 import React from "react";
 import { ArrowRight } from "lucide-react";
 import { motion, Variants } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 const studentImage = "/student-pointing.png";
 
@@ -63,6 +64,12 @@ const buttonItemVariants: Variants = {
 };
 
 const ForensicScienceBanner = () => {
+  const router = useRouter();
+
+  const handleExploreClick = () => {
+    router.push("/about");
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-4 mb-12 pt-12">
       <motion.div
@@ -101,6 +108,7 @@ const ForensicScienceBanner = () => {
               className="flex items-center justify-center bg-blue-800 hover:bg-blue-900 
                          text-white font-semibold py-3 px-6 rounded-lg transition duration-300"
               variants={buttonItemVariants}
+              onClick={handleExploreClick}
             >
               Explore
               <ArrowRight className="ml-2 w-5 h-5" />

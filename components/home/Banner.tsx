@@ -69,6 +69,10 @@ export default function Banner() {
     router.push("/apply-now");
   };
 
+  const handleExploreClick = () => {
+    router.push("/courses/advanced-certificate");
+  };
+
   return (
     <div className="relative overflow-hidden pt-16 pb-32">
       {/* SOFT BACKGROUND */}
@@ -114,7 +118,9 @@ export default function Banner() {
             variants={slideUpItem}
             className="mt-8 flex justify-center lg:justify-start gap-4"
           >
-            <button className="flex items-center bg-gradient-to-r from-[#3E58EE] to-[#B565E7] text-white font-semibold py-3 px-8 rounded-xl shadow-md hover:opacity-90 transition">
+            <button 
+              onClick={handleExploreClick}
+              className="flex items-center bg-gradient-to-r from-[#3E58EE] to-[#B565E7] text-white font-semibold py-3 px-8 rounded-xl shadow-md hover:opacity-90 transition">
               Explore
               <svg
                 className="ml-2 w-5 h-5"
@@ -132,14 +138,14 @@ export default function Banner() {
             </button>
 
             <button 
-      onClick={handleApplyClick}
-      className="flex items-center border border-gray-300 text-gray-700 font-semibold py-3 px-8 rounded-xl hover:bg-gray-100 transition"
-    >
-      Apply Now
-      <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-      </svg>
-    </button>
+              onClick={handleApplyClick}
+              className="flex items-center border border-gray-300 text-gray-700 font-semibold py-3 px-8 rounded-xl hover:bg-gray-100 transition"
+            >
+              Apply Now
+              <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </button>
           </motion.div>
 
           {/* ZIGZAG */}

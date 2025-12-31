@@ -1,8 +1,7 @@
-// components/home/CoursePricing.tsx
 "use client";
 
 import { useState } from "react";
-import { motion, Variants } from "framer-motion";
+import { motion, Variants, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
 // Tabs
@@ -14,28 +13,41 @@ const tabs = [
   "Training and Internship",
 ];
 
-// Levels
-const levels = [
-  { id: 1, label: "Level - I", price: "₹ 11,800" },
-  { id: 2, label: "Level - II", price: "₹ 17,700" },
-  { id: 3, label: "Level - III", price: "₹ 23,600" },
-];
+// Data Mapping
+const pricingData: Record<string, { id: number; label: string; price: string }[]> = {
+  "Associate Degree Program": [
+    { id: 1, label: "Level - I", price: "₹ 11,800" },
+    { id: 2, label: "Level - II", price: "₹ 17,700" },
+    { id: 3, label: "Level - III", price: "₹ 23,600" },
+  ],
+  "Foundation Courses": [
+    { id: 4, label: "Course Fee", price: "₹ 1,770" },
+  ],
+  "Professional Courses": [
+    { id: 5, label: "Course Fee", price: "₹ 23,600" },
+  ],
+  "Values Added Courses": [
+    { id: 6, label: "UGC NET Program", price: "₹ 2,950" },
+    { id: 7, label: "Certification Fee", price: "₹ 4,399" },
+    { id: 8, label: "Certification Fee", price: "₹ 7,999" },
+  ],
+  "Training and Internship": [
+    { id: 9, label: "One Month", price: "₹ 5,900" },
+    { id: 10, label: "Three Months", price: "₹ 17,700" },
+    { id: 11, label: "Six Months", price: "₹ 35,400" },
+  ],
+};
 
 // --- Framer Motion Variants ---
 
-// 1. Section Container (Stagger Parent)
 const sectionContainerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      delayChildren: 0.1,
-      staggerChildren: 0.15,
-    },
+    transition: { delayChildren: 0.1, staggerChildren: 0.15 },
   },
 };
 
-// 2. Slide Up (Header & Tabs)
 const itemSlideUpVariants: Variants = {
   hidden: { y: 30, opacity: 0 },
   visible: {
@@ -45,21 +57,16 @@ const itemSlideUpVariants: Variants = {
   },
 };
 
-// 3. Cards Grid (Parent)
 const cardsGridVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
   },
 };
 
-// 4. Individual Card
 const cardVariants: Variants = {
-  hidden: { y: 50, opacity: 0 },
+  hidden: { y: 40, opacity: 0 },
   visible: {
     y: 0,
     opacity: 1,
@@ -68,8 +75,11 @@ const cardVariants: Variants = {
 };
 
 export default function CoursePricing() {
-  const [activeTab, setActiveTab] = useState(0);
-  const [activeLevel, setActiveLevel] = useState(2);
+  const [activeTab, setActiveTab] = useState(tabs[0]);
+  // Track active ID instead of index to maintain highlight state across tabs
+  const [activeLevel, setActiveLevel] = useState<number | null>(null);
+
+  const currentLevels = pricingData[activeTab];
 
   return (
     <section className="py-20 bg-gradient-to-b from-white to-[#fbfcff] relative bg-[url('/fee-structure/bg.png')] bg-cover bg-center bg-no-repeat">
@@ -86,8 +96,6 @@ export default function CoursePricing() {
             Courses &{" "}
             <span className="relative inline-block">
               <span className="relative z-10">Training Fee</span>
-
-              {/* Yellow underline */}
               <Image
                 src="/yellow-underline.png"
                 alt=""
@@ -107,20 +115,23 @@ export default function CoursePricing() {
           className="flex flex-wrap justify-center gap-6 mt-10"
           variants={itemSlideUpVariants}
         >
-          {tabs.map((t, i) => {
-            const active = i === activeTab;
+          {tabs.map((t) => {
+            const active = t === activeTab;
             return (
               <button
                 key={t}
-                onClick={() => setActiveTab(i)}
-                className={`relative px-1 pb-2 text-sm font-semibold transition-colors ${
+                onClick={() => {
+                  setActiveTab(t);
+                  setActiveLevel(null); // Reset selection when switching tabs
+                }}
+                className={`relative px-1 pb-2 text-sm font-semibold transition-colors cursor-pointer ${
                   active ? "text-purple-600" : "text-gray-600 hover:text-purple-500"
                 }`}
               >
                 <span>{t}</span>
                 <span
                   className={`absolute left-0 right-0 -bottom-0.5 h-0.5 transition-all ${
-                    active ? "bg-purple-600 scale-x-100" : "bg-transparent"
+                    active ? "bg-purple-600 scale-x-100" : "bg-transparent scale-x-0"
                   }`}
                 />
               </button>
@@ -128,84 +139,94 @@ export default function CoursePricing() {
           })}
         </motion.nav>
 
-        {/* Cards */}
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-3 gap-8 mt-14"
-          variants={cardsGridVariants}
-        >
-          {levels.map((l) => {
-            const isActive = l.id === activeLevel;
+        {/* Cards Display */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            className={`grid gap-8 mt-14 ${
+              currentLevels.length === 1 
+                ? "flex justify-center" 
+                : "grid-cols-1 sm:grid-cols-3"
+            }`}
+            variants={cardsGridVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+          >
+            {currentLevels.map((l) => {
+              const isActive = activeLevel === l.id || (activeLevel === null && currentLevels.indexOf(l) === 1);
 
-            return (
-              <motion.div
-                key={l.id}
-                className="relative flex justify-center"
-                variants={cardVariants}
-              >
-                <article
-                  onClick={() => setActiveLevel(l.id)}
-                  className={`w-full max-w-md rounded-2xl p-8 pb-16 relative cursor-pointer transform transition-shadow
-                    ${
-                      isActive
-                        ? "bg-gradient-to-r from-purple-600 via-purple-500 to-purple-400 text-white shadow-2xl scale-[1.03]"
-                        : "bg-gradient-to-br from-white via-gray-50 to-white text-gray-900 shadow-md"
-                    }`}
+              return (
+                <motion.div
+                  key={l.id}
+                  className="relative flex justify-center w-full max-w-md mx-auto"
+                  variants={cardVariants}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="text-left">
-                      <p className={`font-semibold ${isActive ? "text-white" : "text-gray-800"}`}>
-                        {l.label}
-                      </p>
-                      <h3
-                        className={`mt-2 text-2xl font-extrabold ${
-                          isActive ? "text-white" : "text-gray-900"
-                        }`}
-                      >
-                        {l.price}
-                      </h3>
-                    </div>
+                  <article
+                    onClick={() => setActiveLevel(l.id)}
+                    className={`w-full rounded-2xl px-12 pt-8 pb-16 relative cursor-pointer transform transition-all duration-300
+                      ${
+                        isActive
+                          ? "bg-gradient-to-r from-purple-600 via-purple-500 to-purple-400 text-white shadow-2xl scale-[1.03]"
+                          : "bg-gradient-to-br from-white via-gray-50 to-white text-gray-900 shadow-md hover:shadow-lg"
+                      }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="text-left">
+                        <p className={`font-semibold ${isActive ? "text-white" : "text-gray-800"}`}>
+                          {l.label}
+                        </p>
+                        <h3
+                          className={`mt-2 ml-8 text-2xl font-extrabold ${
+                            isActive ? "text-white" : "text-gray-900"
+                          }`}
+                        >
+                          {l.price}
+                        </h3>
+                      </div>
 
-                    <div
-                      className={`w-14 h-14 rounded-full flex items-center justify-center shadow-md shrink-0
-                        ${
-                          isActive
-                            ? "bg-white text-purple-600"
-                            : "bg-purple-50 text-purple-600"
-                        }`}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        className="w-6 h-6"
+                      <div
+                        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-md shrink-0
+                          ${
+                            isActive
+                              ? "bg-white text-purple-600"
+                              : "bg-purple-50 text-purple-600"
+                          }`}
                       >
-                        <path
-                          fill="currentColor"
-                          d="M12 2L2 7l10 5 10-5-10-5zm0 7.2L6.1 7 12 4.1 17.9 7 12 9.2zM4 10.1v5.6c0 1.2.7 2.3 1.8 2.8L12 21l6.2-2.5c1.1-.45 1.8-1.6 1.8-2.8v-5.6L12 15l-8-4.9z"
-                        />
-                      </svg>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          className="w-6 h-6"
+                        >
+                          <path
+                            fill="currentColor"
+                            d="M12 2L2 7l10 5 10-5-10-5zm0 7.2L6.1 7 12 4.1 17.9 7 12 9.2zM4 10.1v5.6c0 1.2.7 2.3 1.8 2.8L12 21l6.2-2.5c1.1-.45 1.8-1.6 1.8-2.8v-5.6L12 15l-8-4.9z"
+                          />
+                        </svg>
+                      </div>
                     </div>
-                  </div>
-                </article>
+                  </article>
 
-                <button
-                  onClick={() => setActiveLevel(l.id)}
-                  className={`absolute left-1/4 -translate-x-1/2 -bottom-5 px-6 py-2 rounded-lg text-sm font-semibold shadow-md z-10
-                    ${
-                      isActive
-                        ? "bg-white text-purple-600"
-                        : "bg-purple-600 text-white"
-                    }`}
-                >
-                  Visit List →
-                </button>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+                  <button
+                    onClick={() => setActiveLevel(l.id)}
+                    className={`absolute left-1/2 -translate-x-1/2 -bottom-5 px-6 py-2 rounded-lg text-sm font-semibold shadow-md z-10 transition-all cursor-pointer
+                      ${
+                        isActive
+                          ? "bg-white text-purple-600"
+                          : "bg-purple-600 text-white hover:bg-purple-700"
+                      }`}
+                  >
+                    Visit List →
+                  </button>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        </AnimatePresence>
 
         {/* Bottom Pill */}
-        <motion.div className="mt-20 mb-12" variants={itemSlideUpVariants}>
-          <span className="inline-block px-6 py-3 rounded-full bg-purple-100 text-purple-600 font-semibold text-sm shadow-sm absolute left-1/2 -translate-x-1/2 -bottom-5 z-2">
+        <motion.div className="mt-24 mb-12 relative" variants={itemSlideUpVariants}>
+          <span className="inline-block px-6 py-3 rounded-full bg-purple-100 text-purple-600 font-semibold text-sm shadow-sm absolute left-1/2 -translate-x-1/2 bottom-0 whitespace-nowrap">
             All Courses Available On This Affordable Fee
           </span>
         </motion.div>

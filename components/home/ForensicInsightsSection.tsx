@@ -3,6 +3,7 @@
 import Image from "next/image";
 import React from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 // --- 1. TYPE DEFINITION ---
 interface CardProps {
@@ -169,6 +170,12 @@ const ForensicInsights: React.FC = () => {
     },
   ];
 
+  const router = useRouter();
+
+  const handleExploreClick = () => {
+    router.push("/blog");
+  };
+
   return (
     <div className="bg-white p-8 md:p-16">
       <motion.div
@@ -193,7 +200,9 @@ const ForensicInsights: React.FC = () => {
             </p>
           </div>
 
-          <button className="mt-4 sm:mt-0 px-8 py-3 text-lg font-medium text-white rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center group bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700">
+          <button 
+            onClick={handleExploreClick}
+            className="mt-4 sm:mt-0 px-8 py-3 text-lg font-medium text-white rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center group bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700">
             Explore
             <svg
               className="ml-2 w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"

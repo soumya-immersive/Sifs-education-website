@@ -7,6 +7,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
 import { motion, Variants } from 'framer-motion';
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 // --- Interfaces and Data ---
 interface Moment {
@@ -86,8 +87,17 @@ interface MomentCardProps {
 }
 
 const MomentCard: React.FC<MomentCardProps> = ({ moment }) => {
+  const router = useRouter();
+
+  const handleNavigate = () => {
+    router.push('/gallery');
+  };
+
   return (
-    <div className="rounded-xl overflow-hidden bg-white border border-gray-100 shadow-xl transition-all duration-300 hover:shadow-2xl h-full">
+    <div 
+      onClick={handleNavigate}
+      className="rounded-xl overflow-hidden bg-white border border-gray-100 shadow-xl transition-all duration-300 hover:shadow-2xl h-full cursor-pointer group"
+    >
       <div className="relative p-4 md:p-6 bg-gray-50">
         <div className="relative">
           <div
@@ -102,7 +112,7 @@ const MomentCard: React.FC<MomentCardProps> = ({ moment }) => {
             <img
               src={moment.image}
               alt={moment.title}
-              className="w-full h-full object-cover aspect-[4/3]"
+              className="w-full h-full object-cover aspect-[4/3] transition-transform duration-500 group-hover:scale-110"
             />
           </div>
 
@@ -114,7 +124,9 @@ const MomentCard: React.FC<MomentCardProps> = ({ moment }) => {
 
       <div className="p-4 md:p-6">
         <p className="text-sm font-semibold text-orange-500 mb-1">{moment.subtitle}</p>
-        <h3 className="text-xl font-bold text-gray-900 leading-snug">{moment.title}</h3>
+        <h3 className="text-xl font-bold text-gray-900 leading-snug group-hover:text-[#008DD2] transition-colors">
+          {moment.title}
+        </h3>
       </div>
     </div>
   );

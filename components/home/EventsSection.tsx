@@ -1,11 +1,14 @@
-// components/home/EventsSection.tsx
+// components/events/UpcomingEvents.tsx
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion, Variants } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 type Event = {
   id: number;
+  slug: string; // Add slug for routing
   title: string;
   date: string;
   mode: string;
@@ -16,6 +19,7 @@ type Event = {
 const events: Event[] = [
   {
     id: 1,
+    slug: "digital-forensics-cyber-security", // Add slug
     title: "Digital Forensics & Cyber Security",
     date: "08 Dec, 2025",
     mode: "Online Zoom",
@@ -25,6 +29,7 @@ const events: Event[] = [
   },
   {
     id: 2,
+    slug: "6th-international-forensic-science-conference", // Add slug
     title: "6th International Forensic Science Conference",
     date: "08 Dec, 2025",
     mode: "Online Zoom",
@@ -34,6 +39,7 @@ const events: Event[] = [
   },
   {
     id: 3,
+    slug: "global-dimensions-forensic-science-strengthening-justice", // Add slug
     title: "Global Dimensions of Forensic Science: Strengthening Justice...",
     date: "08 Dec, 2025",
     mode: "Online Zoom",
@@ -43,14 +49,24 @@ const events: Event[] = [
   },
   {
     id: 4,
-    title: "6th International Forensic Science Conference",
+    slug: "forensic-psychology-principles-practice-ethics", // Add slug
+    title: "Forensic Psychology - Its Principles, Practice & Ethics",
     date: "08 Dec, 2025",
     mode: "Online Zoom",
     description:
-      "An intensive 5-day program focused on contemporary forensic science domains.",
+      "An intensive 5-day program focused on forensic psychology applications.",
     image: "/event/2.png",
   },
 ];
+
+// Helper function to generate slugs (if not provided)
+const generateSlug = (title: string): string => {
+  return title
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '')
+    .replace(/\s+/g, '-')
+    .substring(0, 50);
+};
 
 const timerTitles = ["Days", "Hours", "Min", "Sec"];
 
@@ -69,7 +85,6 @@ const timerStyles = [
 ];
 
 // ------------------ Motion Variants ------------------
-
 const sectionContainerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -131,8 +146,13 @@ const subItemVariants: Variants = {
 };
 
 // ------------------ Component ------------------
-
 export default function EventsSection() {
+  const router = useRouter();
+
+  const handleExploreClick = () => {
+    router.push("/events");
+  };
+
   return (
     <section className="bg-gradient-to-r from-white via-white to-violet-50 py-16">
       <motion.div
@@ -151,8 +171,6 @@ export default function EventsSection() {
                 <span className="relative z-10">
                   Explore Events
                 </span>
-
-                {/* Yellow underline */}
                 <Image
                   src="/yellow-underline.png"
                   alt=""
@@ -162,15 +180,17 @@ export default function EventsSection() {
                 />
               </span>
             </h2>
-
           </motion.div>
 
-          <motion.button
-            className="rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-2 text-sm font-semibold text-white shadow-lg hover:shadow-xl"
-            variants={headerItemVariants}
-          >
-            Explore →
-          </motion.button>
+          <Link href="/events">
+            <motion.button
+              className="rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-2 text-sm font-semibold text-white shadow-lg hover:shadow-xl"
+              variants={headerItemVariants}
+              onClick={handleExploreClick}
+            >
+              Explore →
+            </motion.button>
+          </Link>
         </div>
 
         {/* Cards Grid */}
@@ -178,68 +198,82 @@ export default function EventsSection() {
           className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"
           variants={gridVariants}
         >
-          {events.map((event) => (
-            <motion.article
-              key={event.id}
-              className="flex h-full p-3 flex-col overflow-hidden rounded-2xl bg-white shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
-              variants={cardVariants}
-            >
-              {/* Image */}
-              <motion.div className="relative h-44 w-full" variants={subItemVariants}>
-                <Image src={event.image} alt={event.title} fill className="object-cover rounded-lg" />
-              </motion.div>
+          {events.map((event) => {
+            const slug = event.slug || generateSlug(event.title);
+            
+            return (
+              <motion.article
+                key={event.id}
+                className="flex h-full p-3 flex-col overflow-hidden rounded-2xl bg-white shadow-[0_18px_40px_rgba(15,23,42,0.08)] hover:shadow-[0_18px_40px_rgba(15,23,42,0.12)] transition-shadow duration-300"
+                variants={cardVariants}
+              >
+                {/* Make the whole card clickable as a Link */}
+                <Link href={`/events/${slug}`} className="flex flex-col flex-1">
+                  {/* Image */}
+                  <motion.div className="relative h-44 w-full" variants={subItemVariants}>
+                    <Image 
+                      src={event.image} 
+                      alt={event.title} 
+                      fill 
+                      className="object-cover rounded-lg hover:scale-105 transition-transform duration-300" 
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                    />
+                  </motion.div>
 
-              {/* Content */}
-              <motion.div className="flex flex-1 flex-col pb-5 pt-4" variants={cardContentVariants}>
-                <motion.div className="mb-3 flex items-center justify-between text-[11px] text-gray-500" variants={subItemVariants}>
-                  <div className="flex items-center gap-1">
-                    <div className="relative w-4 h-4">
-                      <Image src="/calendar-mark.png" alt="Calendar" fill className="object-contain" />
-                    </div>
-                    <span>{event.date}</span>
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <div className="relative w-4 h-4">
-                      <Image src="/video-camera.png" alt="Mode" fill className="object-contain" />
-                    </div>
-                    <span>{event.mode}</span>
-                  </div>
-                </motion.div>
-
-                <motion.h3 className="mb-2 line-clamp-2 text-base font-normal text-gray-900" variants={subItemVariants}>
-                  {event.title}
-                </motion.h3>
-
-                <motion.p className="mb-4 line-clamp-3 text-xs text-[#6B7385]" variants={subItemVariants}>
-                  {event.description}
-                </motion.p>
-
-                <hr className="mb-3 border-gray-100" />
-
-                {/* Timer + Link */}
-                <motion.div className="mt-auto flex items-center justify-between" variants={subItemVariants}>
-                  <div className="flex gap-1 text-[10px] font-semibold">
-                    {timerTitles.map((title, i) => {
-                      const style = timerStyles[i];
-                      return (
-                        <div key={title} className={`rounded-md px-2 py-1 ${style.container}`}>
-                          <div className={`text-sm font-bold ${style.number}`}>
-                            {timerValues[event.id]?.[i] || "00"}
-                          </div>
-                          <div className={`text-[9px] ${style.title}`}>{title}</div>
+                  {/* Content */}
+                  <motion.div className="flex flex-1 flex-col pb-5 pt-4" variants={cardContentVariants}>
+                    <motion.div className="mb-3 flex items-center justify-between text-[11px] text-gray-500" variants={subItemVariants}>
+                      <div className="flex items-center gap-1">
+                        <div className="relative w-4 h-4">
+                          <Image src="/calendar-mark.png" alt="Calendar" fill className="object-contain" />
                         </div>
-                      );
-                    })}
-                  </div>
+                        <span>{event.date}</span>
+                      </div>
 
-                  <button className="text-[11px] text-gray-500 hover:text-gray-700">
-                    Read More →
-                  </button>
-                </motion.div>
-              </motion.div>
-            </motion.article>
-          ))}
+                      <div className="flex items-center gap-1">
+                        <div className="relative w-4 h-4">
+                          <Image src="/video-camera.png" alt="Mode" fill className="object-contain" />
+                        </div>
+                        <span>{event.mode}</span>
+                      </div>
+                    </motion.div>
+
+                    <motion.h3 className="mb-2 line-clamp-2 text-base font-normal text-gray-900 hover:text-[#3A58EE] transition-colors" variants={subItemVariants}>
+                      {event.title}
+                    </motion.h3>
+
+                    <motion.p className="mb-4 line-clamp-3 text-xs text-[#6B7385]" variants={subItemVariants}>
+                      {event.description}
+                    </motion.p>
+
+                    <hr className="mb-3 border-gray-100" />
+
+                    {/* Timer + Link */}
+                    <motion.div className="mt-auto flex items-center justify-between" variants={subItemVariants}>
+                      <div className="flex gap-1 text-[10px] font-semibold">
+                        {timerTitles.map((title, i) => {
+                          const style = timerStyles[i];
+                          return (
+                            <div key={title} className={`rounded-md px-2 py-1 ${style.container}`}>
+                              <div className={`text-sm font-bold ${style.number}`}>
+                                {timerValues[event.id]?.[i] || "00"}
+                              </div>
+                              <div className={`text-[9px] ${style.title}`}>{title}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="text-[11px] text-gray-500 hover:text-[#3A58EE] font-medium transition-colors group">
+                        Read More →
+                        <span className="block h-0.5 w-0 bg-[#3A58EE] transition-all duration-300 group-hover:w-full"></span>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                </Link>
+              </motion.article>
+            );
+          })}
         </motion.div>
       </motion.div>
     </section>
