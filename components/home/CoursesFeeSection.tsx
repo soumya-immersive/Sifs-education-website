@@ -171,13 +171,13 @@ export default function CoursePricing() {
                           : "bg-gradient-to-br from-white via-gray-50 to-white text-gray-900 shadow-md hover:shadow-lg"
                       }`}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-4">
                       <div className="text-left">
                         <p className={`font-semibold ${isActive ? "text-white" : "text-gray-800"}`}>
                           {l.label}
                         </p>
                         <h3
-                          className={`mt-2 ml-8 text-2xl font-extrabold ${
+                          className={`mt-2 text-2xl font-extrabold ${
                             isActive ? "text-white" : "text-gray-900"
                           }`}
                         >
