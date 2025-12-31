@@ -7,7 +7,7 @@ export interface BookCategory {
   export const bookCategories: BookCategory[] = [
     {
       slug: "forensic-science",
-      label: "Forensic Science",
+      label: "Forensic Books",
       image: "/books/hero.png",
     },
   ];
