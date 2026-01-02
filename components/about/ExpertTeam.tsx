@@ -2,27 +2,28 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 const experts = [
   {
     name: "Anushka Karle",
     role: "Psychologist",
-    image: "/about-us/team1.png",
+    image: "/teams/team1.png",
   },
   {
     name: "Abhishek Vashishth",
     role: "Fingerprint Expert",
-    image: "/about-us/team2.png",
+    image: "/teams/team2.png",
   },
   {
     name: "A. Mohan Krishan",
     role: "Deputy Director",
-    image: "/about-us/team3.png",
+    image: "/teams/team3.png",
   },
   {
     name: "Abd Samuel Qaleb",
     role: "Forensic Analyst",
-    image: "/about-us/team4.png",
+    image: "/teams/team4.png",
   },
 ];
 
@@ -60,13 +61,15 @@ export default function ExpertTeam() {
             </h2>
           </div>
 
-          <button
-            className="cursor-pointer px-5 py-2 rounded-lg text-sm text-white
-            bg-gradient-to-r from-violet-600 to-indigo-600
-            hover:from-violet-700 hover:to-indigo-700 transition"
+          <Link
+            href="/teams"
+            className="px-5 py-2 rounded-lg text-sm text-white
+                       bg-gradient-to-r from-violet-600 to-indigo-600
+                       hover:from-violet-700 hover:to-indigo-700
+                       transition"
           >
             Explore All Team →
-          </button>
+          </Link>
         </div>
 
         {/* TEAM GRID */}

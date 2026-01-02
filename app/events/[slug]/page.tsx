@@ -30,7 +30,7 @@ export default async function EventDetailPage({ params }: Props) {
       {/* These will stop throwing errors once their internal files define the 'event' prop */}
       <EventHero event={event} />
       
-      <div className="max-w-7xl mx-auto px-4 py-12 mt-[300px] md:mt-[300px]">
+      <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex flex-col lg:flex-row gap-8">
           
           {/* Left Column - Main Content */}

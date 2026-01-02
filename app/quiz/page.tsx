@@ -53,23 +53,23 @@ export default function QuizZonePage() {
                     </div>
 
                     <div className="space-y-6">
-                        <span className="px-4 py-1.5 border border-[#3E58EE] text-[#3E58EE] rounded-full text-xs font-bold uppercase tracking-wider">
+                        <span className="inline-block mb-4 rounded-full border border-[#067CB6] px-8 py-2 text-sm font-semibold text-black bg-[#E7ECEF]">
                             Quiz 169
                         </span>
                         <h2 className="text-3xl font-bold text-gray-900 mt-4">
-  Welcome{" "}
-  <span className="relative inline-block">
-    <span className="relative z-10">to</span>
-    <Image
-      src="/yellow-underline.png"
-      alt=""
-      width={80}
-      height={14}
-      className="absolute left-0 -bottom-1 z-0"
-    />
-  </span>{" "}
-  the Quiz!
-</h2>
+                            Welcome{" "}
+                            <span className="relative inline-block">
+                                <span className="relative z-10">to</span>
+                                <Image
+                                src="/yellow-underline.png"
+                                alt=""
+                                width={80}
+                                height={14}
+                                className="absolute left-0 -bottom-1 z-0"
+                                />
+                            </span>{" "}
+                            the Quiz!
+                        </h2>
 
                         
                         <div className="text-gray-600 text-sm space-y-4 leading-relaxed">
@@ -98,9 +98,13 @@ export default function QuizZonePage() {
                             </div>
                         </div>
 
-                        <div className="bg-[#EFF6FF] border border-dashed border-[#3E58EE] p-3 rounded-lg text-center text-[11px] text-[#3E58EE]">
-                            Note: You have to send your Post Screenshot at sifs.forensicquiz@gmail.com to win the competition.
-                        </div>
+                        
+                    </div>
+                </motion.div>
+
+                <motion.div className="grid grid-cols-1 lg:grid-cols-1 gap-12 items-center mb-20 px-12" variants={fadeUp}>
+                    <div className="bg-[#d7dde9] border border-[#4559ED] p-2 rounded-lg text-center text-[14px] text-[#6B7385]">
+                        <b>Note:</b> You have to send your Post Screenshot at sifs.forensicquiz@gmail.com to win the competition.
                     </div>
                 </motion.div>
 
