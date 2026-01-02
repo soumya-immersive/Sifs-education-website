@@ -20,6 +20,7 @@ const navItems = [
     children: [
       { label: "About", path: "/about" },
       { label: "Achievement", path: "/achievements" },
+      { label: "Our Faculty", path: "/faculty" },
       { label: "Career", path: "/career" },
       { label: "Blog", path: "/blog" },
     ],

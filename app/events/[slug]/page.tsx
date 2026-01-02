@@ -7,7 +7,6 @@ import EventFaq from "../../../components/events-inner/EventFaq";
 import UpcomingEvents from "../../../components/events-inner/UpcomingEvents";
 import Participatory from "../../../components/events-inner/Participatory";
 
-// 1. Import both the data AND the Type
 import { events, Event } from "../../../data/events";
 
 interface Props {
@@ -15,10 +14,8 @@ interface Props {
 }
 
 export default async function EventDetailPage({ params }: Props) {
-  // 2. Await params (Required in Next.js 15)
   const { slug } = await params;
   
-  // 3. Find the event
   const event = events.find((e) => e.slug === slug);
   
   if (!event) {
@@ -27,7 +24,6 @@ export default async function EventDetailPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-white mb-24">
-      {/* These will stop throwing errors once their internal files define the 'event' prop */}
       <EventHero event={event} />
       
       <div className="max-w-7xl mx-auto px-4 py-12">

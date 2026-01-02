@@ -3,5 +3,6 @@ export type TeamMember = {
     role: string;
     category: string;
     image: string;
-};
+    description: string;
+  };
   

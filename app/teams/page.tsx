@@ -6,6 +6,7 @@ import { motion, easeOut, AnimatePresence } from "framer-motion";
 
 import { teamData } from "../../data/teamData";
 import { TeamMember } from "../../types/team";
+import TeamModal from "../../components/team/TeamModal";
 
 /* ---------------- ANIMATIONS ---------------- */
 const fadeUp = {
@@ -14,13 +15,6 @@ const fadeUp = {
     opacity: 1,
     y: 0,
     transition: { duration: 0.6, ease: easeOut },
-  },
-};
-
-const staggerContainer = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.08 },
   },
 };
 
@@ -39,11 +33,11 @@ const filters = [
 export default function TeamMembersPage() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [showAll, setShowAll] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
 
-  const ITEMS_PER_VIEW = 8; // 2 rows on lg:grid-cols-4
+  const ITEMS_PER_VIEW = 8;
 
-  /* ---------------- FILTERED DATA (MEMOIZED) ---------------- */
-  const filteredTeam: TeamMember[] = useMemo(() => {
+  const filteredTeam = useMemo(() => {
     return activeFilter === "All"
       ? teamData
       : teamData.filter((m) => m.category === activeFilter);
@@ -54,71 +48,52 @@ export default function TeamMembersPage() {
     : filteredTeam.slice(0, ITEMS_PER_VIEW);
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={fadeUp}
-      className="w-full mb-20"
-    >
-      {/* ================= PAGE BANNER ================= */}
-      <PageBanner
-        title="Meet Our Team Members"
-        subtitle="Home / Team Members"
-        bgImage="/contact-gradient-bg.png"
-      />
+    <>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={fadeUp}
+        className="w-full mb-20"
+      >
+        <PageBanner
+          title="Meet Our Team Members"
+          subtitle="Home / Team Members"
+          bgImage="/contact-gradient-bg.png"
+        />
 
-      {/* ================= CONTENT ================= */}
-      <div className="max-w-7xl mx-auto px-4 py-14 md:py-20">
+        <div className="max-w-7xl mx-auto px-4 py-14 md:py-20">
 
-        {/* ================= FILTER TABS ================= */}
-        <motion.div
-          variants={fadeUp}
-          className="flex flex-wrap justify-center gap-2 mb-14"
-        >
-          {filters.map((filter) => (
-            <button
-              key={filter}
-              onClick={() => {
-                setActiveFilter(filter);
-                setShowAll(false);
-              }}
-              className={`px-4 py-2 text-sm border rounded-md transition
-                ${
-                  activeFilter === filter
-                    ? "bg-[#0b5ed7] text-white border-[#0b5ed7]"
-                    : "bg-white text-[#0b5ed7] border-[#0b5ed7] hover:bg-[#0b5ed7] hover:text-white"
-                }`}
-            >
-              {filter}
-            </button>
-          ))}
-        </motion.div>
-
-        {/* ================= TEAM GRID ================= */}
-        <motion.div
-          layout
-          className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-10"
-        >
-          <AnimatePresence mode="popLayout">
-            {visibleTeam.length === 0 ? (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="col-span-full text-center text-gray-500 py-20"
+          {/* FILTERS */}
+          <div className="flex flex-wrap justify-center gap-2 mb-14">
+            {filters.map((filter) => (
+              <button
+                key={filter}
+                onClick={() => {
+                  setActiveFilter(filter);
+                  setShowAll(false);
+                }}
+                className={`px-4 py-2 text-sm border rounded-md transition
+                  ${
+                    activeFilter === filter
+                      ? "bg-[#0b5ed7] text-white"
+                      : "bg-white text-[#0b5ed7] hover:bg-[#0b5ed7] hover:text-white"
+                  }`}
               >
-                No team members available in this category.
-              </motion.div>
-            ) : (
-              visibleTeam.map((member) => (
+                {filter}
+              </button>
+            ))}
+          </div>
+
+          {/* GRID */}
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-10">
+            <AnimatePresence>
+              {visibleTeam.map((member) => (
                 <motion.div
                   key={member.name}
                   layout
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 20 }}
-                  transition={{ duration: 0.35, ease: "easeOut" }}
+                  exit={{ opacity: 0 }}
                   className="group text-center"
                 >
                   {/* IMAGE */}
@@ -126,12 +101,20 @@ export default function TeamMembersPage() {
                     <img
                       src={member.image}
                       alt={member.name}
-                      className="w-full h-[240px] object-cover grayscale
-                                 group-hover:grayscale-0 transition duration-500"
+                      className="w-full h-[240px] object-cover grayscale group-hover:grayscale-0 transition duration-500"
                     />
+
+                    {/* HOVER OVERLAY */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                      <button
+                        onClick={() => setSelectedMember(member)}
+                        className="px-4 py-2 text-sm border border-white text-white rounded hover:bg-white hover:text-black transition"
+                      >
+                        Read More
+                      </button>
+                    </div>
                   </div>
 
-                  {/* INFO */}
                   <h4 className="mt-4 font-semibold text-gray-900">
                     {member.name}
                   </h4>
@@ -139,25 +122,34 @@ export default function TeamMembersPage() {
                     {member.role}
                   </p>
                 </motion.div>
-              ))
-            )}
-          </AnimatePresence>
-        </motion.div>
-
-        {/* ================= READ MORE / LESS ================= */}
-        {filteredTeam.length > ITEMS_PER_VIEW && (
-          <div className="flex justify-center mt-16">
-            <button
-              onClick={() => setShowAll((prev) => !prev)}
-              className="px-6 py-2 rounded-md border border-[#0b5ed7]
-                         text-[#0b5ed7] font-medium
-                         hover:bg-[#0b5ed7] hover:text-white transition"
-            >
-              {showAll ? "Read Less" : "Read More"}
-            </button>
+              ))}
+            </AnimatePresence>
           </div>
+
+          {/* READ MORE GRID */}
+          {filteredTeam.length > ITEMS_PER_VIEW && (
+            <div className="flex justify-center mt-16">
+              <button
+                onClick={() => setShowAll((p) => !p)}
+                className="px-6 py-2 rounded-md border border-[#0b5ed7]
+                           text-[#0b5ed7] hover:bg-[#0b5ed7] hover:text-white transition"
+              >
+                {showAll ? "Read Less" : "Read More"}
+              </button>
+            </div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* MODAL */}
+      <AnimatePresence>
+        {selectedMember && (
+          <TeamModal
+            member={selectedMember}
+            onClose={() => setSelectedMember(null)}
+          />
         )}
-      </div>
-    </motion.div>
+      </AnimatePresence>
+    </>
   );
 }
