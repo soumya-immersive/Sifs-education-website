@@ -2,6 +2,10 @@
 
 import Image from "next/image";
 import { motion, Variants } from "framer-motion";
+import { Plus, Trash2 } from "lucide-react";
+import EditableText from "../editable/EditableText";
+import EditableImage from "../editable/EditableImage";
+import { InitiativesData } from "@/types/about-page";
 
 /* ---------------- Animations (Scroll Only) ---------------- */
 
@@ -32,12 +36,31 @@ const fadeLeft: Variants = {
   },
 };
 
-export default function InitiativesSection() {
+interface InitiativesSectionProps {
+  data: InitiativesData;
+  editMode: boolean;
+  updateData: (newData: InitiativesData) => void;
+}
+
+export default function InitiativesSection({ data, editMode, updateData }: InitiativesSectionProps) {
+
+  const addListItem = (listKey: 'listLeftItems' | 'listRightItems1' | 'listRightItems2') => {
+    const newList = [...data[listKey], "New Item"];
+    updateData({ ...data, [listKey]: newList });
+  }
+
+  const removeListItem = (listKey: 'listLeftItems' | 'listRightItems1' | 'listRightItems2', index: number) => {
+    if (confirm("Remove this item?")) {
+      const newList = data[listKey].filter((_, i) => i !== index);
+      updateData({ ...data, [listKey]: newList });
+    }
+  }
+
   return (
     <section
       className="py-20 bg-cover bg-center"
       style={{
-        backgroundImage: "url('/about-us/initiatives-bg.png')",
+        backgroundImage: `url('${data.bgImage}')`,
       }}
     >
       <motion.div
@@ -60,11 +83,10 @@ export default function InitiativesSection() {
               variants={fadeLeft}
               className="bg-[#F5F6FA] rounded-2xl p-4"
             >
-              <Image
-                src="/about-us/initiatives.png"
-                alt="Student"
-                width={420}
-                height={520}
+              <EditableImage
+                src={data.leftImage}
+                editMode={editMode}
+                onChange={(src) => updateData({ ...data, leftImage: src })}
                 className="rounded-xl object-cover"
               />
             </motion.div>
@@ -74,13 +96,26 @@ export default function InitiativesSection() {
               variants={fadeUp}
               className="bg-[#F5F6FA] rounded-2xl p-6"
             >
-              <motion.h2
+              <motion.div
                 variants={fadeUp}
                 className="text-2xl font-semibold text-black mb-4"
               >
-                SIFS India’s{" "}
-                <span className="relative inline-block">
-                  <span className="relative z-10">Educational</span>
+                <EditableText
+                  html={data.headingPrefix}
+                  editMode={editMode}
+                  onChange={(val) => updateData({ ...data, headingPrefix: val })}
+                  as="span"
+                  className="mr-1"
+                />
+                <span className="relative inline-block mr-1">
+                  <span className="relative z-10">
+                    <EditableText
+                      html={data.headingHighlight}
+                      editMode={editMode}
+                      onChange={(val) => updateData({ ...data, headingHighlight: val })}
+                      as="span"
+                    />
+                  </span>
 
                   {/* Yellow underline */}
                   <Image
@@ -90,20 +125,25 @@ export default function InitiativesSection() {
                     height={14}
                     className="absolute left-0 -bottom-1 z-0"
                   />
-                </span>{" "}
-                Initiatives
-              </motion.h2>
+                </span>
+                <EditableText
+                  html={data.headingSuffix}
+                  editMode={editMode}
+                  onChange={(val) => updateData({ ...data, headingSuffix: val })}
+                  as="span"
+                />
+              </motion.div>
 
-              <motion.p
+              <motion.div
                 variants={fadeUp}
                 className="text-sm text-gray-600 leading-relaxed mb-8"
               >
-                We also conduct several awareness programs, webinars, workshops,
-                and conferences round the year covering various famous forensic
-                cases and insights on the latest developments in forensics,
-                giving you the opportunity to learn new findings and also
-                present your research work to the world.
-              </motion.p>
+                <EditableText
+                  html={data.description}
+                  editMode={editMode}
+                  onChange={(val) => updateData({ ...data, description: val })}
+                />
+              </motion.div>
 
               {/* LISTS */}
               <motion.div
@@ -113,58 +153,135 @@ export default function InitiativesSection() {
 
                 {/* LEFT COLUMN */}
                 <motion.div variants={fadeUp}>
-                  <p className="font-semibold mb-3 text-black">
-                    Offline and Online Forensic Courses:
-                  </p>
+                  <div className="font-semibold mb-3 text-black">
+                    <EditableText
+                      html={data.listLeftTitle}
+                      editMode={editMode}
+                      onChange={(val) => updateData({ ...data, listLeftTitle: val })}
+                    />
+                  </div>
                   <ul className="space-y-2 text-gray-600">
-                    <li className="flex gap-2">
-                      <span className="text-green-500">✔</span>
-                      Short-term and Long-term
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-green-500">✔</span>
-                      Foundational
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-green-500">✔</span>
-                      Professional
-                    </li>
+                    {data.listLeftItems.map((item, i) => (
+                      <li key={i} className="flex gap-2 group relative">
+                        <span className="text-green-500">✔</span>
+                        <div className="flex-1">
+                          <EditableText
+                            html={item}
+                            editMode={editMode}
+                            onChange={(val) => {
+                              const newItems = [...data.listLeftItems];
+                              newItems[i] = val;
+                              updateData({ ...data, listLeftItems: newItems });
+                            }}
+                          />
+                        </div>
+                        {editMode && (
+                          <button
+                            onClick={() => removeListItem('listLeftItems', i)}
+                            className="text-red-500 opacity-0 group-hover:opacity-100 p-0.5 hover:bg-red-50 rounded"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </li>
+                    ))}
                   </ul>
+                  {editMode && (
+                    <button
+                      onClick={() => addListItem('listLeftItems')}
+                      className="mt-2 text-xs flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                    >
+                      <Plus size={12} /> Add Item
+                    </button>
+                  )}
 
-                  <p className="font-semibold mt-6 mb-3 text-black">
-                    Online Training and Internships for:
-                  </p>
+
+                  <div className="font-semibold mt-6 mb-3 text-black">
+                    <EditableText
+                      html={data.listRightTitle1}
+                      editMode={editMode}
+                      onChange={(val) => updateData({ ...data, listRightTitle1: val })}
+                    />
+                  </div>
                   <ul className="space-y-2 text-gray-600">
-                    <li className="flex gap-2">
-                      <span className="text-green-500">✔</span>
-                      Students
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-green-500">✔</span>
-                      Professionals
-                    </li>
+                    {data.listRightItems1.map((item, i) => (
+                      <li key={i} className="flex gap-2 group relative">
+                        <span className="text-green-500">✔</span>
+                        <div className="flex-1">
+                          <EditableText
+                            html={item}
+                            editMode={editMode}
+                            onChange={(val) => {
+                              const newItems = [...data.listRightItems1];
+                              newItems[i] = val;
+                              updateData({ ...data, listRightItems1: newItems });
+                            }}
+                          />
+                        </div>
+                        {editMode && (
+                          <button
+                            onClick={() => removeListItem('listRightItems1', i)}
+                            className="text-red-500 opacity-0 group-hover:opacity-100 p-0.5 hover:bg-red-50 rounded"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </li>
+                    ))}
                   </ul>
+                  {editMode && (
+                    <button
+                      onClick={() => addListItem('listRightItems1')}
+                      className="mt-2 text-xs flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                    >
+                      <Plus size={12} /> Add Item
+                    </button>
+                  )}
                 </motion.div>
 
                 {/* RIGHT COLUMN */}
                 <motion.div variants={fadeUp}>
-                  <p className="font-semibold mb-3 text-black">
-                    Hands-on Forensic Training for:
-                  </p>
+                  <div className="font-semibold mb-3 text-black">
+                    <EditableText
+                      html={data.listRightTitle2}
+                      editMode={editMode}
+                      onChange={(val) => updateData({ ...data, listRightTitle2: val })}
+                    />
+                  </div>
                   <ul className="space-y-2 text-gray-600">
-                    <li className="flex gap-2">
-                      <span className="text-green-500">✔</span>
-                      Corporates
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-green-500">✔</span>
-                      Police Personnel
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="text-green-500">✔</span>
-                      Students and Professionals
-                    </li>
+                    {data.listRightItems2.map((item, i) => (
+                      <li key={i} className="flex gap-2 group relative">
+                        <span className="text-green-500">✔</span>
+                        <div className="flex-1">
+                          <EditableText
+                            html={item}
+                            editMode={editMode}
+                            onChange={(val) => {
+                              const newItems = [...data.listRightItems2];
+                              newItems[i] = val;
+                              updateData({ ...data, listRightItems2: newItems });
+                            }}
+                          />
+                        </div>
+                        {editMode && (
+                          <button
+                            onClick={() => removeListItem('listRightItems2', i)}
+                            className="text-red-500 opacity-0 group-hover:opacity-100 p-0.5 hover:bg-red-50 rounded"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </li>
+                    ))}
                   </ul>
+                  {editMode && (
+                    <button
+                      onClick={() => addListItem('listRightItems2')}
+                      className="mt-2 text-xs flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                    >
+                      <Plus size={12} /> Add Item
+                    </button>
+                  )}
                 </motion.div>
 
               </motion.div>
