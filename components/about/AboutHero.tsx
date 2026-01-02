@@ -2,6 +2,10 @@
 
 import Image from "next/image";
 import { motion, Variants } from "framer-motion";
+import { Plus, Trash2 } from "lucide-react";
+import EditableText from "../editable/EditableText";
+import EditableImage from "../editable/EditableImage";
+import { AboutHeroData } from "@/types/about-page";
 
 /* ---------------- Animations (TS Safe) ---------------- */
 
@@ -41,46 +45,63 @@ const scaleFade: Variants = {
   },
 };
 
-export default function AboutHero() {
-  return (
-    <section className="py-20 bg-white overflow-hidden">
-      <motion.div
-        className="max-w-7xl mx-auto px-6 text-center"
-        variants={container}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-      >
-        {/* Heading */}
-        <motion.h1
-          variants={fadeUp}
-          className="text-3xl md:text-4xl font-semibold text-gray-900"
-        >
-          Hi, Sherlock Institute of{" "}
-          Forensic <br /> Science India
-        </motion.h1>
+interface AboutHeroProps {
+  data: AboutHeroData;
+  editMode: boolean;
+  updateData: (newData: AboutHeroData) => void;
+}
 
-        <motion.p
-          variants={fadeUp}
-          className="text-sm text-gray-500 mt-3"
-        >
-          is registered under the Government of India and ISO 9001:2015 certified
-          <br />
-          forensic science institute in India.
-        </motion.p>
+export default function AboutHero({ data, editMode, updateData }: AboutHeroProps) {
+  // Use data from props directly
+  const content = data;
+
+  const updateAndSave = (next: AboutHeroData) => {
+    updateData(next);
+  };
+
+  const addParagraph = () => {
+    updateAndSave({ ...content, paragraphs: [...content.paragraphs, "New paragraph..."] });
+  };
+
+  const removeParagraph = (index: number) => {
+    if (confirm("Delete this paragraph?")) {
+      const newParagraphs = content.paragraphs.filter((_, i) => i !== index);
+      updateAndSave({ ...content, paragraphs: newParagraphs });
+    }
+  };
+
+  return (
+    <section className="py-20 bg-white overflow-hidden relative">
+      <div className="max-w-7xl mx-auto px-6 text-center">
+
+        {/* Heading */}
+        <motion.div variants={fadeUp} className="text-3xl md:text-4xl font-semibold text-gray-900">
+          <EditableText
+            html={content.heading}
+            editMode={editMode}
+            onChange={(h) => updateAndSave({ ...content, heading: h })}
+            className="mx-auto max-w-3xl text-center text-gray-900"
+          />
+        </motion.div>
+
+        <motion.div variants={fadeUp} className="text-sm text-gray-500 mt-3">
+          <EditableText
+            html={content.subtitle}
+            editMode={editMode}
+            onChange={(h) => updateAndSave({ ...content, subtitle: h })}
+            className="mx-auto max-w-2xl text-center text-gray-500"
+          />
+        </motion.div>
 
         {/* Content Section */}
         <div className="mt-16 grid lg:grid-cols-2 gap-12 items-center text-left">
-          
           {/* LEFT – Image */}
           <motion.div variants={fadeLeft} className="relative">
             <div className="rounded-2xl overflow-hidden">
-              <Image
-                src="/about-us/about.png"
-                alt="Students"
-                width={520}
-                height={380}
-                className="object-cover"
+              <EditableImage
+                src={content.image}
+                editMode={editMode}
+                onChange={(src) => updateAndSave({ ...content, image: src })}
               />
             </div>
 
@@ -98,78 +119,82 @@ export default function AboutHero() {
                 flex items-center gap-4
               "
             >
-              <p className="text-3xl md:text-4xl text-white font-normal">
-                19+
-              </p>
-              <p className="text-xs text-white border-l pl-4 leading-tight">
-                Years of <br /> Experience
-              </p>
+              <div className="text-3xl md:text-4xl text-white font-normal">
+                <EditableText
+                  html={content.badgeNumber}
+                  editMode={editMode}
+                  onChange={(h) => updateAndSave({ ...content, badgeNumber: h })}
+                  className="text-white"
+                />
+              </div>
+              <div className="text-xs text-white border-l pl-4 leading-tight">
+                <EditableText
+                  html={content.badgeText}
+                  editMode={editMode}
+                  onChange={(h) => updateAndSave({ ...content, badgeText: h })}
+                  className="text-white"
+                />
+              </div>
             </motion.div>
           </motion.div>
 
           {/* RIGHT – Text */}
           <motion.div variants={container}>
-            <motion.span
-              variants={fadeUp}
-              className="inline-block px-8 py-2 rounded-full border border-[#067CB6] text-sm font-semibold text-black bg-[#E7ECEF]"
-            >
-              About Us
+            <motion.span variants={fadeUp} className="inline-block px-8 py-2 rounded-full border border-[#067CB6] text-sm font-semibold text-black bg-[#E7ECEF]">
+              <EditableText
+                html={content.tag}
+                editMode={editMode}
+                onChange={(h) => updateAndSave({ ...content, tag: h })}
+                className="inline-block"
+              />
             </motion.span>
 
-            <motion.h2
-              variants={fadeUp}
-              className="text-2xl font-semibold mb-4 mt-4 text-black"
-            >
-              <span className="relative inline-block">
-                <span className="relative z-10">Learn Any</span>
-                <Image
-                  src="/yellow-underline.png"
-                  alt=""
-                  width={140}
-                  height={14}
-                  className="absolute left-0 -bottom-1 z-0"
-                />
-              </span>{" "}
-              where, Any Time
-            </motion.h2>
+            <motion.div variants={fadeUp} className="text-2xl font-semibold mb-4 mt-4 text-black">
+              <EditableText
+                html={content.h2}
+                editMode={editMode}
+                onChange={(h) => updateAndSave({ ...content, h2: h })}
+                className="text-black"
+              />
+            </motion.div>
 
-            <motion.p
-              variants={fadeUp}
-              className="text-gray-600 text-sm leading-relaxed mb-4"
-            >
-              Since 2006, the institute has conducted the best offline and online
-              diploma and certificate courses in forensic science and has gained
-              immense popularity globally for revolutionizing the field of
-              forensic education.
-            </motion.p>
+            {content.paragraphs.map((p: string, idx: number) => (
+              <motion.div variants={fadeUp} className="text-gray-600 text-sm leading-relaxed mb-4 group relative" key={idx}>
+                <div className="flex-1">
+                  <EditableText
+                    html={p}
+                    editMode={editMode}
+                    onChange={(h) => {
+                      const next = [...content.paragraphs];
+                      next[idx] = h;
+                      updateAndSave({ ...content, paragraphs: next });
+                    }}
+                  />
+                </div>
+                {editMode && (
+                  <button
+                    onClick={() => removeParagraph(idx)}
+                    className="absolute -right-6 top-0 text-red-500 opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 rounded transition-opacity"
+                    title="Remove Paragraph"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </motion.div>
+            ))}
 
-            <motion.p
-              variants={fadeUp}
-              className="text-gray-600 text-sm leading-relaxed"
-            >
-              The learner-friendly educational platform was established to
-              fulfill the demand and supply difference between skilled forensic
-              professionals and serve law enforcement agencies.
-            </motion.p>
+            {editMode && (
+              <button
+                onClick={addParagraph}
+                className="flex items-center gap-2 mt-4 text-sm text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 transition-colors"
+              >
+                <Plus size={16} /> Add Paragraph
+              </button>
+            )}
 
-            <motion.p
-              variants={fadeUp}
-              className="text-gray-600 text-sm leading-relaxed mb-4"
-            >
-              We offer several short- and long-term certificate, diploma,
-              postgraduate diploma, foundational, and professional courses.
-            </motion.p>
-
-            <motion.p
-              variants={fadeUp}
-              className="text-gray-600 text-sm leading-relaxed"
-            >
-              Our hands-on approach and real-life case studies help students
-              understand complex cases and apply their learnings effectively.
-            </motion.p>
           </motion.div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }

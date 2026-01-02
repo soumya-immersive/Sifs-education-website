@@ -2,6 +2,10 @@
 
 import Image from "next/image";
 import { motion, Variants } from "framer-motion";
+import { Plus, Trash2 } from "lucide-react";
+import EditableText from "../editable/EditableText";
+import EditableImage from "../editable/EditableImage";
+import { MissionData } from "@/types/about-page";
 
 /* ---------------- Animations (Scroll Only) ---------------- */
 
@@ -32,7 +36,35 @@ const scaleFade: Variants = {
   },
 };
 
-export default function MissionVision() {
+interface MissionVisionProps {
+  data: MissionData;
+  editMode: boolean;
+  updateData: (newData: MissionData) => void;
+}
+
+export default function MissionVision({ data, editMode, updateData }: MissionVisionProps) {
+
+  const addCard = () => {
+    // Ensuring new card has unique/valid initial content
+    const newCard = {
+      icon: "/about-us/mission.png", // Default icon to prevent empty image
+      title: "New Title",
+      description: "Description of the new value..."
+    };
+    // Create new array to force re-render
+    const updatedCards = [...data.cards, newCard];
+    updateData({ ...data, cards: updatedCards });
+  };
+
+  const removeCard = (index: number) => {
+    // Using explicit index filtering
+    if (confirm("Delete this card?")) {
+      const newCards = [...data.cards];
+      newCards.splice(index, 1);
+      updateData({ ...data, cards: newCards });
+    }
+  };
+
   return (
     <section className="py-20 bg-white overflow-hidden">
       <motion.div
@@ -47,13 +79,11 @@ export default function MissionVision() {
           variants={fadeUp}
           className="rounded-2xl overflow-hidden shadow-lg mb-14"
         >
-          <Image
-            src="/about-us/mission-bg.png"
-            alt="Students learning together"
-            width={1200}
-            height={520}
-            className="w-full h-[360px] md:h-[420px] object-cover"
-            priority
+          <EditableImage
+            src={data.mainImage}
+            editMode={editMode}
+            onChange={(src) => updateData({ ...data, mainImage: src })}
+            className="w-full"
           />
         </motion.div>
 
@@ -62,67 +92,83 @@ export default function MissionVision() {
           className="grid md:grid-cols-3 gap-8"
           variants={container}
         >
-          {/* CARD 1 */}
-          <motion.div variants={scaleFade} className="bg-white p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <Image
-                src="/about-us/mission.png"
-                alt="Mission"
-                width={40}
-                height={40}
-              />
-              <h3 className="font-semibold text-black text-lg">
-                Our Mission
-              </h3>
-            </div>
+          {data.cards.map((card, index) => (
+            <motion.div
+              key={index}
+              variants={scaleFade}
+              // FORCE VISIBLE: If we are in edit mode or it's a new item, we don't want it hidden by parent stagger
+              initial="visible"
+              animate="visible"
+              className="bg-white p-6 relative group border border-transparent hover:border-gray-100 rounded-xl transition-all"
+            >
+              {editMode && (
+                <div className="absolute top-2 right-2 z-20">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeCard(index);
+                    }}
+                    className="text-red-500 p-2 bg-red-50 rounded-full hover:bg-red-100 transition-colors shadow-sm"
+                    title="Delete Card"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              )}
 
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Our mission is to empower individuals with the essential forensic
-              expertise to promote justice on a global scale.
-            </p>
-          </motion.div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 relative flex-shrink-0">
+                  <EditableImage
+                    src={card.icon}
+                    editMode={editMode}
+                    onChange={(src) => {
+                      const newCards = [...data.cards];
+                      newCards[index].icon = src;
+                      updateData({ ...data, cards: newCards });
+                    }}
+                    className="w-10 h-10 object-contain"
+                  />
+                </div>
 
-          {/* CARD 2 */}
-          <motion.div variants={scaleFade} className="bg-white p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <Image
-                src="/about-us/vision.png"
-                alt="Vision"
-                width={40}
-                height={40}
-              />
-              <h3 className="font-semibold text-black text-lg">
-                Our Vision
-              </h3>
-            </div>
+                <div className="font-semibold text-black text-lg">
+                  <EditableText
+                    html={card.title}
+                    editMode={editMode}
+                    onChange={(val) => {
+                      const newCards = [...data.cards];
+                      newCards[index].title = val;
+                      updateData({ ...data, cards: newCards });
+                    }}
+                  />
+                </div>
+              </div>
 
-            <p className="text-sm text-gray-600 leading-relaxed">
-              We visualize a society where forensic science plays a fundamental
-              role in promoting justice, truth, security, and the well-being of
-              communities.
-            </p>
-          </motion.div>
-
-          {/* CARD 3 */}
-          <motion.div variants={scaleFade} className="bg-white p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <Image
-                src="/about-us/purpose.png"
-                alt="Purpose"
-                width={40}
-                height={40}
-              />
-              <h3 className="font-semibold text-black text-lg">
-                Our Purpose
-              </h3>
-            </div>
-
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Our purpose is to excel in promoting knowledge, revealing the
-              truth, and training forensic professionals across borders.
-            </p>
-          </motion.div>
+              <div className="text-sm text-gray-600 leading-relaxed">
+                <EditableText
+                  html={card.description}
+                  editMode={editMode}
+                  onChange={(val) => {
+                    const newCards = [...data.cards];
+                    newCards[index].description = val;
+                    updateData({ ...data, cards: newCards });
+                  }}
+                />
+              </div>
+            </motion.div>
+          ))}
         </motion.div>
+
+        {editMode && (
+          <div className="mt-8 flex justify-center">
+            <button
+              onClick={addCard}
+              className="flex items-center gap-2 px-6 py-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors border border-blue-200 shadow-sm"
+            >
+              <Plus size={18} /> Add New Card
+            </button>
+          </div>
+        )}
+
       </motion.div>
     </section>
   );

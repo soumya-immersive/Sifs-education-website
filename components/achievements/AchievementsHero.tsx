@@ -1,15 +1,30 @@
-import Image from "next/image";
+"use client";
 
-export default function AchievementsHero() {
+import EditableImage from "../editable/EditableImage";
+
+interface AchievementsHeroProps {
+  data: {
+    image: string;
+  };
+  editMode: boolean;
+  updateData: (data: any) => void;
+}
+
+export default function AchievementsHero({
+  data,
+  editMode,
+  updateData,
+}: AchievementsHeroProps) {
+  if (!data) return null;
+
   return (
     <div className="w-full">
-      <Image
-        src="/achievements/banner.png"
+      <EditableImage
+        src={data.image}
         alt="Achievements"
-        width={1920}
-        height={300}
-        className="w-full object-cover"
-        priority
+        editMode={editMode}
+        className="w-full h-auto object-cover"
+        onChange={(newSrc) => updateData({ ...data, image: newSrc })}
       />
     </div>
   );
