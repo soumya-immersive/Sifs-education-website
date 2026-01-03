@@ -62,14 +62,13 @@ const navItems = [
       { label: "Visual Gallery", path: "/video" },
     ],
   },
-  //{
-    //label: "Books",
-    //children: bookCategories.map((category) => ({
-      //label: category.label,
-      //path: `/books/${category.slug}`,
-    //})),
-  //},
-  { label: "Books", path: "/courses/associate-degree" },
+  {
+    label: "Books",
+    children: bookCategories.map((category) => ({
+      label: category.label,
+      path: `/books/${category.slug}`,
+    })),
+  },
   { label: "Reach Us", path: "/contact" },
 ];
 

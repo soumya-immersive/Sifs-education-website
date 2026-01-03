@@ -180,7 +180,7 @@ export default function EventsSection() {
               className="rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-2 text-sm font-semibold text-white shadow-lg hover:shadow-xl"
               variants={headerItemVariants}
             >
-              More About →
+          Show all →
             </motion.button>
           </Link>
         </div>

@@ -1,64 +1,14 @@
-// components/events/UpcomingEvents.tsx
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
+import { Event } from "../../types/events-page";
+import EditableText from "../editable/EditableText";
+import { Edit, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 
-type Event = {
-  id: number;
-  slug: string; // Add slug for routing
-  title: string;
-  date: string;
-  mode: string;
-  description: string;
-  image: string;
-};
-
-const events: Event[] = [
-  {
-    id: 1,
-    slug: "digital-forensics-cyber-security", // Add slug
-    title: "Digital Forensics & Cyber Security",
-    date: "08 Dec, 2025",
-    mode: "Online Zoom",
-    description:
-      "A micro certificate program offered by Sherlock Institute of Forensic Science (SIFS) India is an intensive 5-day program.",
-    image: "/event/1.png",
-  },
-  {
-    id: 2,
-    slug: "6th-international-forensic-science-conference", // Add slug
-    title: "6th International Forensic Science Conference",
-    date: "08 Dec, 2025",
-    mode: "Online Zoom",
-    description:
-      "An intensive 5-day program focused on contemporary forensic science domains.",
-    image: "/event/2.png",
-  },
-  {
-    id: 3,
-    slug: "global-dimensions-forensic-science-strengthening-justice", // Add slug
-    title: "Global Dimensions of Forensic Science: Strengthening Justice...",
-    date: "08 Dec, 2025",
-    mode: "Online Zoom",
-    description:
-      "A program exploring global best practices in forensic science and justice.",
-    image: "/event/3.png",
-  },
-  {
-    id: 4,
-    slug: "forensic-psychology-principles-practice-ethics", // Add slug
-    title: "Forensic Psychology - Its Principles, Practice & Ethics",
-    date: "08 Dec, 2025",
-    mode: "Online Zoom",
-    description:
-      "An intensive 5-day program focused on forensic psychology applications.",
-    image: "/event/2.png",
-  },
-];
-
-// Helper function to generate slugs (if not provided)
+// Helper function to generate slugs
 const generateSlug = (title: string): string => {
   return title
     .toLowerCase()
@@ -67,23 +17,7 @@ const generateSlug = (title: string): string => {
     .substring(0, 50);
 };
 
-const timerTitles = ["Days", "Hours", "Min", "Sec"];
-
-const timerValues: { [key: number]: string[] } = {
-  1: ["12", "11", "45", "38"],
-  2: ["10", "20", "07", "55"],
-  3: ["05", "03", "18", "22"],
-  4: ["01", "15", "30", "40"],
-};
-
-const timerStyles = [
-  { container: "bg-sky-500 border border-sky-500", number: "text-white", title: "text-sky-100" },
-  { container: "bg-white border border-dashed border-sky-400", number: "text-sky-500", title: "text-sky-500" },
-  { container: "bg-white border border-dashed border-sky-400", number: "text-sky-500", title: "text-sky-500" },
-  { container: "bg-white border border-dashed border-amber-400", number: "text-amber-500", title: "text-amber-500" },
-];
-
-// ------------------ Motion Variants ------------------
+// Reuse existing variants
 const sectionContainerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -100,7 +34,7 @@ const headerItemVariants: Variants = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.5, ease: "easeOut" as any },
+    transition: { duration: 0.5, ease: "easeOut" }
   },
 };
 
@@ -120,7 +54,7 @@ const cardVariants: Variants = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.6, ease: "easeOut" as any },
+    transition: { duration: 0.6, ease: "easeOut" }
   },
 };
 
@@ -144,8 +78,69 @@ const subItemVariants: Variants = {
   },
 };
 
-// ------------------ Component ------------------
-export default function EventsSection() {
+interface UpcomingEventsProps {
+  events: Event[];
+  editMode: boolean;
+  onUpdateEvent: (id: number, updates: Partial<Event>) => void;
+  onAddEvent: (event: Event) => void;
+  onDeleteEvent: (id: number) => void;
+  showAllButtonLabel?: string;
+  onUpdateButtonLabel?: (label: string) => void;
+}
+
+export default function UpcomingEvents({
+  events,
+  editMode,
+  onUpdateEvent,
+  onAddEvent,
+  onDeleteEvent,
+  showAllButtonLabel = "Show all →",
+  onUpdateButtonLabel
+}: UpcomingEventsProps) {
+
+  const [showAll, setShowAll] = useState(false);
+
+  // Show all cards when showAll is true OR when in edit mode
+  // In edit mode, the button is still functional to allow toggling
+  const displayEvents = (editMode || showAll) ? events : events.slice(0, 4);
+
+  const handleAddNew = () => {
+    const newId = Math.max(...events.map(e => e.id), 0) + 1;
+    const newEvent: Event = {
+      id: newId,
+      slug: `new-event-${newId}`,
+      title: "New Forensic Event",
+      category: "General",
+      date: "01 Jan, 2026",
+      duration: "1 Day",
+      location: "Online",
+      mode: "online",
+      price: 0,
+      discountedPrice: 0,
+      currency: "USD",
+      heroImage: "/events/1.png",
+      coverImage: "/events/1.png",
+      description: "Description of the new event.",
+      objectives: [],
+      schedule: [],
+      faqs: [],
+      seats: { total: 100, available: 100 },
+      instructors: []
+    };
+    onAddEvent(newEvent);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, id: number) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        onUpdateEvent(id, { heroImage: reader.result as string, coverImage: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <section className="bg-gradient-to-r from-white via-white to-violet-50 py-16">
       <motion.div
@@ -175,14 +170,22 @@ export default function EventsSection() {
             </h2>
           </motion.div>
 
-          <Link href="/events">
-            <motion.button
-              className="rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-2 text-sm font-semibold text-white shadow-lg hover:shadow-xl"
-              variants={headerItemVariants}
-            >
-              More About →
-            </motion.button>
-          </Link>
+          <motion.button
+            onClick={() => setShowAll(!showAll)}
+            className="rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-2 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all"
+            variants={headerItemVariants}
+          >
+            {editMode && onUpdateButtonLabel ? (
+              <EditableText
+                html={showAll ? 'Show Less' : showAllButtonLabel}
+                editMode={editMode}
+                onChange={onUpdateButtonLabel}
+                as="span"
+              />
+            ) : (
+              showAll ? 'Show Less' : showAllButtonLabel
+            )}
+          </motion.button>
         </div>
 
         {/* Cards Grid */}
@@ -190,25 +193,53 @@ export default function EventsSection() {
           className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"
           variants={gridVariants}
         >
-          {events.map((event) => {
+          {displayEvents.map((event) => {
             const slug = event.slug || generateSlug(event.title);
-            
+
             return (
               <motion.article
                 key={event.id}
-                className="flex h-full p-3 flex-col overflow-hidden rounded-2xl bg-white shadow-[0_18px_40px_rgba(15,23,42,0.08)] hover:shadow-[0_18px_40px_rgba(15,23,42,0.12)] transition-shadow duration-300"
+                initial="visible"
+                animate="visible"
+                className="flex h-full p-3 flex-col overflow-hidden rounded-2xl bg-white shadow-[0_18px_40px_rgba(15,23,42,0.08)] hover:shadow-[0_18px_40px_rgba(15,23,42,0.12)] transition-shadow duration-300 relative group"
                 variants={cardVariants}
               >
-                {/* Make the whole card clickable as a Link */}
-                <Link href={`/events/${slug}`} className="flex flex-col flex-1">
+                {/* Delete Button */}
+                {editMode && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (confirm("Are you sure you want to delete this event?")) {
+                        onDeleteEvent(event.id);
+                      }
+                    }}
+                    className="absolute top-2 right-2 z-50 bg-red-500 text-white p-2 rounded-full shadow-md hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+
+                <div className="flex flex-col flex-1">
                   {/* Image */}
                   <motion.div className="relative h-44 w-full" variants={subItemVariants}>
-                    <Image 
-                      src={event.image} 
-                      alt={event.title} 
-                      fill 
-                      className="object-cover rounded-lg hover:scale-105 transition-transform duration-300" 
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                    {editMode && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 rounded-lg">
+                        <label className="cursor-pointer bg-white text-blue-600 p-2 rounded-full shadow-lg hover:bg-blue-50 transition-colors flex items-center justify-center">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleImageChange(e, event.id)}
+                          />
+                          <Edit size={20} />
+                        </label>
+                      </div>
+                    )}
+                    <Image
+                      src={event.coverImage || event.heroImage || "/events/1.png"}
+                      alt={event.title}
+                      fill
+                      className="object-cover rounded-lg"
                     />
                   </motion.div>
 
@@ -219,53 +250,87 @@ export default function EventsSection() {
                         <div className="relative w-4 h-4">
                           <Image src="/calendar-mark.png" alt="Calendar" fill className="object-contain" />
                         </div>
-                        <span>{event.date}</span>
+                        <EditableText
+                          as="span"
+                          html={event.date}
+                          editMode={editMode}
+                          onChange={(val) => onUpdateEvent(event.id, { date: val })}
+                        />
                       </div>
 
                       <div className="flex items-center gap-1">
                         <div className="relative w-4 h-4">
                           <Image src="/video-camera.png" alt="Mode" fill className="object-contain" />
                         </div>
-                        <span>{event.mode}</span>
+                        <EditableText
+                          as="span"
+                          html={event.mode.toString()} // Ensure string
+                          editMode={editMode}
+                          onChange={(val) => onUpdateEvent(event.id, { mode: val as any })}
+                        />
                       </div>
                     </motion.div>
 
                     <motion.h3 className="mb-2 line-clamp-2 text-base font-normal text-gray-900 hover:text-[#3A58EE] transition-colors" variants={subItemVariants}>
-                      {event.title}
+                      {editMode ? (
+                        <EditableText
+                          html={event.title}
+                          editMode={editMode}
+                          onChange={(val) => onUpdateEvent(event.id, { title: val })}
+                        />
+                      ) : (
+                        <Link href={`/events/${slug}`} onClick={(e) => editMode && e.preventDefault()}>
+                          {event.title}
+                        </Link>
+                      )}
                     </motion.h3>
 
-                    <motion.p className="mb-4 line-clamp-3 text-xs text-[#6B7385]" variants={subItemVariants}>
-                      {event.description}
-                    </motion.p>
+                    <motion.div className="mb-4 text-xs text-[#6B7385]" variants={subItemVariants}>
+                      <EditableText
+                        html={event.description}
+                        editMode={editMode}
+                        onChange={(val) => onUpdateEvent(event.id, { description: val })}
+                        className="line-clamp-3"
+                      />
+                    </motion.div>
 
                     <hr className="mb-3 border-gray-100" />
 
-                    {/* Timer + Link */}
                     <motion.div className="mt-auto flex items-center justify-between" variants={subItemVariants}>
                       <div className="flex gap-1 text-[10px] font-semibold">
-                        {timerTitles.map((title, i) => {
-                          const style = timerStyles[i];
-                          return (
-                            <div key={title} className={`rounded-md px-2 py-1 ${style.container}`}>
-                              <div className={`text-sm font-bold ${style.number}`}>
-                                {timerValues[event.id]?.[i] || "00"}
-                              </div>
-                              <div className={`text-[9px] ${style.title}`}>{title}</div>
-                            </div>
-                          );
-                        })}
                       </div>
 
-                      <div className="text-[11px] text-gray-500 hover:text-[#3A58EE] font-medium transition-colors group">
+                      <Link
+                        href={`/events/${slug}`}
+                        onClick={(e) => editMode && e.preventDefault()}
+                        className={`text-[11px] text-gray-500 hover:text-[#3A58EE] font-medium transition-colors group ml-auto ${editMode ? 'cursor-default pointer-events-none' : ''}`}
+                      >
                         Read More →
                         <span className="block h-0.5 w-0 bg-[#3A58EE] transition-all duration-300 group-hover:w-full"></span>
-                      </div>
+                      </Link>
                     </motion.div>
                   </motion.div>
-                </Link>
+                </div>
               </motion.article>
             );
           })}
+
+          {/* Add New Event Card */}
+          {editMode && (
+            <motion.div
+              variants={cardVariants}
+              initial="visible"
+              animate="visible"
+              onClick={handleAddNew}
+              className="flex min-h-[400px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center hover:bg-gray-100 hover:border-blue-400 transition-all group"
+            >
+              <div className="mb-4 rounded-full bg-white p-4 shadow-sm group-hover:shadow-md transition-all">
+                <Plus size={32} className="text-blue-500" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Add New Event</h3>
+              <p className="mt-2 text-sm text-gray-500">Create a new event card</p>
+            </motion.div>
+          )}
         </motion.div>
       </motion.div>
     </section>

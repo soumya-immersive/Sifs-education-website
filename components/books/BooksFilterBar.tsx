@@ -23,7 +23,33 @@ const fadeUp: Variants = {
   },
 };
 
-export default function BooksFilterBar() {
+interface FilterBarProps {
+  searchQuery: string;
+  onSearchChange: (val: string) => void;
+  genre: string;
+  onGenreChange: (val: string) => void;
+  format: string;
+  onFormatChange: (val: string) => void;
+  sortOrder: string;
+  onSortChange: (val: string) => void;
+  // Optional: Add editMode related props if needed, but filtering usually independent of editMode
+}
+
+export default function BooksFilterBar({
+  searchQuery,
+  onSearchChange,
+  genre,
+  onGenreChange,
+  format,
+  onFormatChange,
+  sortOrder,
+  onSortChange
+}: FilterBarProps) {
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+  };
+
   return (
     <section className="max-w-7xl mx-auto px-4 mt-8">
       <motion.div
@@ -41,12 +67,15 @@ export default function BooksFilterBar() {
         viewport={{ once: true }}
       >
         {/* LEFT: Search */}
-        <motion.div
+        <motion.form
+          onSubmit={handleSearch}
           variants={fadeUp}
           className="flex w-full lg:max-w-md"
         >
           <input
             type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search by title, author, or ISBN..."
             className="
               w-full
@@ -61,6 +90,7 @@ export default function BooksFilterBar() {
           />
 
           <button
+            type="submit"
             className="
               flex items-center justify-center
               px-5
@@ -73,7 +103,7 @@ export default function BooksFilterBar() {
           >
             <Search className="w-4 h-4" />
           </button>
-        </motion.div>
+        </motion.form>
 
         {/* RIGHT: Filters */}
         <motion.div
@@ -81,25 +111,38 @@ export default function BooksFilterBar() {
           className="flex w-full lg:w-auto gap-3 flex-wrap lg:flex-nowrap"
         >
           {/* Genre Filter */}
-          <select className="border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-600 bg-white cursor-pointer hover:border-blue-300 outline-none w-full lg:w-40">
+          <select
+            value={genre}
+            onChange={(e) => onGenreChange(e.target.value)}
+            className="border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-600 bg-white cursor-pointer hover:border-blue-300 outline-none w-full lg:w-40"
+          >
             <option value="">All Genres</option>
             <option value="fiction">Fiction</option>
             <option value="non-fiction">Non-Fiction</option>
             <option value="academic">Academic</option>
+            <option value="forensic-science">Forensic Science</option>
             <option value="sci-fi">Science Fiction</option>
           </select>
 
           {/* Format Filter */}
-          <select className="border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-600 bg-white cursor-pointer hover:border-blue-300 outline-none w-full lg:w-40">
+          <select
+            value={format}
+            onChange={(e) => onFormatChange(e.target.value)}
+            className="border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-600 bg-white cursor-pointer hover:border-blue-300 outline-none w-full lg:w-40"
+          >
             <option value="">Format</option>
-            <option value="hardcover">Hardcover</option>
-            <option value="paperback">Paperback</option>
-            <option value="ebook">E-Book</option>
-            <option value="audiobook">Audiobook</option>
+            <option value="Hardcover">Hardcover</option>
+            <option value="Paperback">Paperback</option>
+            <option value="E-Book">E-Book</option>
+            <option value="Audiobook">Audiobook</option>
           </select>
 
           {/* Sort Filter */}
-          <select className="border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-600 bg-white cursor-pointer hover:border-blue-300 outline-none w-full lg:w-40">
+          <select
+            value={sortOrder}
+            onChange={(e) => onSortChange(e.target.value)}
+            className="border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-600 bg-white cursor-pointer hover:border-blue-300 outline-none w-full lg:w-40"
+          >
             <option value="newest">Newest Arrivals</option>
             <option value="popular">Most Popular</option>
             <option value="rating">Top Rated</option>

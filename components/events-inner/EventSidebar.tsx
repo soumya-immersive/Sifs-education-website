@@ -1,39 +1,55 @@
 "use client";
 
 import { Calendar, Users, Phone, Info, Mail, Video, ArrowRight, Facebook } from "lucide-react";
-import { Event } from "../../data/events";
+import { Event } from "../../types/events-page";
+import EditableText from "../editable/EditableText";
 
 interface Props {
   event: Event;
+  editMode: boolean;
+  onUpdate: (updates: Partial<Event>) => void;
 }
 
-export default function EventSidebar({ event }: Props) {
+export default function EventSidebar({ event, editMode, onUpdate }: Props) {
   return (
     <div className="space-y-6 sticky top-24 max-w-sm">
-      
+
       {/* 1. Registration Detail Section */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-5 border-b border-gray-100">
           <h3 className="font-bold text-gray-800 text-lg">Registration Detail</h3>
         </div>
-        
+
         <div className="p-5 space-y-5">
           <div className="flex justify-between items-start">
             <div className="flex gap-3">
               <Calendar className="w-5 h-5 text-gray-900 mt-0.5" />
               <span className="font-semibold text-gray-900">Event Date:</span>
             </div>
-            <span className="text-gray-600">{event.date}</span>
+            <span className="text-gray-600 block max-w-[150px] text-right">
+              <EditableText
+                html={event.date}
+                editMode={editMode}
+                onChange={(val) => onUpdate({ date: val })}
+              />
+            </span>
           </div>
-          
+
           <div className="flex justify-between items-start">
             <div className="flex gap-3">
               <Users className="w-5 h-5 text-gray-900 mt-0.5" />
               <span className="font-semibold text-gray-900">Participant:</span>
             </div>
-            <span className="text-gray-600">₹ 1,180.00</span>
+            <span className="text-gray-600 font-bold flex gap-1">
+              {event.currency || "₹"}
+              <EditableText
+                html={event.price.toString()}
+                editMode={editMode}
+                onChange={(val) => onUpdate({ price: parseFloat(val) || 0 })}
+              />
+            </span>
           </div>
-          
+
           <div className="flex justify-between items-start">
             <div className="flex gap-3">
               <Phone className="w-5 h-5 text-gray-900 mt-0.5" />
@@ -67,7 +83,7 @@ export default function EventSidebar({ event }: Props) {
         <div className="p-5 border-b border-gray-100">
           <h3 className="font-bold text-gray-800 text-lg">Venue</h3>
         </div>
-        
+
         <div className="p-5 space-y-4">
           <div>
             <h4 className="font-bold text-gray-900">Online Zoom</h4>
@@ -105,7 +121,7 @@ export default function EventSidebar({ event }: Props) {
         <div className="p-5 border-b border-gray-100">
           <h3 className="font-bold text-gray-800 text-lg">Ask Your Query</h3>
         </div>
-        
+
         <form className="p-5 space-y-4" onSubmit={(e) => e.preventDefault()}>
           <div className="space-y-1.5">
             <label className="text-sm font-bold text-gray-700">Name</label>
