@@ -16,7 +16,11 @@ const EventHero = ({ event, editMode, onUpdate }: EventHeroProps) => {
   const backgroundImage = event.heroImage || "/event/hero-bg.png";
   const overlapImage = event.coverImage || "/event/hero-bg1.png";
 
-  const targetDate = new Date("January 12, 2026 00:00:00").getTime(); // Logic to parse event.date could be added here
+
+
+  // Parse event date for countdown. Assuming format "08 Dec, 2025" or similar.
+  // We try to parse it, fallback to extensive future date if fail.
+  const targetDate = new Date(event.date).getTime() || new Date().getTime() + 86400000 * 10;
 
   const [timeLeft, setTimeLeft] = useState({
     days: "00",

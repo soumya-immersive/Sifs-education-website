@@ -55,7 +55,13 @@ export default function EventSidebar({ event, editMode, onUpdate }: Props) {
               <Phone className="w-5 h-5 text-gray-900 mt-0.5" />
               <span className="font-semibold text-gray-900">Ask Query on:</span>
             </div>
-            <span className="text-gray-600">+91 926-676-6303</span>
+            <span className="text-gray-600">
+              <EditableText
+                html={event.contactPhone || "+91 926-676-6303"}
+                editMode={editMode}
+                onChange={(val) => onUpdate({ contactPhone: val })}
+              />
+            </span>
           </div>
 
           <div className="bg-indigo-50/50 p-4 rounded-xl flex gap-3 border border-indigo-100/50">
@@ -67,7 +73,7 @@ export default function EventSidebar({ event, editMode, onUpdate }: Props) {
 
           <div className="space-y-3 pt-2">
             <button className="w-full bg-gradient-to-r from-blue-600 to-purple-500 hover:opacity-90 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all">
-              Register Now
+              {editMode ? "Register Link (Edit in Props)" : "Register Now"}
               <ArrowRight className="w-5 h-5" />
             </button>
             <button className="w-full bg-white border border-gray-200 text-gray-400 font-medium py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition-all">
@@ -86,25 +92,55 @@ export default function EventSidebar({ event, editMode, onUpdate }: Props) {
 
         <div className="p-5 space-y-4">
           <div>
-            <h4 className="font-bold text-gray-900">Online Zoom</h4>
-            <p className="text-xs text-gray-500 uppercase tracking-wider mt-1">For micro-certificate program</p>
+            <h4 className="font-bold text-gray-900">
+              <EditableText
+                html={event.venue || "Online Zoom"}
+                editMode={editMode}
+                onChange={(val) => onUpdate({ venue: val })}
+              />
+            </h4>
+            <div className="text-xs text-gray-500 uppercase tracking-wider mt-1">
+              <EditableText
+                html={event.venueAddress || "For micro-certificate program"}
+                editMode={editMode}
+                onChange={(val) => onUpdate({ venueAddress: val })}
+              />
+            </div>
           </div>
 
           <div className="space-y-4 pt-2">
             <div className="flex items-center gap-4">
               <Mail className="w-5 h-5 text-gray-900" />
               <span className="text-sm font-semibold text-gray-900 w-24">E-mail</span>
-              <span className="text-sm text-gray-600">Learningsifs@gmail.com</span>
+              <span className="text-sm text-gray-600">
+                <EditableText
+                  html={event.venueEmail || "Learningsifs@gmail.com"}
+                  editMode={editMode}
+                  onChange={(val) => onUpdate({ venueEmail: val })}
+                />
+              </span>
             </div>
             <div className="flex items-center gap-4">
               <Phone className="w-5 h-5 text-gray-900" />
               <span className="text-sm font-semibold text-gray-900 w-24">Phone</span>
-              <span className="text-sm text-gray-600">+91 926-676-6303</span>
+              <span className="text-sm text-gray-600">
+                <EditableText
+                  html={event.venuePhone || "+91 926-676-6303"}
+                  editMode={editMode}
+                  onChange={(val) => onUpdate({ venuePhone: val })}
+                />
+              </span>
             </div>
             <div className="flex items-center gap-4">
               <Video className="w-5 h-5 text-gray-900" />
               <span className="text-sm font-semibold text-gray-900 w-24">Online</span>
-              <span className="text-sm text-gray-600">Zoom Platform</span>
+              <span className="text-sm text-gray-600">
+                <EditableText
+                  html={event.platform || "Zoom Platform"}
+                  editMode={editMode}
+                  onChange={(val) => onUpdate({ platform: val })}
+                />
+              </span>
             </div>
           </div>
         </div>

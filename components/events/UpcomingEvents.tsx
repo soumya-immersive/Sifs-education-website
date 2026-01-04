@@ -94,7 +94,7 @@ export default function UpcomingEvents({
   onUpdateEvent,
   onAddEvent,
   onDeleteEvent,
-  showAllButtonLabel = "Show all →",
+  showAllButtonLabel = "Show All →",
   onUpdateButtonLabel
 }: UpcomingEventsProps) {
 

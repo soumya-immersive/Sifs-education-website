@@ -9,7 +9,7 @@ import EventSchedule from "../../../components/events-inner/EventSchedule";
 import EventSidebar from "../../../components/events-inner/EventSidebar";
 import EventFaq from "../../../components/events-inner/EventFaq";
 import UpcomingEvents from "../../../components/events-inner/UpcomingEvents";
-import Participatory from "../../../components/events-inner/Participatory";
+import Participatory from "../../../components/events/Participatory";
 import { Loader2 } from "lucide-react";
 
 interface EventDetailClientProps {
@@ -18,7 +18,7 @@ interface EventDetailClientProps {
 }
 
 export default function EventDetailClient({ slug, initialEvent }: EventDetailClientProps) {
-    const { data, updateEvent, editMode } = useEventsPageData();
+    const { data, updateEvent, updateSection, editMode } = useEventsPageData();
     const [event, setEvent] = useState<Event | undefined>(initialEvent);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -29,7 +29,7 @@ export default function EventDetailClient({ slug, initialEvent }: EventDetailCli
             if (found) {
                 setEvent(found);
             } else if (!initialEvent) {
-                // If not found in dynamic data and no initial event (404 handled in page.tsx usually, but good to be safe)
+                // If not found in dynamic data and no initial event
             }
         }
         setIsLoading(false);
@@ -43,10 +43,30 @@ export default function EventDetailClient({ slug, initialEvent }: EventDetailCli
         );
     }
 
-    if (!event) return null; // Should be handled by notFound() in server component
+    if (!event) return null;
 
     const handleUpdate = (updates: Partial<Event>) => {
         updateEvent(event.id, updates);
+    };
+
+    // Handlers for Participatory Section
+    const handleUpdateParticipatory = (newData: any) => {
+        updateSection('participatory', newData);
+    };
+
+    const handleAddPartner = () => {
+        const newPartner = {
+            name: "New Partner Organization",
+            logo: "/events/participatory1.png",
+        };
+        updateSection("participatory", {
+            partners: [...data.participatory.partners, newPartner],
+        });
+    };
+
+    const handleDeletePartner = (index: number) => {
+        const newPartners = data.participatory.partners.filter((_, i) => i !== index);
+        updateSection("participatory", { partners: newPartners });
     };
 
     return (
@@ -71,7 +91,14 @@ export default function EventDetailClient({ slug, initialEvent }: EventDetailCli
             </div>
             {/* Show other events as upcoming */}
             <UpcomingEvents events={data.events.filter(e => e.id !== event.id)} />
-            <Participatory data={data.participatory} />
+
+            <Participatory
+                data={data.participatory}
+                editMode={editMode}
+                onUpdate={handleUpdateParticipatory}
+                onAddPartner={handleAddPartner}
+                onDeletePartner={handleDeletePartner}
+            />
         </main>
     );
 }

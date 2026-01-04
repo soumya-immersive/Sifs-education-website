@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Plus, Trash2 } from "lucide-react";
 import { Event } from "../../types/events-page";
 import EditableText from "../editable/EditableText";
+import EditableImage from "../editable/EditableImage";
 
 interface Props {
   event: Event;
@@ -45,7 +46,9 @@ export default function EventSchedule({ event, editMode, onUpdate }: Props) {
     const newDay = {
       day: event.schedule.length + 1,
       title: "New Session Title",
-      description: "Description of the session..."
+      description: "Description of the session...",
+      time: "06:00 PM - 07:00 PM",
+      image: "/placeholder-course.jpg"
     };
     onUpdate({ schedule: [...event.schedule, newDay] });
     setActiveTab(event.schedule.length); // Switch to new tab
@@ -90,8 +93,8 @@ export default function EventSchedule({ event, editMode, onUpdate }: Props) {
               <button
                 onClick={() => setActiveTab(index)}
                 className={`w-full flex flex-col items-start p-4 rounded-2xl transition-all text-left border ${activeTab === index
-                    ? "bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white border-transparent shadow-lg"
-                    : "bg-[#f8f9fa] text-gray-600 border-transparent hover:bg-gray-100"
+                  ? "bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white border-transparent shadow-lg"
+                  : "bg-[#f8f9fa] text-gray-600 border-transparent hover:bg-gray-100"
                   }`}
               >
                 <span className="font-bold text-lg">{dayLabels[index] || `Day ${day.day}`}</span>
@@ -141,16 +144,20 @@ export default function EventSchedule({ event, editMode, onUpdate }: Props) {
 
                 <div className="inline-flex items-center gap-2 bg-[#c27803] text-white px-4 py-2 rounded-lg font-bold text-sm mb-8">
                   <Clock className="w-4 h-4" />
-                  06:00 PM - 07:00 PM
+                  <EditableText
+                    html={event.schedule[activeTab].time || "06:00 PM - 07:00 PM"}
+                    editMode={editMode}
+                    onChange={(val) => handleUpdateSchedule(activeTab, { time: val })}
+                    className="text-white bg-transparent outline-none min-w-[100px]"
+                  />
                 </div>
 
-                {/* Image could be editable too if added to schedule item structure. For now static or same for all? 
-                    The original code had a static image. I'll leave it static or make it editable if I add an image field to schedule item.
-                    The interface has no image for schedule item. I'll omit or leave static. */}
-                <div className="rounded-3xl overflow-hidden shadow-md">
-                  <img
-                    src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop"
+                <div className="rounded-3xl overflow-hidden shadow-md relative group">
+                  <EditableImage
+                    src={event.schedule[activeTab].image || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop"}
                     alt="Session illustration"
+                    editMode={editMode}
+                    onChange={(src) => handleUpdateSchedule(activeTab, { image: src })}
                     className="w-full h-64 object-cover"
                   />
                 </div>

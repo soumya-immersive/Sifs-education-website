@@ -1,64 +1,12 @@
-// components/events/UpcomingEvents.tsx
+// components/events-inner/UpcomingEvents.tsx
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
+import { Event } from "../../types/events-page";
 
-type Event = {
-  id: number;
-  slug: string; // Add slug for routing
-  title: string;
-  date: string;
-  mode: string;
-  description: string;
-  image: string;
-};
-
-const events: Event[] = [
-  {
-    id: 1,
-    slug: "digital-forensics-cyber-security", // Add slug
-    title: "Digital Forensics & Cyber Security",
-    date: "08 Dec, 2025",
-    mode: "Online Zoom",
-    description:
-      "A micro certificate program offered by Sherlock Institute of Forensic Science (SIFS) India is an intensive 5-day program.",
-    image: "/event/1.png",
-  },
-  {
-    id: 2,
-    slug: "6th-international-forensic-science-conference", // Add slug
-    title: "6th International Forensic Science Conference",
-    date: "08 Dec, 2025",
-    mode: "Online Zoom",
-    description:
-      "An intensive 5-day program focused on contemporary forensic science domains.",
-    image: "/event/2.png",
-  },
-  {
-    id: 3,
-    slug: "global-dimensions-forensic-science-strengthening-justice", // Add slug
-    title: "Global Dimensions of Forensic Science: Strengthening Justice...",
-    date: "08 Dec, 2025",
-    mode: "Online Zoom",
-    description:
-      "A program exploring global best practices in forensic science and justice.",
-    image: "/event/3.png",
-  },
-  {
-    id: 4,
-    slug: "forensic-psychology-principles-practice-ethics", // Add slug
-    title: "Forensic Psychology - Its Principles, Practice & Ethics",
-    date: "08 Dec, 2025",
-    mode: "Online Zoom",
-    description:
-      "An intensive 5-day program focused on forensic psychology applications.",
-    image: "/event/2.png",
-  },
-];
-
-// Helper function to generate slugs (if not provided)
+// Helper function to generate slugs
 const generateSlug = (title: string): string => {
   return title
     .toLowerCase()
@@ -69,6 +17,7 @@ const generateSlug = (title: string): string => {
 
 const timerTitles = ["Days", "Hours", "Min", "Sec"];
 
+// Mock values for timers if not dynamic yet
 const timerValues: { [key: number]: string[] } = {
   1: ["12", "11", "45", "38"],
   2: ["10", "20", "07", "55"],
@@ -100,7 +49,7 @@ const headerItemVariants: Variants = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.5, ease: "easeOut" as any },
+    transition: { duration: 0.5, ease: "easeOut" }
   },
 };
 
@@ -120,7 +69,7 @@ const cardVariants: Variants = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.6, ease: "easeOut" as any },
+    transition: { duration: 0.6, ease: "easeOut" }
   },
 };
 
@@ -144,8 +93,14 @@ const subItemVariants: Variants = {
   },
 };
 
-// ------------------ Component ------------------
-export default function EventsSection() {
+interface UpcomingEventsProps {
+  events: Event[];
+}
+
+export default function UpcomingEvents({ events }: UpcomingEventsProps) {
+  // If no events provided, don't crash, max show 4
+  const displayEvents = events?.slice(0, 4) || [];
+
   return (
     <section className="bg-gradient-to-r from-white via-white to-violet-50 py-16">
       <motion.div
@@ -180,7 +135,7 @@ export default function EventsSection() {
               className="rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-2 text-sm font-semibold text-white shadow-lg hover:shadow-xl"
               variants={headerItemVariants}
             >
-          Show all →
+              Show All →
             </motion.button>
           </Link>
         </div>
@@ -190,24 +145,24 @@ export default function EventsSection() {
           className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"
           variants={gridVariants}
         >
-          {events.map((event) => {
+          {displayEvents.map((event) => {
             const slug = event.slug || generateSlug(event.title);
-            
+
             return (
               <motion.article
                 key={event.id}
-                className="flex h-full p-3 flex-col overflow-hidden rounded-2xl bg-white shadow-[0_18px_40px_rgba(15,23,42,0.08)] hover:shadow-[0_18px_40px_rgba(15,23,42,0.12)] transition-shadow duration-300"
+                className="flex h-full p-3 flex-col overflow-hidden rounded-2xl bg-white shadow-[0_18px_40px_rgba(15,23,42,0.08)] hover:shadow-[0_18px_40px_rgba(15,23,42,0.12)] transition-shadow duration-300 relative group"
                 variants={cardVariants}
               >
                 {/* Make the whole card clickable as a Link */}
                 <Link href={`/events/${slug}`} className="flex flex-col flex-1">
                   {/* Image */}
                   <motion.div className="relative h-44 w-full" variants={subItemVariants}>
-                    <Image 
-                      src={event.image} 
-                      alt={event.title} 
-                      fill 
-                      className="object-cover rounded-lg hover:scale-105 transition-transform duration-300" 
+                    <Image
+                      src={event.heroImage || event.coverImage || "/events/1.png"}
+                      alt={event.title}
+                      fill
+                      className="object-cover rounded-lg hover:scale-105 transition-transform duration-300"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                     />
                   </motion.div>
@@ -248,7 +203,7 @@ export default function EventsSection() {
                           return (
                             <div key={title} className={`rounded-md px-2 py-1 ${style.container}`}>
                               <div className={`text-sm font-bold ${style.number}`}>
-                                {timerValues[event.id]?.[i] || "00"}
+                                {timerValues[event.id % 4 + 1]?.[i] || "00"}
                               </div>
                               <div className={`text-[9px] ${style.title}`}>{title}</div>
                             </div>

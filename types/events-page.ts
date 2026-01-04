@@ -43,6 +43,8 @@ export interface Event {
     day: number;
     title: string;
     description: string;
+    time?: string;
+    image?: string;
   }[];
   faqs: {
     question: string;
@@ -57,6 +59,16 @@ export interface Event {
     role: string;
     image: string;
   }[];
+  // New fields for Detail Page Sidebar editability
+  contactEmail?: string;
+  contactPhone?: string;
+  venue?: string; // e.g., "Online Zoom"
+  venueAddress?: string; // e.g., description
+  venueEmail?: string;
+  venuePhone?: string;
+  platform?: string; // e.g. "Zoom Platform"
+  registrationLink?: string;
+  schedulePdfLink?: string; // For "Download Schedule"
 }
 
 export interface ArchiveProgramData {
