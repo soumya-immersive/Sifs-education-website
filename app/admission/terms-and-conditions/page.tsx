@@ -7,6 +7,7 @@ import { useAdmissionPageData } from "../../../hooks/useAdmissionPageData";
 import EditableImage from "../../../components/editable/EditableImage";
 import EditableText from "../../../components/editable/EditableText";
 import { TermsSection } from "../../../types/admission-page";
+import ConfirmationDialog from "../../../components/common/ConfirmationDialog";
 
 export default function TermsAndConditionsPage() {
   const {
@@ -20,6 +21,7 @@ export default function TermsAndConditionsPage() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [isEditLoading, setIsEditLoading] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   if (!isLoaded) {
     return (
@@ -37,7 +39,11 @@ export default function TermsAndConditionsPage() {
     setIsEditLoading(false);
   };
 
-  const handleSave = async () => {
+  const handleSaveClick = () => {
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmSave = async () => {
     setIsSaving(true);
     const success = await saveData();
     setTimeout(() => {
@@ -48,6 +54,7 @@ export default function TermsAndConditionsPage() {
         toast.error("❌ Failed to save changes");
       }
       setIsSaving(false);
+      setShowConfirmation(false);
     }, 800);
   };
 
@@ -125,6 +132,22 @@ export default function TermsAndConditionsPage() {
     <div className="min-h-screen bg-[#F0F5F9] pb-20 mb-12">
       <Toaster position="top-right" />
 
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={showConfirmation}
+        onClose={() => setShowConfirmation(false)}
+        onConfirm={handleConfirmSave}
+        title="Save Changes"
+        message="Are you sure you want to save all the changes made to this page? This action will update the content permanently."
+        confirmText="Save Changes"
+        cancelText="Cancel"
+        type="success"
+        isLoading={isSaving}
+        requirePassword={true}
+        username="admin@sifs.com"
+        expectedPassword="admin123"
+      />
+
       {/* Admin Controls */}
       <div className="fixed bottom-6 right-6 z-[1000] flex gap-2">
         {!editMode ? (
@@ -150,7 +173,7 @@ export default function TermsAndConditionsPage() {
               Add Section
             </button>
             <button
-              onClick={handleSave}
+              onClick={handleSaveClick}
               disabled={isSaving}
               className={`flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-green-700 transition-all font-medium animate-in fade-in zoom-in ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
             >

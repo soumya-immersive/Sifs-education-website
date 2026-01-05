@@ -66,6 +66,9 @@ export default function AboutPage() {
         cancelText="Cancel"
         type="success"
         isLoading={isSaving}
+        requirePassword={true}
+        username="admin@sifs.com"
+        expectedPassword="admin123"
       />
 
       {/* Global Edit Control */}

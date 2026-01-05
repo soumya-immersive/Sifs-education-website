@@ -10,7 +10,9 @@ import EventSidebar from "../../../components/events-inner/EventSidebar";
 import EventFaq from "../../../components/events-inner/EventFaq";
 import UpcomingEvents from "../../../components/events-inner/UpcomingEvents";
 import Participatory from "../../../components/events/Participatory";
-import { Loader2 } from "lucide-react";
+import { Loader2, Edit, Save } from "lucide-react";
+import { Toaster, toast } from "react-hot-toast";
+import ConfirmationDialog from "../../../components/common/ConfirmationDialog";
 
 interface EventDetailClientProps {
     slug: string;
@@ -18,9 +20,12 @@ interface EventDetailClientProps {
 }
 
 export default function EventDetailClient({ slug, initialEvent }: EventDetailClientProps) {
-    const { data, updateEvent, updateSection, editMode } = useEventsPageData();
+    const { data, updateEvent, updateSection, editMode, setEditMode, saveData } = useEventsPageData();
     const [event, setEvent] = useState<Event | undefined>(initialEvent);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isEditLoading, setIsEditLoading] = useState(false);
+    const [showConfirmation, setShowConfirmation] = useState(false);
 
     useEffect(() => {
         // Find event in dynamic data
@@ -28,8 +33,6 @@ export default function EventDetailClient({ slug, initialEvent }: EventDetailCli
             const found = data.events.find((e) => e.slug === slug);
             if (found) {
                 setEvent(found);
-            } else if (!initialEvent) {
-                // If not found in dynamic data and no initial event
             }
         }
         setIsLoading(false);
@@ -47,6 +50,31 @@ export default function EventDetailClient({ slug, initialEvent }: EventDetailCli
 
     const handleUpdate = (updates: Partial<Event>) => {
         updateEvent(event.id, updates);
+    };
+
+    const handleEditClick = () => {
+        setIsEditLoading(true);
+        setEditMode(true);
+        setIsEditLoading(false);
+    };
+
+    const handleSaveClick = () => {
+        setShowConfirmation(true);
+    };
+
+    const handleConfirmSave = async () => {
+        setIsSaving(true);
+        const success = await saveData();
+        setTimeout(() => {
+            if (success) {
+                setEditMode(false);
+                toast.success("✅ Event details saved successfully");
+            } else {
+                toast.error("❌ Failed to save changes");
+            }
+            setIsSaving(false);
+            setShowConfirmation(false);
+        }, 800);
     };
 
     // Handlers for Participatory Section
@@ -70,7 +98,56 @@ export default function EventDetailClient({ slug, initialEvent }: EventDetailCli
     };
 
     return (
-        <main className="min-h-screen bg-white mb-24">
+        <main className="min-h-screen bg-white mb-24 relative">
+            <Toaster position="top-right" />
+
+            {/* Confirmation Dialog */}
+            <ConfirmationDialog
+                isOpen={showConfirmation}
+                onClose={() => setShowConfirmation(false)}
+                onConfirm={handleConfirmSave}
+                title="Save Changes"
+                message="Are you sure you want to save the changes to this event? This action will update the content permanently."
+                confirmText="Save Changes"
+                cancelText="Cancel"
+                type="success"
+                isLoading={isSaving}
+                requirePassword={true}
+                username="admin@sifs.com"
+                expectedPassword="admin123"
+            />
+
+            {/* Edit Controls */}
+            <div className="fixed bottom-6 right-6 z-[1000] flex gap-2">
+                {!editMode ? (
+                    <button
+                        onClick={handleEditClick}
+                        disabled={isEditLoading}
+                        className={`flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-blue-700 transition-all font-medium ${isEditLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    >
+                        {isEditLoading ? (
+                            <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                            <Edit size={18} />
+                        )}
+                        {isEditLoading ? 'Loading...' : 'Edit Page'}
+                    </button>
+                ) : (
+                    <button
+                        onClick={handleSaveClick}
+                        disabled={isSaving}
+                        className={`flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-green-700 transition-all font-medium animate-in fade-in zoom-in ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    >
+                        {isSaving ? (
+                            <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                            <Save size={18} />
+                        )}
+                        {isSaving ? 'Saving...' : 'Save Changes'}
+                    </button>
+                )}
+            </div>
+
             <EventHero event={event} editMode={editMode} onUpdate={handleUpdate} />
 
             <div className="max-w-7xl mx-auto px-4 py-12">

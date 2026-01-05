@@ -23,6 +23,7 @@ import { useBlogPageData } from "../../hooks/useBlogPageData";
 import EditableText from "../../components/editable/EditableText";
 import { Toaster, toast } from "react-hot-toast";
 import { BlogPost } from "../../types/blog-page";
+import ConfirmationDialog from "../../components/common/ConfirmationDialog";
 
 export default function BlogPage({
     params: paramsPromise,
@@ -50,6 +51,7 @@ export default function BlogPage({
     const [isEditLoading, setIsEditLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("All");
+    const [showConfirmation, setShowConfirmation] = useState(false);
 
     // slugify helper
     const slugify = (text: string) =>
@@ -68,7 +70,11 @@ export default function BlogPage({
         }, 600);
     };
 
-    const handleSave = async () => {
+    const handleSaveClick = () => {
+        setShowConfirmation(true);
+    };
+
+    const handleConfirmSave = async () => {
         setIsSaving(true);
         const success = saveData();
         setTimeout(() => {
@@ -79,6 +85,7 @@ export default function BlogPage({
                 toast.error("❌ Failed to save blog data");
             }
             setIsSaving(false);
+            setShowConfirmation(false);
         }, 800);
     };
 
@@ -198,6 +205,22 @@ export default function BlogPage({
         >
             <Toaster position="top-right" />
 
+            {/* Confirmation Dialog */}
+            <ConfirmationDialog
+                isOpen={showConfirmation}
+                onClose={() => setShowConfirmation(false)}
+                onConfirm={handleConfirmSave}
+                title="Save Changes"
+                message="Are you sure you want to save all the changes made to this page? This action will update the content permanently."
+                confirmText="Save Changes"
+                cancelText="Cancel"
+                type="success"
+                isLoading={isSaving}
+                requirePassword={true}
+                username="admin@sifs.com"
+                expectedPassword="admin123"
+            />
+
             {/* Admin Controls */}
             <div className="fixed bottom-6 right-6 z-[1000] flex gap-2">
                 {!editMode ? (
@@ -215,7 +238,7 @@ export default function BlogPage({
                     </button>
                 ) : (
                     <button
-                        onClick={handleSave}
+                        onClick={handleSaveClick}
                         disabled={isSaving}
                         className={`flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-green-700 transition-all font-medium animate-in fade-in zoom-in ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
                     >
