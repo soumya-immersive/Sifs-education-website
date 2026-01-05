@@ -2,11 +2,15 @@
 
 "use client";
 import { Phone, Facebook, Linkedin } from 'lucide-react';
+import { coursePrograms } from '../../data/coursePrograms';
 
 const Topbar = () => {
+  const associateProgram = coursePrograms.find(p => p.slug === "associate-degree");
+  const studyOnlineLink = associateProgram ? `/courses/${associateProgram.slug}` : "#";
+
   return (
     <div className="hidden bg-white text-gray-600 border-b border-gray-100 py-2 text-xs lg:flex justify-between items-center px-12 xl:px-24">
-      
+
       {/* Left Side: Contact and Socials */}
       <div className="flex items-center space-x-4">
         <a href="tel:+917303913002" className="flex items-center hover:text-indigo-600 transition-colors">
@@ -25,7 +29,7 @@ const Topbar = () => {
 
       {/* Right Side: Auxiliary Links */}
       <div className="flex items-center space-x-6">
-        <a href="/courses/associate-degree" className="hover:text-indigo-600 transition-colors">
+        <a href={studyOnlineLink} className="hover:text-indigo-600 transition-colors">
           Study online
         </a>
         <span className="text-gray-300">|</span>

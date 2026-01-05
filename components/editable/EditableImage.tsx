@@ -39,11 +39,11 @@ export default function EditableImage({
     };
 
     return (
-        <div className={`relative group ${className} ${editMode ? "cursor-pointer" : ""}`}>
+        <div className={`relative group ${className} ${editMode ? "cursor-pointer" : ""} overflow-hidden`}>
             <img
                 src={preview}
                 alt={alt}
-                className={`w-full h-auto object-cover transition-all duration-300 ${editMode ? "ring-4 ring-offset-2 ring-blue-500/20" : ""
+                className={`w-full h-full object-cover transition-all duration-300 ${editMode ? "ring-4 ring-offset-2 ring-blue-500/20" : ""
                     }`}
             />
 

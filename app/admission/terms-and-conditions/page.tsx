@@ -1,22 +1,186 @@
 "use client";
 
-import Image from "next/image";
+import { useState } from "react";
+import { Toaster, toast } from "react-hot-toast";
+import { Edit, Save, Loader2, Plus, Trash2, MoveUp, MoveDown } from "lucide-react";
+import { useAdmissionPageData } from "../../../hooks/useAdmissionPageData";
+import EditableImage from "../../../components/editable/EditableImage";
+import EditableText from "../../../components/editable/EditableText";
+import { TermsSection } from "../../../types/admission-page";
 
-export default function TermsAndConditions() {
+export default function TermsAndConditionsPage() {
+  const {
+    data,
+    updateSection,
+    editMode,
+    setEditMode,
+    saveData,
+    isLoaded
+  } = useAdmissionPageData();
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [isEditLoading, setIsEditLoading] = useState(false);
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+      </div>
+    );
+  }
+
+  const termsData = data.termsAndConditions;
+
+  const handleEditClick = () => {
+    setIsEditLoading(true);
+    setEditMode(true);
+    setIsEditLoading(false);
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    const success = await saveData();
+    setTimeout(() => {
+      if (success) {
+        setEditMode(false);
+        toast.success("✅ Terms & Conditions updated successfully");
+      } else {
+        toast.error("❌ Failed to save changes");
+      }
+      setIsSaving(false);
+    }, 800);
+  };
+
+  const updateTermsData = (updatedInfo: any) => {
+    updateSection("termsAndConditions", { ...termsData, ...updatedInfo });
+  };
+
+  const addSection = () => {
+    const newSection: TermsSection = {
+      id: `section-${Date.now()}`,
+      title: "New Section Title",
+      content: "New section content goes here...",
+      type: "text"
+    };
+    updateTermsData({ sections: [...termsData.sections, newSection] });
+    toast.success("✨ New section added");
+  };
+
+  const removeSection = (id: string) => {
+    if (confirm("Are you sure you want to remove this section?")) {
+      updateTermsData({ sections: termsData.sections.filter(s => s.id !== id) });
+      toast.success("🗑️ Section removed");
+    }
+  };
+
+  const moveSection = (index: number, direction: 'up' | 'down') => {
+    const newSections = [...termsData.sections];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= newSections.length) return;
+
+    [newSections[index], newSections[targetIndex]] = [newSections[targetIndex], newSections[index]];
+    updateTermsData({ sections: newSections });
+  };
+
+  const updateSectionContent = (id: string, updates: Partial<TermsSection>) => {
+    updateTermsData({
+      sections: termsData.sections.map(s => s.id === id ? { ...s, ...updates } : s)
+    });
+  };
+
+  const toggleSectionType = (id: string) => {
+    const section = termsData.sections.find(s => s.id === id);
+    if (!section) return;
+
+    const newType = section.type === 'text' ? 'list' : section.type === 'list' ? 'highlight' : 'text';
+    updateSectionContent(id, { type: newType });
+  };
+
+  const addListItem = (id: string) => {
+    const section = termsData.sections.find(s => s.id === id);
+    if (!section) return;
+
+    const newListItems = [...(section.listItems || []), "New list item"];
+    updateSectionContent(id, { listItems: newListItems });
+  };
+
+  const updateListItem = (sectionId: string, itemIndex: number, value: string) => {
+    const section = termsData.sections.find(s => s.id === sectionId);
+    if (!section || !section.listItems) return;
+
+    const newListItems = [...section.listItems];
+    newListItems[itemIndex] = value;
+    updateSectionContent(sectionId, { listItems: newListItems });
+  };
+
+  const removeListItem = (sectionId: string, itemIndex: number) => {
+    const section = termsData.sections.find(s => s.id === sectionId);
+    if (!section || !section.listItems) return;
+
+    const newListItems = section.listItems.filter((_, i) => i !== itemIndex);
+    updateSectionContent(sectionId, { listItems: newListItems });
+  };
+
   return (
     <div className="min-h-screen bg-[#F0F5F9] pb-20 mb-12">
-      {/* Hero Section with Reference Image */}
-      <div className="relative h-[400px] w-full">
-        <Image
-          src="/terms-hero.png" // Replace with your actual path
+      <Toaster position="top-right" />
+
+      {/* Admin Controls */}
+      <div className="fixed bottom-6 right-6 z-[1000] flex gap-2">
+        {!editMode ? (
+          <button
+            onClick={handleEditClick}
+            disabled={isEditLoading}
+            className={`flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-blue-700 transition-all font-medium ${isEditLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+          >
+            {isEditLoading ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : (
+              <Edit size={18} />
+            )}
+            {isEditLoading ? 'Loading...' : 'Edit Page'}
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={addSection}
+              className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-indigo-700 transition-all font-medium"
+            >
+              <Plus size={18} />
+              Add Section
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-green-700 transition-all font-medium animate-in fade-in zoom-in ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
+            >
+              {isSaving ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Save size={18} />
+              )}
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Hero Section */}
+      <div className="relative h-[400px] w-full overflow-hidden">
+        <EditableImage
+          src={termsData.heroImage}
           alt="Terms and Conditions Banner"
-          fill
-          className="object-cover brightness-90"
-          priority
+          editMode={editMode}
+          onChange={(val) => updateTermsData({ heroImage: val })}
+          className="w-full h-full object-cover brightness-90"
         />
         <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
           <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-md">
-            Terms & Conditions
+            <EditableText
+              html={termsData.title}
+              editMode={editMode}
+              onChange={(val) => updateTermsData({ title: val })}
+            />
           </h1>
         </div>
       </div>
@@ -24,131 +188,155 @@ export default function TermsAndConditions() {
       {/* Content Card */}
       <div className="max-w-6xl mx-auto -mt-16 px-4 relative z-10">
         <div className="bg-white shadow-2xl rounded-sm p-8 md:p-16 text-gray-700">
-          
+
           <div className="space-y-10 text-[13px] md:text-[14px] leading-relaxed">
-            
-            {/* Introductory Text */}
-            <section className="space-y-4">
-              <p>
-                SIFS India reserves the right to change prices, to cancel, alter or update courses to amend timetables at any time prior to enrollment, and to make additions or amendments to these terms and conditions without notifying you.
-              </p>
-              <p>
-                Students are requested to take a few moments to read the following terms and conditions prior to enrolling in any course via this website. These terms and conditions govern the use of this website and the purchase of any course from it.
-              </p>
-              <p>
-                If you have any questions or wish to clarify the meaning of any of these terms and conditions, please contact us at <span className="text-[#0056B3] font-medium">contact@sifs.in</span>.
-              </p>
-            </section>
 
-            {/* Statutes, Regulations, and Policies */}
-            <section>
-              <h2 className="text-lg font-bold text-black mb-4 uppercase tracking-wide">Institute Statutes, Regulations, and Policies</h2>
-              <p>
-                By paying your fees you agree to comply with the SIFS INDIA Statutes and Regulations and Policies as revised periodically with the Statements and Codes of Policy, Practice, and Procedure which are made under them. These include the Institute&apos;s Code of Discipline, and other regulations concerning your studies, conduct, and behaviour including regulations relating to pestering, the use of IT facilities, health and safety concerns, and legislative requirements such as data protection.
-              </p>
-              <p className="mt-4 italic">
-                Students may be suspended from the course if the Institute found that the individual is in breach of any of these rules including the Code of Discipline.
-              </p>
-            </section>
+            {/* Dynamic Sections */}
+            {termsData.sections.map((section, index) => (
+              <section
+                key={section.id}
+                className={`relative ${section.type === 'highlight' ? 'bg-gray-50 p-8 rounded-sm border-l-4 border-[#0056B3]' : ''}`}
+              >
+                {editMode && (
+                  <div className="absolute -left-12 top-0 flex flex-col gap-2">
+                    <button
+                      onClick={() => moveSection(index, 'up')}
+                      disabled={index === 0}
+                      className="p-1.5 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-30"
+                      title="Move Up"
+                    >
+                      <MoveUp size={14} />
+                    </button>
+                    <button
+                      onClick={() => moveSection(index, 'down')}
+                      disabled={index === termsData.sections.length - 1}
+                      className="p-1.5 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-30"
+                      title="Move Down"
+                    >
+                      <MoveDown size={14} />
+                    </button>
+                    <button
+                      onClick={() => toggleSectionType(section.id)}
+                      className="p-1.5 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 text-xs font-bold"
+                      title="Toggle Type"
+                    >
+                      {section.type[0].toUpperCase()}
+                    </button>
+                    <button
+                      onClick={() => removeSection(section.id)}
+                      className="p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                      title="Remove Section"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
 
-            {/* Fees and Payment */}
-            <section>
-              <h2 className="text-lg font-bold text-black mb-4 uppercase tracking-wide">Fees and Payment</h2>
-              <p>
-                Student must ensure that the Institute&apos;s fees for the course and all other charges related to the course are paid by the deadline noticed. SIFS India will not be responsible for any non-payment even in the case of payment made by a third party. SIFS INDIA reserves the right to refuse your admission to the specific course if you have not paid all compulsory fees and other charges before the course commences.
-              </p>
-            </section>
+                {section.title && (
+                  <h2 className="text-lg font-bold text-black mb-4 uppercase tracking-wide">
+                    <EditableText
+                      html={section.title}
+                      editMode={editMode}
+                      onChange={(val) => updateSectionContent(section.id, { title: val })}
+                    />
+                  </h2>
+                )}
 
-            {/* Cancellations and Refunds - Within 7 days */}
-            <section>
-              <h2 className="text-lg font-bold text-black mb-4 uppercase tracking-wide">Cancellations and Refunds – Within 7 days</h2>
-              <p>
-                Student can cancel their admission at any time within 7 days of its commencement and thereby will receive a full refund of any payment made by them, after the deduction of Governmental taxes. To cancel within 7 days please inform us in writing, either by email – <span className="text-[#0056B3]">admission@sifs.in</span> or in writing to:
-              </p>
-            </section>
+                {section.type === 'list' && section.content && (
+                  <div className="mb-4 text-sm font-semibold text-gray-500 italic">
+                    <EditableText
+                      html={section.content}
+                      editMode={editMode}
+                      onChange={(val) => updateSectionContent(section.id, { content: val })}
+                    />
+                  </div>
+                )}
 
-            {/* Cancellations and Refunds – After 7 days */}
-            <section>
-              <h2 className="text-lg font-bold text-black mb-4 uppercase tracking-wide">Cancellations and Refunds – After 7 days</h2>
-              <p>
-                If any student cancels his/her course at any time after expiry of the 7 days period, he will not be <span className="font-bold underline">entitled</span> to a refund, except in exceptional circumstances at the discretion of the SIFS INDIA. If a refund is made, an administration fee may be charged. Course fees already paid can be transferred to the new course by the same student and any outstanding balance must be paid in full before the confirmation of the new course.
-              </p>
-            </section>
-
-            {/* Cancellation of an Online Course */}
-            <section>
-              <h2 className="text-lg font-bold text-black mb-4 uppercase tracking-wide">Cancellation of an Online Course</h2>
-              <p>
-                Once you have enrolled yourself in an e-learning course or program, the fee is non-refundable and non-transferrable. If you cancel any online course or program student will not be entitled to any refund, nor will be able to transfer his/her place to another person.
-              </p>
-            </section>
-
-            {/* Cancellation and Refund in Training Program */}
-            <section>
-              <h2 className="text-lg font-bold text-black mb-4 uppercase tracking-wide">Cancellation and Refund in Training Program</h2>
-              <p>
-                If any student cancels his/her admission or enrollment before 7 days he/she will be <span className="font-bold underline">entitled</span> to a full refund.
-              </p>
-              <p className="mt-2">
-                Failing to cancel the enrollment/admission within 7 days will amount to no refund at all, until and unless it is under the exceptional condition such as a medical or family emergency. And if a refund is made, the administration fee may be charged.
-              </p>
-            </section>
-
-            {/* Cancellation by Us */}
-            <section className="bg-gray-50 p-8 rounded-sm border-l-4 border-[#0056B3]">
-              <h2 className="text-lg font-bold text-black mb-4 uppercase tracking-wide">Cancellation by Us</h2>
-              <p className="mb-4 text-sm font-semibold text-gray-500 italic">
-                SIFS India will be entitled to terminate the terms and conditions and cease to provide the student with any admission with immediate effect in the event if they:
-              </p>
-              <ul className="list-disc ml-6 space-y-2 text-gray-600">
-                <li>Fail to pay required fees.</li>
-                <li>Act in an aggressive, bullying, offensive, threatening, or harassing manner towards any employee/ student/ teacher or lecturer of SIFS India.</li>
-                <li>Cheat or plagiarise any work which the student is required to prepare or submit in connection with SIFS India or during any examination taken in connection with the courses offered.</li>
-                <li>Steal or act in a fraudulent or deceitful manner towards SIFS India or employees or any other students who may be on our premises.</li>
-                <li>Intentionally or recklessly damage the property or the property of employees or other students attending SIFS India premises.</li>
-                <li>Are intoxicated under alcohol or illegal drugs while on our premises.</li>
-                <li>Commit any criminal offence on our premises or where the victim is our employee or student.</li>
-                <li>Breach any of these terms and conditions.</li>
-              </ul>
-            </section>
-
-            {/* Visual and/or Audio Recordings */}
-            <section>
-              <h2 className="text-lg font-bold text-black mb-4 uppercase tracking-wide">Visual and/or Audio Recordings</h2>
-              <p>
-                SIFS India may make visual and/or audio recordings of students during their course period for promotional, management or educational purposes. If you do not consent to this you must notify the institute in writing before commencement of the course.
-              </p>
-            </section>
-
-            {/* For More Information */}
-            <section>
-              <h2 className="text-lg font-bold text-black mb-4 uppercase tracking-wide">For More Information</h2>
-              <p>
-                SIFS India works for the betterment of the students and always look forward to improving its programs. Therefore, we welcome feedback. If you wish to provide feedback or file a complaint regarding SIFS India online program, please email at <span className="text-[#0056B3]">contact@sifs.in</span>. Grievances are taken very seriously and will be addressed in a timely and thoughtful manner.
-              </p>
-              <p className="mt-4">
-                If you wish to change or update the data we hold about you, please e-mail at <span className="text-[#0056B3] font-medium">contact@sifs.in</span>.
-              </p>
-            </section>
+                {section.type === 'list' && section.listItems ? (
+                  <ul className="list-disc ml-6 space-y-2 text-gray-600">
+                    {section.listItems.map((item, itemIndex) => (
+                      <li key={itemIndex} className="relative group">
+                        {editMode ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={item}
+                              onChange={(e) => updateListItem(section.id, itemIndex, e.target.value)}
+                              className="flex-1 px-2 py-1 border border-gray-300 rounded"
+                            />
+                            <button
+                              onClick={() => removeListItem(section.id, itemIndex)}
+                              className="p-1 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        ) : (
+                          item
+                        )}
+                      </li>
+                    ))}
+                    {editMode && (
+                      <button
+                        onClick={() => addListItem(section.id)}
+                        className="mt-2 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                      >
+                        <Plus size={14} /> Add Item
+                      </button>
+                    )}
+                  </ul>
+                ) : section.type !== 'list' && (
+                  <div className={section.type === 'highlight' ? 'space-y-4' : ''}>
+                    <EditableText
+                      html={section.content}
+                      editMode={editMode}
+                      onChange={(val) => updateSectionContent(section.id, { content: val })}
+                    />
+                  </div>
+                )}
+              </section>
+            ))}
 
             {/* Footer Details */}
             <section className="pt-10 border-t border-gray-100 grid md:grid-cols-2 gap-10">
               <div className="space-y-4">
                 <h3 className="font-bold text-black uppercase tracking-wider">Head Office Address</h3>
                 <address className="not-italic text-sm text-gray-500 leading-relaxed">
-                  Sherlock Institute of Forensic Science, India,<br />
-                  A-14, Mahendru Enclave,<br />
-                  Near Model Town, Delhi-110033
+                  {termsData.address.lines.map((line, index) => (
+                    <div key={index}>
+                      {editMode ? (
+                        <input
+                          type="text"
+                          value={line}
+                          onChange={(e) => {
+                            const newLines = [...termsData.address.lines];
+                            newLines[index] = e.target.value;
+                            updateTermsData({ address: { ...termsData.address, lines: newLines } });
+                          }}
+                          className="w-full px-2 py-1 border border-gray-300 rounded mb-1"
+                        />
+                      ) : (
+                        <>
+                          {line}
+                          {index < termsData.address.lines.length - 1 && <br />}
+                        </>
+                      )}
+                    </div>
+                  ))}
                 </address>
               </div>
               <div className="flex items-end md:justify-end italic text-xs text-gray-400">
-                &quot;Please write the name of your course in the subject line of your email or on the envelope&quot;.
+                <EditableText
+                  html={termsData.address.note}
+                  editMode={editMode}
+                  onChange={(val) => updateTermsData({ address: { ...termsData.address, note: val } })}
+                />
               </div>
             </section>
 
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }

@@ -3,11 +3,11 @@
 
 import { ArrowRight } from "lucide-react";
 import { motion, Variants } from "framer-motion";
-
-const studentImage = "/student-pointing.png";
+import EditableText from "../editable/EditableText";
+import EditableImage from "../editable/EditableImage";
+import { LearningData } from "../../types/courses-page";
 
 /* ---------------- Framer Motion Easing ---------------- */
-// Same as easeOut
 const easeOutCubic: [number, number, number, number] = [
   0.25, 0.46, 0.45, 0.94,
 ];
@@ -63,7 +63,21 @@ const buttonItemVariants: Variants = {
   },
 };
 
-export default function Learning() {
+interface LearningProps {
+  data: LearningData;
+  editMode?: boolean;
+  onUpdate?: (updatedInfo: Partial<LearningData>) => void;
+}
+
+export default function Learning({ data, editMode, onUpdate }: LearningProps) {
+  if (!data) return null;
+  const stripHtml = (htmlContent: string) => {
+    if (typeof window === 'undefined') return htmlContent;
+    const div = document.createElement("div");
+    div.innerHTML = htmlContent;
+    return div.textContent || div.innerText || "";
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-4 mb-30 pt-12">
       <motion.div
@@ -72,7 +86,7 @@ export default function Learning() {
           p-6 md:p-10 lg:p-12
           flex flex-col lg:flex-row
           items-center justify-between
-          text-white
+          text-white overflow-hidden
         "
         style={{
           backgroundImage:
@@ -82,53 +96,85 @@ export default function Learning() {
         variants={bannerContainerVariants}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.4 }}
+        viewport={{ once: true, amount: 0.1 }}
       >
         {/* LEFT CONTENT */}
         <motion.div
           className="lg:w-3/5 z-10 text-left mb-8 lg:mb-0"
           variants={textBlockVariants}
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Step into the New Era of Learning
+          <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">
+            <EditableText
+              html={data.title}
+              editMode={!!editMode}
+              onChange={(val) => onUpdate?.({ title: val })}
+            />
           </h2>
 
-          <p className="text-sm md:text-base opacity-90 mb-8 max-w-xl">
-            Our courses blend in-depth learning and interactive sessions, all
-            while staying deeply grounded in core principles.
-          </p>
+          <div className="text-sm md:text-lg opacity-90 mb-10 max-w-xl leading-relaxed">
+            <EditableText
+              html={data.subtitle}
+              editMode={!!editMode}
+              onChange={(val) => onUpdate?.({ subtitle: val })}
+            />
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
             {/* Explore Button */}
-            <motion.button
+            <motion.div
               variants={buttonItemVariants}
-              className="
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  // Button action here if needed
+                }
+              }}
+              className={`
                 flex items-center justify-center
-                bg-blue-800 hover:bg-blue-900
-                text-white font-semibold
-                py-3 px-6 rounded-lg
-                transition duration-300
-              "
+                bg-white text-blue-600 hover:bg-blue-50
+                font-bold py-4 px-8 rounded-xl
+                transition duration-300 shadow-lg
+                ${!editMode ? 'cursor-pointer' : ''}
+              `}
             >
-              Explore
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </motion.button>
+              <EditableText
+                html={data.exploreLabel || "Explore Programs"}
+                editMode={!!editMode}
+                onChange={(val) => onUpdate?.({ exploreLabel: val })}
+              />
+              <ArrowRight className="ml-2 w-5 h-5 shrink-0" />
+            </motion.div>
 
             {/* Watch Video Button */}
-            <motion.button
+            <motion.div
               variants={buttonItemVariants}
-              className="
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  // Button action here if needed
+                }
+              }}
+              className={`
                 flex items-center justify-center
-                border-2 border-white
+                border-2 border-white/50
                 hover:bg-white hover:text-blue-600
-                text-white font-semibold
-                py-3 px-6 rounded-lg
-                transition duration-300
-              "
+                text-white font-bold
+                py-4 px-8 rounded-xl
+                transition duration-300 backdrop-blur-sm
+                ${!editMode ? 'cursor-pointer' : ''}
+              `}
             >
-              Watch Video
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </motion.button>
+              <EditableText
+                html={data.storyLabel || "Watch Student Story"}
+                editMode={!!editMode}
+                onChange={(val) => onUpdate?.({ storyLabel: val })}
+              />
+              <ArrowRight className="ml-2 w-5 h-5 shrink-0" />
+            </motion.div>
           </div>
         </motion.div>
 
@@ -138,20 +184,26 @@ export default function Learning() {
             relative w-full lg:w-2/5 h-64 lg:h-auto
             lg:absolute lg:right-0 lg:bottom-0
             flex justify-center lg:justify-end
-            mt-4 lg:mt-0
+            mt-8 lg:mt-0
           "
           variants={imageBlockVariants}
         >
-          <img
-            src={studentImage}
-            alt="Smiling student pointing"
-            className="h-full w-auto object-cover z-20"
+          <div
             style={{
               maxHeight: "100%",
               maxWidth: "none",
               objectPosition: "center bottom",
             }}
-          />
+            className="h-full w-auto"
+          >
+            <EditableImage
+              src={data.image || "/student-pointing.png"}
+              alt={stripHtml(data.title)}
+              editMode={!!editMode}
+              onChange={(val) => onUpdate?.({ image: val })}
+              className="h-full w-auto object-cover z-20"
+            />
+          </div>
         </motion.div>
       </motion.div>
     </div>

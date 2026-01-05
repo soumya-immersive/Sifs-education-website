@@ -2,7 +2,8 @@
 
 import { motion, Variants } from "framer-motion";
 import { Star } from "lucide-react";
-import { Course } from "../../data/courses";
+import { Course } from "../../types/courses-page";
+import EditableText from "../editable/EditableText";
 
 /* ---------------- Animations ---------------- */
 
@@ -26,20 +27,23 @@ const fadeUp: Variants = {
 
 /* ---------------- Component ---------------- */
 
-interface Props {
+interface CourseHeroProps {
   course: Course;
+  editMode?: boolean;
+  onUpdate?: (updatedInfo: Partial<Course>) => void;
 }
 
-export default function CourseHero({ course }: Props) {
+export default function CourseHero({ course, editMode, onUpdate }: CourseHeroProps) {
   return (
     <section
       className="relative bg-cover bg-center bg-no-repeat py-24 overflow-hidden"
       style={{
-        backgroundImage: `url(${
-          course.bannerImage || "/course/hero-bg.png"
-        })`,
+        backgroundImage: `url(${course.bannerImage || "/course/hero-bg.png"
+          })`,
       }}
     >
+      <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px]" />
+
       <motion.div
         className="relative max-w-7xl mx-auto px-4"
         variants={container}
@@ -48,45 +52,64 @@ export default function CourseHero({ course }: Props) {
         viewport={{ once: true }}
       >
         {/* Course Code */}
-        <motion.span
+        <motion.div
           variants={fadeUp}
-          className="
-            inline-block
-            bg-[#FFE9CC] text-[#D97706]
-            text-xs font-semibold
-            px-3 py-1 rounded-full
-            mb-3
-          "
+          className="mb-4"
         >
-          {course.courseCode}
-        </motion.span>
+          <span className="inline-block bg-[#FFE9CC] text-[#D97706] text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
+            <EditableText
+              html={course.courseCode}
+              editMode={false}
+              onChange={(val) => onUpdate?.({ courseCode: val })}
+            />
+          </span>
+        </motion.div>
 
         {/* Title */}
         <motion.h1
           variants={fadeUp}
-          className="text-2xl lg:text-3xl font-bold text-gray-900 mb-3 max-w-3xl"
+          className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-6 max-w-4xl leading-tight"
         >
-          {course.title}
+          <EditableText
+            html={course.title}
+            editMode={false}
+            onChange={(val) => onUpdate?.({ title: val })}
+          />
         </motion.h1>
 
         {/* Rating */}
         <motion.div
           variants={fadeUp}
-          className="flex items-center gap-2 mb-4"
+          className="flex items-center gap-4 mb-4"
         >
-          <div className="flex text-yellow-400">
+          <div className="flex text-yellow-500 scale-125 origin-left">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                size={16}
-                fill={i < Math.round(course.rating) ? "currentColor" : "none"}
+                size={18}
+                fill={i < Math.round(course.rating || 4.5) ? "currentColor" : "none"}
               />
             ))}
           </div>
 
-          <span className="text-sm text-gray-600">
-            ({course.reviewsCount}+ Ratings)
-          </span>
+          <div className="flex items-center gap-1.5 text-gray-700 font-medium">
+            <span className="text-lg">
+              <EditableText
+                html={String(course.rating || "4.5")}
+                editMode={!!editMode}
+                onChange={(val) => onUpdate?.({ rating: Number(val) || 4.5 })}
+              />
+            </span>
+            <span className="text-gray-400">|</span>
+            <span className="text-sm">
+              <EditableText
+                html={String(course.reviewsCount || "1000")}
+                editMode={!!editMode}
+                onChange={(val) => onUpdate?.({ reviewsCount: Number(val) || 1000 })}
+              />
+              + Ratings
+            </span>
+          </div>
         </motion.div>
       </motion.div>
     </section>
