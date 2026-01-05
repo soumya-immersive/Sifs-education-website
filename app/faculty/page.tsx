@@ -10,6 +10,7 @@ import EditableText from "../../components/editable/EditableText";
 import EditableImage from "../../components/editable/EditableImage";
 import { useFacultyPageData } from "@/hooks/useFacultyPageData";
 import { FacultyMember } from "../../types/faculty";
+import ConfirmationDialog from "../../components/common/ConfirmationDialog";
 
 /* ---------------- ANIMATIONS ---------------- */
 const fadeUp = {
@@ -33,6 +34,7 @@ export default function FacultiesPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isEditLoading, setIsEditLoading] = useState(false);
   const [editingFilterIndex, setEditingFilterIndex] = useState<number | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   // Initialize filters if missing (backward compatibility)
   const filters = data.filters || defaultFilters;
@@ -65,12 +67,17 @@ export default function FacultiesPage() {
     }, 600);
   };
 
-  const handleSave = () => {
+  const handleSaveClick = () => {
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmSave = () => {
     setIsSaving(true);
     setTimeout(() => {
       saveData();
       setEditMode(false);
       setIsSaving(false);
+      setShowConfirmation(false);
       toast.success("✅ Content saved successfully");
     }, 800);
   };
@@ -151,6 +158,22 @@ export default function FacultiesPage() {
     <motion.div initial="hidden" animate="visible" variants={fadeUp} className="bg-white min-h-screen relative">
       <Toaster position="top-right" />
 
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={showConfirmation}
+        onClose={() => setShowConfirmation(false)}
+        onConfirm={handleConfirmSave}
+        title="Save Changes"
+        message="Are you sure you want to save all the changes made to this page? This action will update the content permanently."
+        confirmText="Save Changes"
+        cancelText="Cancel"
+        type="success"
+        isLoading={isSaving}
+        requirePassword={true}
+        username="admin@sifs.com"
+        expectedPassword="admin123"
+      />
+
       {/* Global Edit Control */}
       <div className="fixed bottom-6 right-6 z-[1000] flex gap-2">
         {!editMode ? (
@@ -168,7 +191,7 @@ export default function FacultiesPage() {
           </button>
         ) : (
           <button
-            onClick={handleSave}
+            onClick={handleSaveClick}
             disabled={isSaving}
             className={`flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-green-700 transition-all font-medium animate-in fade-in zoom-in ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
           >

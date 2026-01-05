@@ -13,11 +13,13 @@ import AcademicCollaborations from "../../components/achievements/AcademicCollab
 import ClientsPortfolio from "../../components/achievements/ClientsPortfolio";
 import TestimonialsSection from '../../components/common/TestimonialsSection';
 import { useAchievementsPageData } from "@/hooks/useAchievementsPageData";
+import ConfirmationDialog from "../../components/common/ConfirmationDialog";
 
 export default function AchievementsPage() {
     const { data, updateSection, editMode, setEditMode, saveData, isLoaded } = useAchievementsPageData();
     const [isSaving, setIsSaving] = useState(false);
     const [isEditLoading, setIsEditLoading] = useState(false);
+    const [showConfirmation, setShowConfirmation] = useState(false);
 
     if (!isLoaded) {
         return (
@@ -35,13 +37,18 @@ export default function AchievementsPage() {
         }, 600);
     };
 
-    const handleSave = () => {
+    const handleSaveClick = () => {
+        setShowConfirmation(true);
+    };
+
+    const handleConfirmSave = () => {
         setIsSaving(true);
         // Simulate save
         setTimeout(() => {
             saveData();
             setEditMode(false);
             setIsSaving(false);
+            setShowConfirmation(false);
             toast.success("✅ Content saved successfully");
         }, 800);
     };
@@ -49,6 +56,22 @@ export default function AchievementsPage() {
     return (
         <section className="bg-white relative min-h-screen">
             <Toaster position="top-right" />
+
+            {/* Confirmation Dialog */}
+            <ConfirmationDialog
+                isOpen={showConfirmation}
+                onClose={() => setShowConfirmation(false)}
+                onConfirm={handleConfirmSave}
+                title="Save Changes"
+                message="Are you sure you want to save all the changes made to this page? This action will update the content permanently."
+                confirmText="Save Changes"
+                cancelText="Cancel"
+                type="success"
+                isLoading={isSaving}
+                requirePassword={true}
+                username="admin@sifs.com"
+                expectedPassword="admin123"
+            />
 
             {/* Global Edit Control - Fixed at bottom right like About Page */}
             <div className="fixed bottom-6 right-6 z-[1000] flex gap-2">
@@ -67,7 +90,7 @@ export default function AchievementsPage() {
                     </button>
                 ) : (
                     <button
-                        onClick={handleSave}
+                        onClick={handleSaveClick}
                         disabled={isSaving}
                         className={`flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-green-700 transition-all font-medium animate-in fade-in zoom-in ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
                     >
