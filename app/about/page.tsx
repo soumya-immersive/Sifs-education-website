@@ -8,6 +8,7 @@ import MissionVision from "../../components/about/MissionVision";
 import InitiativesSection from "../../components/about/InitiativesSection";
 import ExpertTeam from "../../components/about/ExpertTeam";
 import TestimonialsSection from '../../components/common/TestimonialsSection';
+import ConfirmationDialog from "../../components/common/ConfirmationDialog";
 import { useAboutPageData } from "@/hooks/useAboutPageData";
 
 export default function AboutPage() {
@@ -15,6 +16,7 @@ export default function AboutPage() {
 
   const [isSaving, setIsSaving] = React.useState(false);
   const [isEditLoading, setIsEditLoading] = React.useState(false);
+  const [showConfirmation, setShowConfirmation] = React.useState(false);
 
   if (!isLoaded) {
     return (
@@ -33,13 +35,18 @@ export default function AboutPage() {
     }, 600);
   };
 
-  const handleSave = async () => {
+  const handleSaveClick = () => {
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmSave = async () => {
     setIsSaving(true);
     await saveData(); // Ensure saveData is awaited if it returns a promise, or just wait
     // Simulate save delay if saveData is synchronous/fast
     setTimeout(() => {
       setEditMode(false);
       setIsSaving(false);
+      setShowConfirmation(false);
       toast.success("✅ Content saved successfully");
     }, 800);
   };
@@ -47,6 +54,19 @@ export default function AboutPage() {
   return (
     <main className="bg-[#F7F9FC] relative min-h-screen">
       <Toaster position="top-right" />
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={showConfirmation}
+        onClose={() => setShowConfirmation(false)}
+        onConfirm={handleConfirmSave}
+        title="Save Changes"
+        message="Are you sure you want to save all the changes made to this page? This action will update the content permanently."
+        confirmText="Save Changes"
+        cancelText="Cancel"
+        type="success"
+        isLoading={isSaving}
+      />
 
       {/* Global Edit Control */}
       <div className="fixed bottom-6 right-6 z-[1000] flex gap-2">
@@ -65,7 +85,7 @@ export default function AboutPage() {
           </button>
         ) : (
           <button
-            onClick={handleSave}
+            onClick={handleSaveClick}
             disabled={isSaving}
             className={`flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-green-700 transition-all font-medium animate-in fade-in zoom-in ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
