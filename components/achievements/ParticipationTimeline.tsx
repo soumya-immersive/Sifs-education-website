@@ -1,8 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { Plus, Trash2 } from "lucide-react";
-import EditableText from "../editable/EditableText";
 
 interface ParticipationTimelineProps {
   data: {
@@ -14,53 +12,26 @@ interface ParticipationTimelineProps {
       text: string;
     }[];
   };
-  editMode: boolean;
-  updateData: (data: any) => void;
 }
 
 export default function ParticipationTimeline({
   data,
-  editMode,
-  updateData,
 }: ParticipationTimelineProps) {
   if (!data) return null;
-
-  const updateItem = (index: number, field: "year" | "text", value: string) => {
-    const newItems = [...data.items];
-    newItems[index] = { ...newItems[index], [field]: value };
-    updateData({ ...data, items: newItems });
-  };
-
-  const addItem = () => {
-    const newItem = {
-      year: "YEAR",
-      text: "New participation detail..."
-    };
-    updateData({ ...data, items: [...data.items, newItem] });
-  };
-
-  const deleteItem = (index: number) => {
-    if (confirm("Delete this timeline entry?")) {
-      const newItems = data.items.filter((_, i) => i !== index);
-      updateData({ ...data, items: newItems });
-    }
-  };
 
   return (
     <div>
       {/* Title */}
       <h3 className="text-2xl font-semibold mb-12 leading-snug text-black">
-        <EditableText
-          html={data.headingPrefix}
-          editMode={editMode}
-          onChange={(val) => updateData({ ...data, headingPrefix: val })}
+        <div
+          dangerouslySetInnerHTML={{ __html: data.headingPrefix }}
+          className="inline"
         />{" "}
         <span className="relative inline-block">
           <span className="relative z-10">
-            <EditableText
-              html={data.headingHighlight}
-              editMode={editMode}
-              onChange={(val) => updateData({ ...data, headingHighlight: val })}
+            <div
+              dangerouslySetInnerHTML={{ __html: data.headingHighlight }}
+              className="inline"
             />
           </span>
 
@@ -73,10 +44,9 @@ export default function ParticipationTimeline({
             className="absolute left-0 -bottom-1 z-0"
           />
         </span>{" "}
-        <EditableText
-          html={data.headingSuffix}
-          editMode={editMode}
-          onChange={(val) => updateData({ ...data, headingSuffix: val })}
+        <div
+          dangerouslySetInnerHTML={{ __html: data.headingSuffix }}
+          className="inline"
         />
       </h3>
 
@@ -95,43 +65,20 @@ export default function ParticipationTimeline({
 
               {/* Content */}
               <div className="ml-10 relative w-full">
-                {editMode && (
-                  <button
-                    onClick={() => deleteItem(index)}
-                    className="absolute -left-8 -top-1 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity p-1"
-                    title="Delete Entry"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                )}
-
                 <div className="font-normal text-black text-xl mb-1">
-                  <EditableText
-                    html={item.year}
-                    editMode={editMode}
-                    onChange={(val) => updateItem(index, "year", val)}
+                  <div
+                    dangerouslySetInnerHTML={{ __html: item.year }}
                   />
                 </div>
                 <div className="text-sm text-[#525252] leading-relaxed max-w-xl">
-                  <EditableText
-                    html={item.text}
-                    editMode={editMode}
-                    onChange={(val) => updateItem(index, "text", val)}
+                  <div
+                    dangerouslySetInnerHTML={{ __html: item.text }}
                   />
                 </div>
               </div>
             </li>
           ))}
         </ul>
-
-        {editMode && (
-          <button
-            onClick={addItem}
-            className="mt-8 flex items-center gap-2 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg transition border border-blue-200"
-          >
-            <Plus size={16} /> Add Timeline Event
-          </button>
-        )}
       </div>
     </div>
   );

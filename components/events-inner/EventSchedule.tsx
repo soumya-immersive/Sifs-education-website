@@ -2,18 +2,15 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Plus, Trash2 } from "lucide-react";
+import { Clock } from "lucide-react";
 import { Event } from "../../types/events-page";
-import EditableText from "../editable/EditableText";
-import EditableImage from "../editable/EditableImage";
+import Image from "next/image";
 
 interface Props {
   event: Event;
-  editMode: boolean;
-  onUpdate: (updates: Partial<Event>) => void;
 }
 
-export default function EventSchedule({ event, editMode, onUpdate }: Props) {
+export default function EventSchedule({ event }: Props) {
   const [activeTab, setActiveTab] = useState(0);
 
   // Helper to calculate consecutive dates based on event start date
@@ -36,33 +33,6 @@ export default function EventSchedule({ event, editMode, onUpdate }: Props) {
 
   const dayLabels = ["First Day", "Second Day", "Third Day", "Fourth Day", "Fifth Day"];
 
-  const handleUpdateSchedule = (index: number, updates: any) => {
-    const newSchedule = [...event.schedule];
-    newSchedule[index] = { ...newSchedule[index], ...updates };
-    onUpdate({ schedule: newSchedule });
-  };
-
-  const handleAddDay = () => {
-    const newDay = {
-      day: event.schedule.length + 1,
-      title: "New Session Title",
-      description: "Description of the session...",
-      time: "06:00 PM - 07:00 PM",
-      image: "/placeholder-course.jpg"
-    };
-    onUpdate({ schedule: [...event.schedule, newDay] });
-    setActiveTab(event.schedule.length); // Switch to new tab
-  };
-
-  const handleDeleteDay = (index: number) => {
-    const newSchedule = event.schedule.filter((_, i) => i !== index);
-    // Re-index days maybe? Or just keep as is.
-    // Let's re-index day numbers just in case logic depends on it
-    const reindexed = newSchedule.map((item, i) => ({ ...item, day: i + 1 }));
-    onUpdate({ schedule: reindexed });
-    if (activeTab >= reindexed.length) setActiveTab(Math.max(0, reindexed.length - 1));
-  };
-
   return (
     <motion.section
       initial={{ opacity: 0, y: 20 }}
@@ -75,14 +45,6 @@ export default function EventSchedule({ event, editMode, onUpdate }: Props) {
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Program Schedule</h2>
           <p className="text-gray-500">Here you can go through the detailed schedule of the program</p>
         </div>
-        {editMode && (
-          <button
-            onClick={handleAddDay}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition"
-          >
-            <Plus size={16} /> Add Day
-          </button>
-        )}
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
@@ -102,15 +64,6 @@ export default function EventSchedule({ event, editMode, onUpdate }: Props) {
                   {getFormattedDate(event.date, index)}
                 </span>
               </button>
-              {editMode && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleDeleteDay(index); }}
-                  className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Delete Day"
-                >
-                  <Trash2 size={12} />
-                </button>
-              )}
             </div>
           ))}
         </div>
@@ -127,38 +80,24 @@ export default function EventSchedule({ event, editMode, onUpdate }: Props) {
                 transition={{ duration: 0.3 }}
               >
                 <h3 className="text-2xl font-bold text-gray-900 mb-4 leading-tight">
-                  <EditableText
-                    html={event.schedule[activeTab].title}
-                    editMode={editMode}
-                    onChange={(val) => handleUpdateSchedule(activeTab, { title: val })}
-                  />
+                  <div dangerouslySetInnerHTML={{ __html: event.schedule[activeTab].title }} />
                 </h3>
 
                 <div className="text-gray-600 leading-relaxed mb-6">
-                  <EditableText
-                    html={event.schedule[activeTab].description}
-                    editMode={editMode}
-                    onChange={(val) => handleUpdateSchedule(activeTab, { description: val })}
-                  />
+                  <div dangerouslySetInnerHTML={{ __html: event.schedule[activeTab].description }} />
                 </div>
 
                 <div className="inline-flex items-center gap-2 bg-[#c27803] text-white px-4 py-2 rounded-lg font-bold text-sm mb-8">
                   <Clock className="w-4 h-4" />
-                  <EditableText
-                    html={event.schedule[activeTab].time || "06:00 PM - 07:00 PM"}
-                    editMode={editMode}
-                    onChange={(val) => handleUpdateSchedule(activeTab, { time: val })}
-                    className="text-white bg-transparent outline-none min-w-[100px]"
-                  />
+                  <div dangerouslySetInnerHTML={{ __html: event.schedule[activeTab].time || "06:00 PM - 07:00 PM" }} />
                 </div>
 
-                <div className="rounded-3xl overflow-hidden shadow-md relative group">
-                  <EditableImage
+                <div className="rounded-3xl overflow-hidden shadow-md relative group h-64">
+                  <Image
                     src={event.schedule[activeTab].image || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop"}
                     alt="Session illustration"
-                    editMode={editMode}
-                    onChange={(src) => handleUpdateSchedule(activeTab, { image: src })}
-                    className="w-full h-64 object-cover"
+                    fill
+                    className="object-cover"
                   />
                 </div>
               </motion.div>

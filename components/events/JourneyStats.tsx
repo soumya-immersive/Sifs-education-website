@@ -3,16 +3,12 @@
 import { motion, useInView } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { JourneyStatsData } from "../../types/events-page";
-import EditableText from "../editable/EditableText";
-import { Edit } from "lucide-react";
 
 interface JourneyStatsProps {
   data: JourneyStatsData;
-  editMode: boolean;
-  onUpdate: (data: Partial<JourneyStatsData>) => void;
 }
 
-export default function JourneyStats({ data, editMode, onUpdate }: JourneyStatsProps) {
+export default function JourneyStats({ data }: JourneyStatsProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
 
@@ -34,17 +30,6 @@ export default function JourneyStats({ data, editMode, onUpdate }: JourneyStatsP
     animateCounter(setSpeakers, data.counts.speakers);
   }, [isInView, data.counts]);
 
-  const handleBgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        onUpdate({ bgImage: reader.result as string });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   return (
     <section
       ref={ref}
@@ -56,20 +41,6 @@ export default function JourneyStats({ data, editMode, onUpdate }: JourneyStatsP
         style={{ backgroundImage: `url(${data.bgImage})` }}
       />
 
-      {editMode && (
-        <div className="absolute top-4 right-4 z-50">
-          <label className="cursor-pointer bg-white text-blue-600 p-2 rounded-full shadow-lg hover:bg-blue-50 transition-colors flex items-center justify-center border border-blue-100">
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleBgChange}
-            />
-            <Edit size={20} />
-          </label>
-        </div>
-      )}
-
       {/* Content */}
       <div className="relative container mx-auto px-4 text-center">
 
@@ -79,12 +50,7 @@ export default function JourneyStats({ data, editMode, onUpdate }: JourneyStatsP
           transition={{ duration: 0.6 }}
           className="text-2xl font-bold"
         >
-          <EditableText
-            html={data.title}
-            editMode={editMode}
-            onChange={(val) => onUpdate({ title: val })}
-            className="text-white bg-transparent"
-          />
+          <div dangerouslySetInnerHTML={{ __html: data.title }} className="text-white bg-transparent" />
         </motion.h2>
 
         <motion.div
@@ -93,39 +59,25 @@ export default function JourneyStats({ data, editMode, onUpdate }: JourneyStatsP
           transition={{ delay: 0.2, duration: 0.6 }}
           className="mb-6 text-sm font-normal"
         >
-          <EditableText
-            html={data.description}
-            editMode={editMode}
-            onChange={(val) => onUpdate({ description: val })}
-            className="text-white bg-transparent"
-          />
+          <div dangerouslySetInnerHTML={{ __html: data.description }} className="text-white bg-transparent" />
         </motion.div>
 
         <div className="grid md:grid-cols-4 gap-8">
           <Stat
-            value={editMode ? data.counts.events : events}
+            value={events}
             label="Events Completed"
-            editMode={editMode}
-            onChange={(val) => onUpdate({ counts: { ...data.counts, events: Number(val) } })}
           />
           <Stat
-            value={editMode ? data.counts.participants : `${participants}K+`}
+            value={`${participants}K+`}
             label="Happy Participants"
-            editMode={editMode}
-            isStringValue
-            onChange={(val) => onUpdate({ counts: { ...data.counts, participants: val as string } })}
           />
           <Stat
-            value={editMode ? data.counts.countries : countries}
+            value={countries}
             label="Countries Reach"
-            editMode={editMode}
-            onChange={(val) => onUpdate({ counts: { ...data.counts, countries: Number(val) } })}
           />
           <Stat
-            value={editMode ? data.counts.speakers : speakers}
+            value={speakers}
             label="Eminent Speakers"
-            editMode={editMode}
-            onChange={(val) => onUpdate({ counts: { ...data.counts, speakers: Number(val) } })}
           />
         </div>
       </div>
@@ -159,15 +111,9 @@ function animateCounter(
 function Stat({
   value,
   label,
-  editMode,
-  onChange,
-  isStringValue = false
 }: {
   value: string | number;
   label: string;
-  editMode?: boolean;
-  onChange?: (val: string | number) => void;
-  isStringValue?: boolean
 }) {
   return (
     <motion.div
@@ -176,15 +122,7 @@ function Stat({
       transition={{ duration: 0.6 }}
     >
       <div className="text-3xl font-bold">
-        {editMode ? (
-          <input
-            value={value}
-            onChange={(e) => onChange?.(isStringValue ? e.target.value : Number(e.target.value))}
-            className="bg-transparent border border-white/20 rounded px-2 w-full text-center text-white"
-          />
-        ) : (
-          value
-        )}
+        {value}
       </div>
       <p className="text-sm opacity-90">{label}</p>
     </motion.div>

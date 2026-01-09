@@ -4,15 +4,11 @@ import Image from "next/image";
 import React from "react";
 import { motion } from "framer-motion";
 import { ForensicInsightsData } from "../../types/events-page";
-import EditableText from "../editable/EditableText";
-import EditableImage from "../editable/EditableImage";
-import { CopyPlus, Edit, Plus, Trash2 } from "lucide-react";
+import { CopyPlus } from "lucide-react";
 
 // --- 1. TYPE DEFINITION ---
 interface ForensicInsightsProps {
   data: ForensicInsightsData;
-  editMode: boolean;
-  onUpdate: (data: Partial<ForensicInsightsData>) => void;
 }
 
 // --- FIXED EASING (VALID FOR FRAMER MOTION v10+) ---
@@ -57,64 +53,27 @@ const cardVariants = {
 };
 
 // --- 2. MAIN COMPONENT ---
-const ForensicInsights: React.FC<ForensicInsightsProps> = ({ data, editMode, onUpdate }) => {
+const ForensicInsights: React.FC<ForensicInsightsProps> = ({ data }) => {
   const [showAll, setShowAll] = React.useState(false);
 
-  const handleUpdateCard = (index: number, updates: any) => {
-    const newCards = [...data.cards];
-    newCards[index] = { ...newCards[index], ...updates };
-    onUpdate({ cards: newCards });
-  };
-
-  const handleAddCard = () => {
-    const newCard = {
-      title: "New Insight",
-      description: "Description of the insight...",
-      date: "1 JAN, 2026",
-      author: "Author Name",
-      imageSrc: "/forensic-insights1.png"
-    };
-    onUpdate({ cards: [...(data.cards || []), newCard] });
-  };
-
-  const handleDeleteCard = (index: number) => {
-    const newCards = data.cards.filter((_, i) => i !== index);
-    onUpdate({ cards: newCards });
-  };
-
-  // Show all cards when in edit mode OR when showAll is true
-  // This ensures newly added cards are immediately visible in edit mode
-  const displayingCards = (editMode || showAll) ? (data.cards || []) : (data.cards || []).slice(0, 3);
+  // Show all cards when showAll is true
+  const displayingCards = showAll ? (data.cards || []) : (data.cards || []).slice(0, 3);
 
   // Card component
   const Card = ({
     card,
-    index
-  }: { card: ForensicInsightsData['cards'][0], index: number }) => (
+  }: { card: ForensicInsightsData['cards'][0] }) => (
     <motion.div
       className="bg-white rounded-xl overflow-hidden border border-[6B7385] transition-transform duration-300 hover:scale-[1.02] relative group h-full flex flex-col"
       variants={cardVariants}
       animate="visible"
     >
-      {editMode && (
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            if (confirm("Delete this insight?")) handleDeleteCard(index);
-          }}
-          className="absolute top-2 right-2 z-50 bg-red-500 text-white p-2 rounded-full shadow-md hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
-        >
-          <Trash2 size={14} />
-        </button>
-      )}
-
       {/* Image */}
       <div className="relative h-56 w-full shrink-0">
-        <EditableImage
+        <Image
           src={card.imageSrc}
           alt={card.title}
-          editMode={editMode}
-          onChange={(src) => handleUpdateCard(index, { imageSrc: src })}
+          fill
           className="object-cover w-full h-full"
         />
         <div className="absolute inset-0 bg-green-500 opacity-20 mix-blend-multiply pointer-events-none"></div>
@@ -127,20 +86,11 @@ const ForensicInsights: React.FC<ForensicInsightsProps> = ({ data, editMode, onU
         </span>
 
         <h3 className="text-gray-900 text-xl font-bold mb-3 mt-3 leading-snug">
-          <EditableText
-            html={card.title}
-            editMode={editMode}
-            onChange={(val) => handleUpdateCard(index, { title: val })}
-          />
+          <div dangerouslySetInnerHTML={{ __html: card.title }} />
         </h3>
 
         <div className="text-gray-500 text-sm mb-3">
-          <EditableText
-            html={card.description}
-            editMode={editMode}
-            onChange={(val) => handleUpdateCard(index, { description: val })}
-            className="line-clamp-2"
-          />
+          <div className="line-clamp-2" dangerouslySetInnerHTML={{ __html: card.description }} />
         </div>
 
         <hr className="mt-auto" />
@@ -161,12 +111,7 @@ const ForensicInsights: React.FC<ForensicInsightsProps> = ({ data, editMode, onU
                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
               ></path>
             </svg>
-            <EditableText
-              as="span"
-              html={card.date}
-              editMode={editMode}
-              onChange={(val) => handleUpdateCard(index, { date: val })}
-            />
+            <span dangerouslySetInnerHTML={{ __html: card.date }} />
           </div>
 
           <div className="flex items-center space-x-2">
@@ -183,12 +128,7 @@ const ForensicInsights: React.FC<ForensicInsightsProps> = ({ data, editMode, onU
                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
               ></path>
             </svg>
-            <EditableText
-              as="span"
-              html={card.author}
-              editMode={editMode}
-              onChange={(val) => handleUpdateCard(index, { author: val })}
-            />
+            <span dangerouslySetInnerHTML={{ __html: card.author }} />
           </div>
         </div>
       </div>
@@ -211,18 +151,10 @@ const ForensicInsights: React.FC<ForensicInsightsProps> = ({ data, editMode, onU
         >
           <div>
             <h1 className="text-black text-4xl font-bold mb-1">
-              <EditableText
-                html={data.title}
-                editMode={editMode}
-                onChange={(val) => onUpdate({ title: val })}
-              />
+              <div dangerouslySetInnerHTML={{ __html: data.title }} />
             </h1>
             <div className="text-gray-600 text-md">
-              <EditableText
-                html={data.description}
-                editMode={editMode}
-                onChange={(val) => onUpdate({ description: val })}
-              />
+              <div dangerouslySetInnerHTML={{ __html: data.description }} />
             </div>
           </div>
 
@@ -257,25 +189,9 @@ const ForensicInsights: React.FC<ForensicInsightsProps> = ({ data, editMode, onU
         >
           {displayingCards && displayingCards.length > 0 ? (
             displayingCards.map((card, index) => (
-              <Card key={index} card={card} index={index} />
+              <Card key={index} card={card} />
             ))
           ) : null}
-
-          {/* Add New Insight Card */}
-          {editMode && (
-            <motion.div
-              initial="visible"
-              animate="visible"
-              onClick={handleAddCard}
-              className="flex min-h-[400px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center hover:bg-gray-100 hover:border-blue-400 transition-all group"
-            >
-              <div className="mb-4 rounded-full bg-white p-4 shadow-sm group-hover:shadow-md transition-all">
-                <Plus size={32} className="text-blue-500" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">Add Insight</h3>
-              <p className="mt-2 text-sm text-gray-500">Create a new insight card</p>
-            </motion.div>
-          )}
         </motion.div>
       </motion.div>
     </div>

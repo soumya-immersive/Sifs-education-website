@@ -7,12 +7,9 @@ import { TeamMember } from "../../types/team";
 interface Props {
   member: TeamMember | null;
   onClose: () => void;
-  editMode?: boolean;
-  onUpdate?: (id: string, field: keyof TeamMember, value: string) => void;
-  onSave?: () => void;
 }
 
-export default function TeamModal({ member, onClose, editMode, onUpdate, onSave }: Props) {
+export default function TeamModal({ member, onClose }: Props) {
   if (!member) return null;
 
   return (
@@ -61,33 +58,8 @@ export default function TeamModal({ member, onClose, editMode, onUpdate, onSave 
             </div>
 
             <div className="mt-4 text-sm text-gray-600 leading-relaxed whitespace-pre-line flex-grow">
-              {editMode && onUpdate ? (
-                <div className="flex flex-col h-full gap-2">
-                  <textarea
-                    value={member.description}
-                    onChange={(e) => onUpdate(member.id, 'description', e.target.value)}
-                    className="w-full h-[200px] p-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                    placeholder="Enter full description here..."
-                  />
-                  {onSave && (
-                    <button
-                      onClick={onSave}
-                      className="self-end px-4 py-2 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 transition"
-                    >
-                      Save Details
-                    </button>
-                  )}
-                </div>
-              ) : (
-                member.description
-              )}
+              {member.description}
             </div>
-
-            {editMode && (
-              <p className="text-xs text-gray-400 mt-2 italic">
-                * Description changes are saved specifically here.
-              </p>
-            )}
           </div>
         </div>
       </motion.div>

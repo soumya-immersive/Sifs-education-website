@@ -5,9 +5,6 @@ import React from "react";
 import Image from "next/image";
 import { motion, Variants } from "framer-motion";
 import { ParticipatoryData } from "../../types/events-page";
-import EditableText from "../editable/EditableText";
-import EditableImage from "../editable/EditableImage";
-import { Plus, Trash2 } from "lucide-react";
 
 // --------------------
 //     VARIANTS FIXED
@@ -54,29 +51,12 @@ const textItemVariants: Variants = {
 };
 
 interface ParticipatoryProps {
-  editMode: boolean;
   data: ParticipatoryData;
-  onUpdate: (newData: Partial<ParticipatoryData>) => void;
-  onAddPartner: () => void;
-  onDeletePartner: (index: number) => void;
 }
 
 export default function Participatory({
-  editMode,
   data,
-  onUpdate,
-  onAddPartner,
-  onDeletePartner,
 }: ParticipatoryProps) {
-  const handleUpdatePartner = (index: number, updatedFields: { logo?: string; name?: string }) => {
-    const newPartners = [...data.partners];
-    newPartners[index] = { ...newPartners[index], ...updatedFields };
-    onUpdate({ partners: newPartners });
-  };
-
-  const handleDeletePartner = (index: number) => {
-    onDeletePartner(index);
-  };
 
   return (
     <section className="bg-white py-16">
@@ -99,22 +79,14 @@ export default function Participatory({
                 className="text-2xl font-extrabold text-gray-900 md:text-3xl"
                 variants={textItemVariants}
               >
-                <EditableText
-                  html={data.title}
-                  onChange={(val) => onUpdate({ title: val })}
-                  editMode={editMode}
-                />
+                <div dangerouslySetInnerHTML={{ __html: data.title }} />
               </motion.h2>
 
               <motion.div
                 className="mt-2 text-sm text-gray-500 md:text-base"
                 variants={textItemVariants}
               >
-                <EditableText
-                  html={data.description}
-                  onChange={(val) => onUpdate({ description: val })}
-                  editMode={editMode}
-                />
+                <div dangerouslySetInnerHTML={{ __html: data.description }} />
               </motion.div>
             </div>
 
@@ -128,52 +100,16 @@ export default function Participatory({
                   initial="visible"
                   animate="visible"
                 >
-                  {editMode && (
-                    <button
-                      onClick={() => handleDeletePartner(index)}
-                      className="absolute -top-2 -right-2 z-10 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-                      title="Delete Partner"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  )}
                   <div className="relative w-full h-full">
-                    {editMode ? (
-                      <EditableImage
-                        src={partner.logo}
-                        alt={partner.name}
-                        editMode={editMode}
-                        onChange={(src) => handleUpdatePartner(index, { logo: src })}
-                        className="w-full h-full"
-                      />
-                    ) : (
-                      <Image
-                        src={partner.logo}
-                        alt={partner.name}
-                        fill
-                        className="object-contain"
-                      />
-                    )}
+                    <Image
+                      src={partner.logo}
+                      alt={partner.name}
+                      fill
+                      className="object-contain"
+                    />
                   </div>
                 </motion.div>
               ))}
-              {editMode && (
-                <motion.div
-                  key="add-partner"
-                  initial="visible"
-                  animate="visible"
-                  className="flex h-16 w-28 items-center justify-center md:h-32 md:w-40"
-                >
-
-                  <button
-                    onClick={onAddPartner}
-                    className="flex h-full w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:border-blue-400 hover:text-blue-500 transition-all"
-                    title="Add New Partner"
-                  >
-                    <Plus size={32} />
-                  </button>
-                </motion.div>
-              )}
             </motion.div>
           </div>
         </motion.div>

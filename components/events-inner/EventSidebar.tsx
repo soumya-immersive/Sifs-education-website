@@ -2,15 +2,12 @@
 
 import { Calendar, Users, Phone, Info, Mail, Video, ArrowRight, Facebook } from "lucide-react";
 import { Event } from "../../types/events-page";
-import EditableText from "../editable/EditableText";
 
 interface Props {
   event: Event;
-  editMode: boolean;
-  onUpdate: (updates: Partial<Event>) => void;
 }
 
-export default function EventSidebar({ event, editMode, onUpdate }: Props) {
+export default function EventSidebar({ event }: Props) {
   return (
     <div className="space-y-6 sticky top-24 max-w-sm">
 
@@ -27,11 +24,7 @@ export default function EventSidebar({ event, editMode, onUpdate }: Props) {
               <span className="font-semibold text-gray-900">Event Date:</span>
             </div>
             <span className="text-gray-600 block max-w-[150px] text-right">
-              <EditableText
-                html={event.date}
-                editMode={editMode}
-                onChange={(val) => onUpdate({ date: val })}
-              />
+              <div dangerouslySetInnerHTML={{ __html: event.date }} />
             </span>
           </div>
 
@@ -42,11 +35,7 @@ export default function EventSidebar({ event, editMode, onUpdate }: Props) {
             </div>
             <span className="text-gray-600 font-bold flex gap-1">
               {event.currency || "₹"}
-              <EditableText
-                html={event.price.toString()}
-                editMode={editMode}
-                onChange={(val) => onUpdate({ price: parseFloat(val) || 0 })}
-              />
+              <div dangerouslySetInnerHTML={{ __html: event.price.toString() }} />
             </span>
           </div>
 
@@ -56,11 +45,7 @@ export default function EventSidebar({ event, editMode, onUpdate }: Props) {
               <span className="font-semibold text-gray-900">Ask Query on:</span>
             </div>
             <span className="text-gray-600">
-              <EditableText
-                html={event.contactPhone || "+91 926-676-6303"}
-                editMode={editMode}
-                onChange={(val) => onUpdate({ contactPhone: val })}
-              />
+              <div dangerouslySetInnerHTML={{ __html: event.contactPhone || "+91 926-676-6303" }} />
             </span>
           </div>
 
@@ -73,7 +58,7 @@ export default function EventSidebar({ event, editMode, onUpdate }: Props) {
 
           <div className="space-y-3 pt-2">
             <button className="w-full bg-gradient-to-r from-blue-600 to-purple-500 hover:opacity-90 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all">
-              {editMode ? "Register Link (Edit in Props)" : "Register Now"}
+              Register Now
               <ArrowRight className="w-5 h-5" />
             </button>
             <button className="w-full bg-white border border-gray-200 text-gray-400 font-medium py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition-all">
@@ -93,18 +78,10 @@ export default function EventSidebar({ event, editMode, onUpdate }: Props) {
         <div className="p-5 space-y-4">
           <div>
             <h4 className="font-bold text-gray-900">
-              <EditableText
-                html={event.venue || "Online Zoom"}
-                editMode={editMode}
-                onChange={(val) => onUpdate({ venue: val })}
-              />
+              <div dangerouslySetInnerHTML={{ __html: event.venue || "Online Zoom" }} />
             </h4>
             <div className="text-xs text-gray-500 uppercase tracking-wider mt-1">
-              <EditableText
-                html={event.venueAddress || "For micro-certificate program"}
-                editMode={editMode}
-                onChange={(val) => onUpdate({ venueAddress: val })}
-              />
+              <div dangerouslySetInnerHTML={{ __html: event.venueAddress || "For micro-certificate program" }} />
             </div>
           </div>
 
@@ -113,33 +90,21 @@ export default function EventSidebar({ event, editMode, onUpdate }: Props) {
               <Mail className="w-5 h-5 text-gray-900" />
               <span className="text-sm font-semibold text-gray-900 w-24">E-mail</span>
               <span className="text-sm text-gray-600">
-                <EditableText
-                  html={event.venueEmail || "Learningsifs@gmail.com"}
-                  editMode={editMode}
-                  onChange={(val) => onUpdate({ venueEmail: val })}
-                />
+                <div dangerouslySetInnerHTML={{ __html: event.venueEmail || "Learningsifs@gmail.com" }} />
               </span>
             </div>
             <div className="flex items-center gap-4">
               <Phone className="w-5 h-5 text-gray-900" />
               <span className="text-sm font-semibold text-gray-900 w-24">Phone</span>
               <span className="text-sm text-gray-600">
-                <EditableText
-                  html={event.venuePhone || "+91 926-676-6303"}
-                  editMode={editMode}
-                  onChange={(val) => onUpdate({ venuePhone: val })}
-                />
+                <div dangerouslySetInnerHTML={{ __html: event.venuePhone || "+91 926-676-6303" }} />
               </span>
             </div>
             <div className="flex items-center gap-4">
               <Video className="w-5 h-5 text-gray-900" />
               <span className="text-sm font-semibold text-gray-900 w-24">Online</span>
               <span className="text-sm text-gray-600">
-                <EditableText
-                  html={event.platform || "Zoom Platform"}
-                  editMode={editMode}
-                  onChange={(val) => onUpdate({ platform: val })}
-                />
+                <div dangerouslySetInnerHTML={{ __html: event.platform || "Zoom Platform" }} />
               </span>
             </div>
           </div>

@@ -1,8 +1,7 @@
 "use client";
 
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Pagination } from "swiper/modules";
-import EditableText from "../editable/EditableText";
+import { Pagination, Autoplay } from "swiper/modules";
 
 import "swiper/css";
 import "swiper/css/pagination";
@@ -17,38 +16,20 @@ interface AchievementYearCardProps {
       }[];
     }[];
   };
-  editMode: boolean;
-  updateData: (data: any) => void;
 }
 
 export default function AchievementYearCard({
   data,
-  editMode,
-  updateData
 }: AchievementYearCardProps) {
 
   if (!data) return null;
 
-  const updateSlideYear = (slideIndex: number, val: string) => {
-    const newSlides = [...data.slides];
-    newSlides[slideIndex] = { ...newSlides[slideIndex], year: val };
-    updateData({ ...data, slides: newSlides });
-  }
-
-  const updateSection = (slideIndex: number, sectionIndex: number, field: "title" | "text", val: string) => {
-    const newSlides = [...data.slides];
-    const newSections = [...newSlides[slideIndex].sections];
-    newSections[sectionIndex] = { ...newSections[sectionIndex], [field]: val };
-    newSlides[slideIndex] = { ...newSlides[slideIndex], sections: newSections };
-    updateData({ ...data, slides: newSlides });
-  }
-
   return (
     <Swiper
-      modules={[Pagination]}
+      modules={[Pagination, Autoplay]}
       pagination={{ clickable: true }}
       spaceBetween={20}
-      autoplay={editMode ? false : { // Disable autoplay in edit mode
+      autoplay={{
         delay: 3000,
         disableOnInteraction: false,
         pauseOnMouseEnter: true,
@@ -60,10 +41,8 @@ export default function AchievementYearCard({
         <SwiperSlide key={i}>
           <div className="rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 p-6 text-white min-h-[320px]">
             <div className="font-semibold mb-4 text-lg">
-              <EditableText
-                html={slide.year}
-                editMode={editMode}
-                onChange={(val) => updateSlideYear(i, val)}
+              <div
+                dangerouslySetInnerHTML={{ __html: slide.year }}
               />
             </div>
 
@@ -71,17 +50,13 @@ export default function AchievementYearCard({
               {slide.sections.map((sec, idx) => (
                 <div key={idx}>
                   <div className="font-semibold">
-                    <EditableText
-                      html={sec.title}
-                      editMode={editMode}
-                      onChange={(val) => updateSection(i, idx, "title", val)}
+                    <div
+                      dangerouslySetInnerHTML={{ __html: sec.title }}
                     />
                   </div>
                   <div className="opacity-90 leading-relaxed">
-                    <EditableText
-                      html={sec.text}
-                      editMode={editMode}
-                      onChange={(val) => updateSection(i, idx, "text", val)}
+                    <div
+                      dangerouslySetInnerHTML={{ __html: sec.text }}
                     />
                   </div>
                 </div>
