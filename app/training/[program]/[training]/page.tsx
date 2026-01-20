@@ -1,7 +1,6 @@
-// /app/training/[program]/[training]/page.tsx
-
 import { notFound } from "next/navigation";
-import { trainings } from "../../../../data/trainings";
+import { trainings as staticTrainings, Training } from "../../../../data/trainings";
+import { API_BASE_URL } from "@/lib/config";
 
 // Importing training-specific detail components
 import TrainingHero from "../../../../components/training/TrainingHero";
@@ -11,6 +10,82 @@ import TrainingHighlights from "../../../../components/training/TrainingHighligh
 import TrainingAccordionBlocks from "../../../../components/training/TrainingAccordionBlocks";
 import TrainingPaymentDetails from "../../../../components/training/TrainingPaymentDetails";
 import TrainingEnquiriesSection from "../../../../components/training/TrainingEnquiriesSection";
+
+interface ApiTrainingDetail {
+  id: number;
+  title: string;
+  sub_title: string;
+  slug: string;
+  image: string;
+  training_code: string | null;
+  price_level_1: string;
+  price_level_2: string;
+  price_level_3: string;
+  video_url: string;
+  video_id: string;
+  duration: string;
+  training_outline: string;
+  case_studies: string;
+  mode_of_study: string;
+}
+
+const apiSupportedPrograms = ["corporate-training", "onsite-training", "handson-training", "online-training"];
+
+async function getApiTrainingDetails(slug: string, program: string): Promise<Training | null> {
+  const url = `${API_BASE_URL}/EducationAndInternship/Website/training/training-details/${slug}`;
+
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+    const json = await res.json();
+
+    if (json.success && json.data?.training) {
+      const t: ApiTrainingDetail = json.data.training;
+      const instructors = json.data.instructors || [];
+      const reviews = json.data.reviews || [];
+      const faqs = json.data.faq || [];
+      const comments = json.data.comments || [];
+
+      const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL.slice(0, -4) : API_BASE_URL;
+      // Fixed Folder Name as per User Request
+      const imageUrl = t.image ? `${baseUrl}/uploads/Education-And-Internship-Admin-Training-Image/${t.image}` : "/training/training.png";
+
+      return {
+        id: t.id,
+        slug: t.slug,
+        programSlug: program,
+        trainingCode: t.training_code || `CT-${t.id}`,
+        title: t.title,
+        overview: t.sub_title || "",
+        heroImage: imageUrl,
+        rating: 4.8,
+        reviewsCount: reviews.length || 150,
+        bannerImage: "/training/hero-bg.png",
+        highlights: ["24/7 Portal Access", "Live Practical Demonstrations", "Industry Recognized Certificate"],
+
+        price: t.price_level_1,
+        priceLevel1: t.price_level_1,
+        priceLevel2: t.price_level_2,
+        priceLevel3: t.price_level_3,
+        video_url: t.video_url,
+        video_id: t.video_id,
+        instructors: instructors,
+
+        duration: t.duration,
+        trainingOutline: t.training_outline,
+        caseStudies: t.case_studies,
+
+        reviews: reviews,
+        faqs: faqs,
+        comments: comments
+      };
+    }
+    return null;
+  } catch (err) {
+    console.error("Error fetching training details:", err);
+    return null;
+  }
+}
 
 interface Props {
   params: Promise<{
@@ -23,12 +98,18 @@ export default async function TrainingDetailsPage({ params }: Props) {
   // Await params (Next.js dynamic params are async)
   const { program, training: trainingSlug } = await params;
 
+  let trainingData: Training | null | undefined;
+
   /* ---------------- Find Training Data ---------------- */
-  const trainingData = trainings.find(
-    (t) =>
-      t.programSlug === program &&
-      t.slug === trainingSlug
-  );
+  if (apiSupportedPrograms.includes(program)) {
+    trainingData = await getApiTrainingDetails(trainingSlug, program);
+  } else {
+    trainingData = staticTrainings.find(
+      (t) =>
+        t.programSlug === program &&
+        t.slug === trainingSlug
+    );
+  }
 
   // If training not found → 404
   if (!trainingData) notFound();
@@ -44,7 +125,6 @@ export default async function TrainingDetailsPage({ params }: Props) {
           <TrainingInfo training={trainingData} />
           <TrainingHighlights training={trainingData} />
           <TrainingAccordionBlocks training={trainingData} />
-          <TrainingPaymentDetails training={trainingData} />
         </div>
 
         {/* SIDEBAR */}

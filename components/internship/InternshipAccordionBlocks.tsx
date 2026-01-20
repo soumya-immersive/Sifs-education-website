@@ -9,13 +9,7 @@ interface Props {
   internship: Internship;
 }
 
-// Updated section titles for Internship context
-const SECTIONS = [
-  "Training Modules",
-  "Projects & Deliverables",
-  "FAQ",
-  "Eligibility & Requirements"
-];
+
 
 /* ---------------- Animations ---------------- */
 
@@ -51,10 +45,29 @@ const accordionContent: Variants = {
 export default function InternshipAccordionBlocks({ internship }: Props) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
+  // Define sections similar to Course Page
+  const SECTIONS = ["Curriculum", "FAQ", "Case Studies", "Reviews"];
+
   return (
     <div className="space-y-3 pt-4">
       {SECTIONS.map((title, index) => {
         const isOpen = openIndex === index;
+
+        // Determine if section has content
+        let hasContent = false;
+        if (title === "Curriculum") {
+          // Only use prospectus for Curriculum. We don't want to fallback to training_outline because it's already shown in Info section.
+          hasContent = !!internship.prospectus;
+        } else if (title === "FAQ") {
+          hasContent = !!((internship.faq && internship.faq.length > 0) || (internship.comments && internship.comments.length > 0));
+        } else if (title === "Case Studies") {
+          // Use case_studies field if available
+          hasContent = !!internship.case_studies;
+        } else if (title === "Reviews") {
+          hasContent = !!(internship.reviews && internship.reviews.length > 0);
+        }
+
+        if (!hasContent) return null;
 
         return (
           <motion.div
@@ -71,12 +84,11 @@ export default function InternshipAccordionBlocks({ internship }: Props) {
               className="w-full flex items-center justify-between px-5 py-4 
                          text-sm font-semibold text-gray-900 hover:bg-[#E8EEFF] transition"
             >
-              {title}
+              {title === "Curriculum" && !internship.prospectus ? "Training Modules" : title}
 
               <ChevronRight
-                className={`w-4 h-4 transition-transform ${
-                  isOpen ? "rotate-90" : ""
-                }`}
+                className={`w-4 h-4 transition-transform ${isOpen ? "rotate-90" : ""
+                  }`}
               />
             </button>
 
@@ -90,11 +102,64 @@ export default function InternshipAccordionBlocks({ internship }: Props) {
                   animate="visible"
                   exit="exit"
                 >
-                  <p className="leading-relaxed">
-                    Details regarding the **{title.toLowerCase()}** for the {internship.title} program. 
-                    This section includes specific documentation on {internship.overview.toLowerCase()} 
-                    and the technical methodologies you will master during your tenure.
-                  </p>
+                  <div className="prose prose-sm max-w-none text-gray-600">
+                    {title === "Curriculum" ? (
+                      internship.prospectus ? (
+                        <div className="space-y-6 not-prose">
+                          {[
+                            { level: internship.prospectus.level_one, body: internship.prospectus.body_one },
+                            { level: internship.prospectus.level_two, body: internship.prospectus.body_two },
+                            { level: internship.prospectus.level_three, body: internship.prospectus.body_three },
+                            { level: internship.prospectus.level_four, body: internship.prospectus.body_four }
+                          ].map((item, idx) => (
+                            item.level && item.body ? (
+                              <div key={idx} className="bg-gray-50 border border-gray-200 rounded-lg p-5">
+                                <h4 className="font-bold text-gray-800 mb-3 text-lg border-b border-gray-200 pb-2">{item.level}</h4>
+                                <div className="text-sm space-y-2 text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: item.body }} />
+                              </div>
+                            ) : null
+                          ))}
+                        </div>
+                      ) : (
+                        <p>Curriculum detailed information coming soon.</p>
+                      )
+                    ) : title === "FAQ" ? (
+                      <div className="space-y-4 not-prose">
+                        {/* Official FAQs */}
+                        {internship.faq && internship.faq.map((f: any) => (
+                          <div key={`faq-${f.id}`} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                            <p className="font-semibold text-gray-800 mb-2">Q: {f.question}</p>
+                            <div className="text-gray-600 bg-gray-50 p-3 rounded-lg text-sm" dangerouslySetInnerHTML={{ __html: f.answer }} />
+                          </div>
+                        ))}
+                        {/* User Comments/Queries */}
+                        {internship.comments && internship.comments.map((c: any) => (
+                          <div key={`comment-${c.id}`} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                            <p className="font-semibold text-gray-800 mb-1">Q: {c.query}</p>
+                            <div className="text-gray-600" dangerouslySetInnerHTML={{ __html: c.reply }} />
+                          </div>
+                        ))}
+                      </div>
+                    ) : title === "Case Studies" ? (
+                      <div dangerouslySetInnerHTML={{ __html: internship.case_studies || "" }} />
+                    ) : title === "Reviews" ? (
+                      <div className="space-y-6 not-prose">
+                        {internship.reviews && internship.reviews.map((review: any) => (
+                          <div key={review.id} className="bg-white border border-gray-100 p-4 rounded-lg shadow-sm">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="font-bold text-gray-900">{review.student_name || review.name}</div>
+                              <div className="flex text-yellow-500">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <span key={i} className={i < (review.star || 5) ? "text-yellow-500" : "text-gray-300"}>★</span>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="text-gray-600 text-sm italic" dangerouslySetInnerHTML={{ __html: review.review }} />
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

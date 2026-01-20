@@ -66,43 +66,15 @@ export default function InternshipInfo({ internship }: Props) {
         className="space-y-4 text-sm md:text-base text-gray-600 leading-relaxed"
         variants={container}
       >
-        <motion.p variants={fadeUp}>
-          The <span className="font-semibold text-gray-800">{internship.title}</span> program 
-          offered by SIFS India is designed for aspiring professionals looking to gain 
-          practical, industry-standard experience in the specialized field of forensic science.
-        </motion.p>
-
-        <motion.p variants={fadeUp}>
-          During this internship, you will move beyond theoretical concepts to understand 
-          the real-world application of investigative techniques. You will work alongside 
-          experts to learn how evidence is identified, gathered, and analyzed using 
-          cutting-edge forensic methodology.
-        </motion.p>
-
-        <motion.p variants={fadeUp}>
-          Our training modules—whether <span className="italic">{internship.programSlug.replace("-", " ")}</span>—are 
-          structured to provide a balance of mentorship and independent task execution. 
-          You will be exposed to real-life case studies and simulation exercises that 
-          prepare you for the rigorous demands of a career in criminal investigation.
-        </motion.p>
-
-        <motion.p variants={fadeUp}>
-          Key areas of focus include {internship.overview.toLowerCase()} alongside 
-          comprehensive modules on crime scene management, digital evidence recovery, 
-          and the legal aspects of forensic findings. This program is an ideal stepping 
-          stone for those who want to build a formidable portfolio in the justice system.
-        </motion.p>
-
-        <motion.p variants={fadeUp}>
-          By the end of this tenure, you will have developed a specialized skill set 
-          ranging from fingerprint analysis and questioned document examination to 
-          advanced cyber-forensic protocols, depending on your chosen stream.
-        </motion.p>
-
-        <motion.p variants={fadeUp} className="font-medium text-blue-700">
-          If you are ready to apply your scientific passion to the pursuit of justice, 
-          this internship is the perfect beginning for your professional forensic journey.
-        </motion.p>
+        {internship.description ? (
+          <div dangerouslySetInnerHTML={{ __html: internship.description }} className="prose prose-sm max-w-none text-gray-600 space-y-4" />
+        ) : (
+          <motion.div variants={fadeUp}>
+            <p className="text-gray-700 leading-relaxed">
+              {internship.overview || "Join the forensic internship to gain practical skills."}
+            </p>
+          </motion.div>
+        )}
       </motion.div>
     </motion.div>
   );

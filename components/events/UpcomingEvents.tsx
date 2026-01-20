@@ -1,64 +1,24 @@
-// components/events/UpcomingEvents.tsx
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
+import { useEffect, useState } from "react";
+import { API_BASE_URL } from "../../lib/config";
+import { Loader2 } from "lucide-react";
 
 type Event = {
   id: number;
-  slug: string; // Add slug for routing
+  slug: string;
   title: string;
   date: string;
   mode: string;
   description: string;
   image: string;
+  startDate?: string;
 };
 
-const events: Event[] = [
-  {
-    id: 1,
-    slug: "digital-forensics-cyber-security", // Add slug
-    title: "Digital Forensics & Cyber Security",
-    date: "08 Dec, 2025",
-    mode: "Online Zoom",
-    description:
-      "A micro certificate program offered by Sherlock Institute of Forensic Science (SIFS) India is an intensive 5-day program.",
-    image: "/event/1.png",
-  },
-  {
-    id: 2,
-    slug: "6th-international-forensic-science-conference", // Add slug
-    title: "6th International Forensic Science Conference",
-    date: "08 Dec, 2025",
-    mode: "Online Zoom",
-    description:
-      "An intensive 5-day program focused on contemporary forensic science domains.",
-    image: "/event/2.png",
-  },
-  {
-    id: 3,
-    slug: "global-dimensions-forensic-science-strengthening-justice", // Add slug
-    title: "Global Dimensions of Forensic Science: Strengthening Justice...",
-    date: "08 Dec, 2025",
-    mode: "Online Zoom",
-    description:
-      "A program exploring global best practices in forensic science and justice.",
-    image: "/event/3.png",
-  },
-  {
-    id: 4,
-    slug: "forensic-psychology-principles-practice-ethics", // Add slug
-    title: "Forensic Psychology - Its Principles, Practice & Ethics",
-    date: "08 Dec, 2025",
-    mode: "Online Zoom",
-    description:
-      "An intensive 5-day program focused on forensic psychology applications.",
-    image: "/event/2.png",
-  },
-];
-
-// Helper function to generate slugs (if not provided)
+// Helper function to generate slugs
 const generateSlug = (title: string): string => {
   return title
     .toLowerCase()
@@ -67,14 +27,21 @@ const generateSlug = (title: string): string => {
     .substring(0, 50);
 };
 
-const timerTitles = ["Days", "Hours", "Min", "Sec"];
-
-const timerValues: { [key: number]: string[] } = {
-  1: ["12", "11", "45", "38"],
-  2: ["10", "20", "07", "55"],
-  3: ["05", "03", "18", "22"],
-  4: ["01", "15", "30", "40"],
+// Helper to calculate time remaining
+const calculateTimeLeft = (targetDate: string) => {
+  const difference = +new Date(targetDate) - +new Date();
+  if (difference > 0) {
+    return {
+      days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+      minutes: Math.floor((difference / 1000 / 60) % 60),
+      seconds: Math.floor((difference / 1000) % 60),
+    };
+  }
+  return null;
 };
+
+const timerTitles = ["Days", "Hours", "Min", "Sec"];
 
 const timerStyles = [
   { container: "bg-sky-500 border border-sky-500", number: "text-white", title: "text-sky-100" },
@@ -146,6 +113,96 @@ const subItemVariants: Variants = {
 
 // ------------------ Component ------------------
 export default function EventsSection() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [timeLefts, setTimeLefts] = useState<{ [key: number]: any }>({});
+
+  useEffect(() => {
+    const fetchEventsData = async () => {
+      try {
+        setLoading(true);
+        // Using limit=4 for the featured/upcoming section
+        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/event/all-events?page=1&limit=4`);
+        const result = await response.json();
+
+        if (result.success && result.data && Array.isArray(result.data.data)) {
+          const mappedEvents = result.data.data.map((item: any) => {
+            // Handle Image URL
+            let imageUrl = item.image || item.gallery_image || "";
+            if (imageUrl) {
+              imageUrl = imageUrl.replace(/\\/g, "/");
+              if (!imageUrl.startsWith("http")) {
+                imageUrl = `http://localhost:3000/uploads/${imageUrl}`;
+              }
+            } else {
+              imageUrl = "/placeholder-event.png"; // Fallback
+            }
+
+            // Date Formatting
+            const eventDate = item.event_start_date || item.start_date || item.created_at;
+            const formattedDate = new Date(eventDate).toLocaleDateString("en-GB", {
+              day: "2-digit", month: "short", year: "numeric"
+            });
+
+            const clean = (str: any) => (str ? str.toString().replace(/^"|"$/g, '') : "");
+
+            return {
+              id: item.id,
+              slug: item.slug || generateSlug(clean(item.title)),
+              title: clean(item.title),
+              date: formattedDate,
+              startDate: eventDate, // For timer
+              mode: clean(item.mode_of_study) || "Online", // Assuming mode_of_study or similar
+              description: clean(item.event_outline) || clean(item.description) || "No description available.",
+              image: imageUrl
+            };
+          });
+          setEvents(mappedEvents);
+
+          // Initialize timers calculation
+          const initialTimers: any = {};
+          mappedEvents.forEach((ev: any) => {
+            if (ev.startDate) {
+              const tl = calculateTimeLeft(ev.startDate);
+              if (tl) initialTimers[ev.id] = tl;
+            }
+          });
+          setTimeLefts(initialTimers);
+
+        }
+      } catch (error) {
+        console.error("Error fetching upcoming events:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEventsData();
+  }, []);
+
+  // Timer Interval
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setEvents(currentEvents => {
+        const updates: any = {};
+        let changed = false;
+        currentEvents.forEach(ev => {
+          if (ev.startDate) {
+            const tl = calculateTimeLeft(ev.startDate);
+            if (tl) {
+              updates[ev.id] = tl;
+              changed = true;
+            }
+          }
+        });
+        if (changed) setTimeLefts(prev => ({ ...prev, ...updates }));
+        return currentEvents;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [events]); // Depend on events to ensure we have the startDate
+
   return (
     <section className="bg-gradient-to-r from-white via-white to-violet-50 py-16">
       <motion.div
@@ -186,87 +243,101 @@ export default function EventsSection() {
         </div>
 
         {/* Cards Grid */}
-        <motion.div
-          className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"
-          variants={gridVariants}
-        >
-          {events.map((event) => {
-            const slug = event.slug || generateSlug(event.title);
-            
-            return (
-              <motion.article
-                key={event.id}
-                className="flex h-full p-3 flex-col overflow-hidden rounded-2xl bg-white shadow-[0_18px_40px_rgba(15,23,42,0.08)] hover:shadow-[0_18px_40px_rgba(15,23,42,0.12)] transition-shadow duration-300"
-                variants={cardVariants}
-              >
-                {/* Make the whole card clickable as a Link */}
-                <Link href={`/events/${slug}`} className="flex flex-col flex-1">
-                  {/* Image */}
-                  <motion.div className="relative h-44 w-full" variants={subItemVariants}>
-                    <Image 
-                      src={event.image} 
-                      alt={event.title} 
-                      fill 
-                      className="object-cover rounded-lg hover:scale-105 transition-transform duration-300" 
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                    />
-                  </motion.div>
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+          </div>
+        ) : (
+          <motion.div
+            className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"
+            variants={gridVariants}
+          >
+            {events.map((event) => {
+              const timerVal = timeLefts[event.id];
+              // Convert timer to array format matched with labels
+              const timerValues = timerVal ? [
+                String(timerVal.days).padStart(2, '0'),
+                String(timerVal.hours).padStart(2, '0'),
+                String(timerVal.minutes).padStart(2, '0'),
+                String(timerVal.seconds).padStart(2, '0')
+              ] : ["00", "00", "00", "00"];
 
-                  {/* Content */}
-                  <motion.div className="flex flex-1 flex-col pb-5 pt-4" variants={cardContentVariants}>
-                    <motion.div className="mb-3 flex items-center justify-between text-[11px] text-gray-500" variants={subItemVariants}>
-                      <div className="flex items-center gap-1">
-                        <div className="relative w-4 h-4">
-                          <Image src="/calendar-mark.png" alt="Calendar" fill className="object-contain" />
-                        </div>
-                        <span>{event.date}</span>
-                      </div>
-
-                      <div className="flex items-center gap-1">
-                        <div className="relative w-4 h-4">
-                          <Image src="/video-camera.png" alt="Mode" fill className="object-contain" />
-                        </div>
-                        <span>{event.mode}</span>
-                      </div>
+              return (
+                <motion.article
+                  key={event.id}
+                  className="flex h-full p-3 flex-col overflow-hidden rounded-2xl bg-white shadow-[0_18px_40px_rgba(15,23,42,0.08)] hover:shadow-[0_18px_40px_rgba(15,23,42,0.12)] transition-shadow duration-300"
+                  variants={cardVariants}
+                >
+                  {/* Make the whole card clickable as a Link */}
+                  <Link href={`/events/${event.slug}`} className="flex flex-col flex-1">
+                    {/* Image */}
+                    <motion.div className="relative h-44 w-full bg-gray-100 rounded-lg" variants={subItemVariants}>
+                      <Image
+                        src={event.image || "/placeholder.jpg"}
+                        alt={event.title}
+                        fill
+                        className="object-cover rounded-lg hover:scale-105 transition-transform duration-300"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                      />
                     </motion.div>
 
-                    <motion.h3 className="mb-2 line-clamp-2 text-base font-normal text-gray-900 hover:text-[#3A58EE] transition-colors" variants={subItemVariants}>
-                      {event.title}
-                    </motion.h3>
+                    {/* Content */}
+                    <motion.div className="flex flex-1 flex-col pb-5 pt-4" variants={cardContentVariants}>
+                      <motion.div className="mb-3 flex items-center justify-between text-[11px] text-gray-500" variants={subItemVariants}>
+                        <div className="flex items-center gap-1">
+                          {/* Calendar Icon - replacing with unicode or lucide if image missing, sticking to image as per original */}
+                          <div className="relative w-4 h-4">
+                            <Image src="/calendar-mark.png" alt="Calendar" fill className="object-contain" />
+                          </div>
+                          <span>{event.date}</span>
+                        </div>
 
-                    <motion.p className="mb-4 line-clamp-3 text-xs text-[#6B7385]" variants={subItemVariants}>
-                      {event.description}
-                    </motion.p>
+                        <div className="flex items-center gap-1">
+                          <div className="relative w-4 h-4">
+                            <Image src="/video-camera.png" alt="Mode" fill className="object-contain" />
+                          </div>
+                          <span>{event.mode}</span>
+                        </div>
+                      </motion.div>
 
-                    <hr className="mb-3 border-gray-100" />
+                      <motion.h3 className="mb-2 line-clamp-2 text-base font-normal text-gray-900 hover:text-[#3A58EE] transition-colors" variants={subItemVariants}>
+                        {event.title}
+                      </motion.h3>
 
-                    {/* Timer + Link */}
-                    <motion.div className="mt-auto flex items-center justify-between" variants={subItemVariants}>
-                      <div className="flex gap-1 text-[10px] font-semibold">
-                        {timerTitles.map((title, i) => {
-                          const style = timerStyles[i];
-                          return (
-                            <div key={title} className={`rounded-md px-2 py-1 ${style.container}`}>
-                              <div className={`text-sm font-bold ${style.number}`}>
-                                {timerValues[event.id]?.[i] || "00"}
+                      <motion.p className="mb-4 line-clamp-3 text-xs text-[#6B7385]" variants={subItemVariants}>
+                        {event.description}
+                      </motion.p>
+
+                      <hr className="mb-3 border-gray-100" />
+
+                      {/* Timer + Link */}
+                      <motion.div className="mt-auto flex items-center justify-between" variants={subItemVariants}>
+                        <div className="flex gap-1 text-[10px] font-semibold">
+                          {timerTitles.map((title, i) => {
+                            const style = timerStyles[i];
+                            return (
+                              <div key={title} className={`rounded-md px-2 py-1 ${style.container}`}>
+                                <div className={`text-sm font-bold ${style.number}`}>
+                                  {timerValues[i]}
+                                </div>
+                                <div className={`text-[9px] ${style.title}`}>{title}</div>
                               </div>
-                              <div className={`text-[9px] ${style.title}`}>{title}</div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })}
+                        </div>
 
-                      <div className="text-[11px] text-gray-500 hover:text-[#3A58EE] font-medium transition-colors group">
-                        Read More →
-                        <span className="block h-0.5 w-0 bg-[#3A58EE] transition-all duration-300 group-hover:w-full"></span>
-                      </div>
+                        <div className="text-[11px] text-gray-500 hover:text-[#3A58EE] font-medium transition-colors group">
+                          Read More →
+                          <span className="block h-0.5 w-0 bg-[#3A58EE] transition-all duration-300 group-hover:w-full"></span>
+                        </div>
+                      </motion.div>
                     </motion.div>
-                  </motion.div>
-                </Link>
-              </motion.article>
-            );
-          })}
-        </motion.div>
+                  </Link>
+                </motion.article>
+              );
+            })}
+          </motion.div>
+        )}
       </motion.div>
     </section>
   );

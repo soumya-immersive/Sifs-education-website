@@ -62,54 +62,43 @@ export default function TrainingInfo({ training }: Props) {
       </motion.div>
 
       {/* Content */}
+      {/* Content */}
       <motion.div
         className="space-y-4 text-sm md:text-base text-gray-600 leading-relaxed"
         variants={container}
       >
-        <motion.p variants={fadeUp}>
-          The{" "}
-          <span className="font-semibold text-gray-800">
-            {training.title}
-          </span>{" "}
-          training program is designed to equip professionals and students with
-          practical, industry-aligned expertise in modern forensic and
-          investigative techniques.
-        </motion.p>
+        {training.trainingOutline ? (
+          <div
+            className="prose prose-sm md:prose-base max-w-none text-gray-600 space-y-4"
+            dangerouslySetInnerHTML={{ __html: training.trainingOutline }}
+          />
+        ) : (
+          <>
+            <motion.p variants={fadeUp}>
+              The{" "}
+              <span className="font-semibold text-gray-800">
+                {training.title}
+              </span>{" "}
+              training program is designed to equip professionals and students with
+              practical, industry-aligned expertise in modern forensic and
+              investigative techniques.
+            </motion.p>
 
-        <motion.p variants={fadeUp}>
-          This training goes beyond theoretical knowledge and focuses on
-          real-world application. Participants gain hands-on exposure to tools,
-          workflows, and methodologies used by professionals in active
-          investigations.
-        </motion.p>
+            <motion.p variants={fadeUp}>
+              This training goes beyond theoretical knowledge and focuses on
+              real-world application. Participants gain hands-on exposure to tools,
+              workflows, and methodologies used by professionals in active
+              investigations.
+            </motion.p>
 
-        <motion.p variants={fadeUp}>
-          Tailored specifically for{" "}
-          <span className="italic">
-            {training.programSlug.replace("-", " ")}
-          </span>{" "}
-          programs, the curriculum balances expert-led instruction with
-          scenario-based learning to ensure deep conceptual clarity and
-          confidence in execution.
-        </motion.p>
-
-        <motion.p variants={fadeUp}>
-          Core learning areas include{" "}
-          {training.overview.toLowerCase()}, along with structured modules on
-          evidence handling, reporting standards, compliance protocols, and
-          analytical best practices.
-        </motion.p>
-
-        <motion.p variants={fadeUp}>
-          By completing this training, learners develop job-ready skills that
-          align with current industry demands—whether in corporate environments,
-          law enforcement support, or independent forensic practice.
-        </motion.p>
-
-        <motion.p variants={fadeUp} className="font-medium text-blue-700">
-          This program is ideal for individuals seeking certified, practical,
-          and career-focused forensic training.
-        </motion.p>
+            <motion.p variants={fadeUp}>
+              Core learning areas include{" "}
+              {training.overview.toLowerCase()}, along with structured modules on
+              evidence handling, reporting standards, compliance protocols, and
+              analytical best practices.
+            </motion.p>
+          </>
+        )}
       </motion.div>
     </motion.div>
   );

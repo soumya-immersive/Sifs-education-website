@@ -35,9 +35,8 @@ export default function InternshipHero({ internship }: Props) {
     <section
       className="relative bg-cover bg-center bg-no-repeat py-24 overflow-hidden"
       style={{
-        backgroundImage: `url(${
-          internship.bannerImage || "/internship/hero-bg.png"
-        })`,
+        backgroundImage: `url(${internship.bannerImage || "/internship/hero-bg.png"
+          })`,
       }}
     >
       <motion.div
@@ -58,7 +57,7 @@ export default function InternshipHero({ internship }: Props) {
             mb-3
           "
         >
-          {internship.internshipCode}
+          {internship.internshipCode || "LBI-001"}
         </motion.span>
 
         {/* Title */}
@@ -74,21 +73,23 @@ export default function InternshipHero({ internship }: Props) {
           variants={fadeUp}
           className="text-gray-700 text-sm md:text-base max-w-2xl leading-relaxed opacity-90"
         >
-          {internship.overview}
+          {internship.overview || internship.title}
         </motion.p>
 
-        {/* Optional: Rating (Only if your data eventually supports it) */}
-        <motion.div
-          variants={fadeUp}
-          className="flex items-center gap-2 mt-4"
-        >
-          <div className="flex text-yellow-400">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} size={16} fill="currentColor" />
-            ))}
-          </div>
-          <span className="text-sm text-gray-600">(4.8+ Ratings)</span>
-        </motion.div> 
+        {/* Optional: Rating */}
+        {internship.reviews && internship.reviews.length > 0 && (
+          <motion.div
+            variants={fadeUp}
+            className="flex items-center gap-2 mt-4"
+          >
+            <div className="flex text-yellow-400">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} size={16} fill={i < Math.round(internship.rating || 0) ? "currentColor" : "none"} className={i < Math.round(internship.rating || 0) ? "" : "text-gray-300"} />
+              ))}
+            </div>
+            <span className="text-sm text-gray-600">({internship.reviews.length} Ratings)</span>
+          </motion.div>
+        )}
       </motion.div>
     </section>
   );

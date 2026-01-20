@@ -1,8 +1,10 @@
-// components/layout/Footer.tsx
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
+import { Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
+import { API_BASE_URL } from "../../lib/config";
 
 // --- Framer Motion Variants (NO `ease` to avoid TS type issues) ---
 
@@ -50,8 +52,31 @@ const copyrightVariants = {
   visible: { opacity: 1, transition: { duration: 0.5, delay: 0.9 } },
 };
 
+// Interface for Footer Data
+interface LinkItem {
+  label: string;
+  path: string;
+}
+
+interface Section {
+  title: string;
+  links: LinkItem[];
+}
+
+interface FooterDataAttributes {
+  footer_sections: Section[];
+  contact_mail: string;
+  support_phone: string;
+  copyright_text: string;
+  support_email: string;
+  footer_logo: string;
+}
+
+// Helper to determine if link is external or internal
+const isExternal = (url: string) => url.startsWith("http");
+
 // LinkList helper
-const LinkList: React.FC<{ title: string; links: string[] }> = ({
+const LinkList: React.FC<{ title: string; links: LinkItem[] }> = ({
   title,
   links,
 }) => (
@@ -59,11 +84,24 @@ const LinkList: React.FC<{ title: string; links: string[] }> = ({
     <h3 className="text-gray-900 font-bold mb-4">{title}</h3>
     <ul className="space-y-3 text-sm text-gray-700">
       {links.map((link, index) => (
-        <li
-          key={index}
-          className="hover:text-blue-600 cursor-pointer transition-colors"
-        >
-          {link}
+        <li key={index}>
+          {isExternal(link.path) ? (
+            <a
+              href={link.path}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-blue-600 cursor-pointer transition-colors"
+            >
+              {link.label}
+            </a>
+          ) : (
+            <Link
+              href={link.path}
+              className="hover:text-blue-600 cursor-pointer transition-colors"
+            >
+              {link.label}
+            </Link>
+          )}
         </li>
       ))}
     </ul>
@@ -71,6 +109,100 @@ const LinkList: React.FC<{ title: string; links: string[] }> = ({
 );
 
 const Footer: React.FC = () => {
+  const [data, setData] = useState<FooterDataAttributes | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/EducationAndInternship/Website/front`
+        );
+        const json = await response.json();
+
+        console.log("Footer API Response:", json);
+
+        // Prioritize be based on user feedback
+        const bs = json.data?.bs;
+        const be = json.data?.be;
+
+        const footerText = be?.footer_text || bs?.footer_text || "";
+
+        if (json.success && footerText) {
+          console.log("Footer text found, parsing...");
+          const parsedSections = parseFooterText(footerText);
+
+          setData({
+            footer_sections: parsedSections,
+            contact_mail: bs?.contact_mail || be?.order_mail || "info@sifs.in",
+            support_email: bs?.support_email || "education@sifs.in",
+            support_phone: bs?.support_phone || "011-47074263",
+            copyright_text: bs?.copyright_text || "Copyright © 2025 SIFS INDIA. All Rights Reserved",
+            footer_logo: bs?.footer_logo || ""
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch footer data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Helper to Sanitize API Paths (Copied from Header for consistency)
+  const sanitizePath = (url: string): string => {
+    if (!url) return "#";
+    const lowerUrl = url.toLowerCase();
+
+    // Fix specifically for Vision and Mission
+    if (lowerUrl.includes("vision-and-mission") || lowerUrl.includes("vision-and-mision")) {
+      return "/vision-and-mission";
+    }
+
+    if (lowerUrl.includes("sifs.in/events/team")) return "/faculty";
+    if (lowerUrl.includes("our-presence") || lowerUrl.includes("sifs.in/page/our-presence")) return "/our-presence";
+    if (lowerUrl.includes("sifs.in/about")) return "/about";
+    if (lowerUrl.includes("sifs.in/contact")) return "/contact";
+
+    return url;
+  };
+
+  const parseFooterText = (html: string): Section[] => {
+    if (typeof window === "undefined" || !html) return [];
+
+    try {
+      const parser = new DOMParser();
+      // Ensure wrapper to handle divs
+      const doc = parser.parseFromString(`<body>${html}</body>`, "text/html");
+      const sections: Section[] = [];
+
+      const columns = doc.querySelectorAll(".footer-column");
+
+      columns.forEach((col) => {
+        const titleEl = col.querySelector("h4");
+        const title = titleEl?.textContent?.trim() || "";
+        const linkEls = col.querySelectorAll("ul li a");
+
+        const links: LinkItem[] = [];
+        linkEls.forEach((a) => {
+          const rawPath = a.getAttribute("href") || "#";
+          links.push({
+            label: a.textContent?.trim() || "",
+            path: sanitizePath(rawPath),
+          });
+        });
+
+        if (title && links.length > 0) {
+          sections.push({ title, links });
+        }
+      });
+
+      return sections;
+    } catch (e) {
+      console.error("Error parsing footer TEXT", e);
+      return [];
+    }
+  };
+
   const backgroundStyle = {
     backgroundImage: "url(/footer-bg.png)",
     backgroundRepeat: "no-repeat",
@@ -153,7 +285,7 @@ const Footer: React.FC = () => {
         >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-5 pb-10">
-              {/* Logo & description */}
+              {/* Logo & description (Col 1) */}
               <div className="md:col-span-1">
                 <div className="text-2xl font-black text-gray-900 mb-4">
                   <span className="text-blue-600">SIFS</span>{" "}
@@ -165,44 +297,61 @@ const Footer: React.FC = () => {
                 </p>
 
                 <div className="flex space-x-3">
-                  {["f", "in", "k", "x"].map((icon, index) => (
-                    <div
-                      key={index}
-                      className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-800 text-white hover:bg-blue-600 cursor-pointer transition-colors"
-                    >
-                      {icon.toUpperCase()}
-                    </div>
-                  ))}
+                  <a href="#" className="w-8 h-8 rounded-full flex items-center justify-center text-gray-800 hover:text-blue-600 transition-colors">
+                    <Facebook size={24} />
+                  </a>
+                  <a href="#" className="w-8 h-8 rounded-full flex items-center justify-center text-gray-800 hover:text-blue-600 transition-colors">
+                    <Linkedin size={24} />
+                  </a>
+                  <a href="#" className="w-8 h-8 rounded-full flex items-center justify-center text-gray-800 hover:text-blue-600 transition-colors">
+                    <Instagram size={24} />
+                  </a>
+                  <a href="#" className="w-8 h-8 rounded-full flex items-center justify-center text-gray-800 hover:text-blue-600 transition-colors">
+                    <Twitter size={24} />
+                  </a>
                 </div>
               </div>
 
-              {/* Links */}
-              <LinkList
-                title="Training & Internships"
-                links={[
-                  "Lab Bases Internship",
-                  "Online Internship",
-                  "Hands on Training",
-                  "Online Training",
-                ]}
-              />
+              {/* Dynamic Footer Link Sections (Cols 2, 3, 4) */}
+              {data && data.footer_sections.length > 0 ? (
+                data.footer_sections.map((section, idx) => (
+                  <LinkList key={idx} title={section.title} links={section.links} />
+                ))
+              ) : (
+                // Fallback static structure
+                <>
+                  <LinkList
+                    title="Training & Internships"
+                    links={[
+                      { label: "Lab Based Internship", path: "/lab-based-internship" },
+                      { label: "Online Internship", path: "/online-forensic-internship" },
+                      { label: "Hands on Training", path: "/hands-on-training" },
+                      { label: "Online Training", path: "/online-training" },
+                    ]}
+                  />
+                  <LinkList
+                    title="Forensic Courses"
+                    links={[
+                      { label: "Associate Degree Program", path: "/online-courses" },
+                      { label: "Foundation Certificate Courses", path: "/foundation-forensic-courses" },
+                      { label: "Professional Courses", path: "/professional-forensic-courses" },
+                      { label: "Advanced Certificate Courses", path: "short-term-courses" },
+                    ]}
+                  />
+                  <LinkList
+                    title="Student Corner"
+                    links={[
+                      { label: "Study Online", path: "/online-courses" },
+                      { label: "Forensic Events", path: "/conference" },
+                      { label: "Journey at Glance", path: "/image-gallery" },
+                      { label: "Reach Us", path: "/contact" },
+                    ]}
+                  />
+                </>
+              )}
 
-              <LinkList
-                title="Forensic Courses"
-                links={[
-                  "Associate Degree Program",
-                  "Foundation Certificate Courses",
-                  "Professional Courses",
-                  "Advanced Certificate Courses",
-                ]}
-              />
 
-              <LinkList
-                title="Student Corner"
-                links={["Study Online", "Forensic Events", "Journey at Glance", "Reach Us"]}
-              />
-
-              {/* Contact */}
+              {/* Contact (Col 5) */}
               <div>
                 <h3 className="text-gray-900 font-bold mb-4">Contact Us</h3>
                 <ul className="flex flex-col md:flex-row md:flex-wrap text-sm text-gray-700 md:space-x-8">
@@ -218,14 +367,14 @@ const Footer: React.FC = () => {
                     <span>
                       Call Us: <strong>011-47074263</strong>
                       <br />
-                      Mobile: <strong>91-7303913002</strong>
+                      Mobile: <strong>{data?.support_phone || "91-7303913002"}</strong>
                     </span>
                   </li>
 
                   <li className="flex items-start mb-2">
                     <span className="mr-2 text-blue-600">📧</span>
                     <span>
-                      E-Mail: <strong>info@sifs.in</strong>
+                      E-Mail: <strong>{data?.contact_mail || "info@sifs.in"}</strong>
                     </span>
                   </li>
                 </ul>
@@ -236,10 +385,14 @@ const Footer: React.FC = () => {
 
         {/* Copyright */}
         <motion.div
-          className="bg-[#00467A] py-4 text-center text-sm text-white"
+          className="bg-[#00467A] py-4 text-center text-sm text-white flex justify-center items-center"
           variants={copyrightVariants}
         >
-          Copyright © 2025 SIFS INDIA. All Rights Reserved
+          {data?.copyright_text ? (
+            <div dangerouslySetInnerHTML={{ __html: data.copyright_text }} className="flex gap-1 items-center justify-center flex-wrap [&_p]:inline [&_p]:m-0 [&_a]:underline" />
+          ) : (
+            <span>Copyright © 2025 SIFS INDIA. All Rights Reserved</span>
+          )}
         </motion.div>
       </motion.div>
     </footer>

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, ChevronLeft } from "lucide-react";
 import Image from "next/image";
 import { motion, Variants } from "framer-motion";
+import { ApiComment } from "@/types/course";
 
 /* ---------------- Animations ---------------- */
 
@@ -24,28 +25,30 @@ const itemVariants: Variants = {
   },
 };
 
-const faqs = [
-  {
-    question:
-      "What are the differences between Level 1, Level 2, and Level 3 courses, and how do they stand apart from each other?",
-    author: "Haszel Williams",
-    answer:
-      "The course curriculum is designed according to the difficulty level and duration needed to complete it. Level 1 is a foundational course lasting 3 months and requires at least a 12th grade education. Level 2 is more advanced, with a 6-month duration, building on Level 1, and also requires a 12th grade qualification. Level 3 is the most advanced, combining content from Levels 1 and 2 with additional topics, and requires a graduation degree. Also, if you have some previous knowledge about this field and are a graduate, you can contact our support team to check your eligibility to directly enroll in Level 3.",
-  },
-  {
-    question:
-      "I have no previous experience in forensics. Can I enroll in this course, or do I need to possess a basic understanding of the field?",
-    author: "Kevin Johnson",
-  },
-  {
-    question:
-      "Can you brief me about the kinds of topics that will be covered in this course? Are real-world case studies also included?",
-    author: "Prasath Narayan",
-  },
-];
+interface Props {
+  enquiries?: ApiComment[];
+}
 
-export default function EnquiriesSection() {
+const ITEMS_PER_PAGE = 5;
+
+export default function EnquiriesSection({ enquiries = [] }: Props) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Use dynamic enquiries if available, otherwise fall back to empty or static (User requested dynamic)
+  const items = enquiries && enquiries.length > 0 ? enquiries : [];
+
+  if (items.length === 0) return null;
+
+  // Pagination Logic
+  const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentItems = items.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setOpenIndex(null); // Close accordion on page change
+  };
 
   return (
     <motion.section
@@ -75,26 +78,31 @@ export default function EnquiriesSection() {
           Enquiries from Forensic Learners
         </motion.h2>
 
-        {/* FAQ List */}
-        <motion.div variants={containerVariants} className="space-y-4">
-          {faqs.map((faq, index) => {
+        {/* Enquiry List */}
+        <motion.div
+          key={currentPage}
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="space-y-4 min-h-[200px]"
+        >
+          {currentItems.map((item, index) => {
             const isOpen = openIndex === index;
 
             return (
-              <motion.div key={index} variants={itemVariants}>
+              <motion.div key={item.id || index} variants={itemVariants}>
                 {/* Question */}
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : index)}
-                  className={`w-full flex items-center justify-between px-5 py-4 rounded-lg text-left transition ${
-                    isOpen
-                      ? "bg-[#D08522] text-white"
-                      : "bg-[#F0F0F0] text-gray-700"
-                  }`}
+                  className={`w-full flex items-center justify-between px-5 py-4 rounded-lg text-left transition ${isOpen
+                    ? "bg-[#D08522] text-white"
+                    : "bg-[#F0F0F0] text-gray-700 hover:bg-gray-200"
+                    }`}
                 >
-                  <div className="text-sm font-medium">
-                    {faq.question}{" "}
-                    <span className="font-semibold">
-                      - {faq.author}
+                  <div className="text-sm font-medium pr-4">
+                    {item.query}{" "}
+                    <span className={`font-semibold ml-1 ${isOpen ? "text-white/90" : "text-gray-500"}`}>
+                      - {item.name}
                     </span>
                   </div>
 
@@ -106,15 +114,58 @@ export default function EnquiriesSection() {
                 </button>
 
                 {/* Answer */}
-                {isOpen && faq.answer && (
-                  <div className="px-5 pt-4 text-sm text-gray-600 leading-relaxed">
-                    {faq.answer}
+                {isOpen && item.reply && (
+                  <div className="px-5 pt-4 text-sm text-gray-600 leading-relaxed bg-white/50 rounded-b-lg">
+                    <div dangerouslySetInnerHTML={{ __html: item.reply }} />
                   </div>
                 )}
               </motion.div>
             );
           })}
         </motion.div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <motion.div
+            variants={itemVariants}
+            className="flex items-center justify-center gap-2 mt-8"
+          >
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`p-2 rounded-full border border-gray-300 transition-colors ${currentPage === 1
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-600 hover:bg-gray-100 hover:text-indigo-600"
+                }`}
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${currentPage === page
+                  ? "bg-[#D08522] text-white"
+                  : "text-gray-600 hover:bg-gray-100"
+                  }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`p-2 rounded-full border border-gray-300 transition-colors ${currentPage === totalPages
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-600 hover:bg-gray-100 hover:text-indigo-600"
+                }`}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </motion.div>
+        )}
       </div>
     </motion.section>
   );

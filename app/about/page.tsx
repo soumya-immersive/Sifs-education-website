@@ -1,22 +1,45 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Toaster, toast } from "react-hot-toast";
 import { Loader2, Save, Edit } from "lucide-react";
+
 import AboutHero from "../../components/about/AboutHero";
 import MissionVision from "../../components/about/MissionVision";
 import InitiativesSection from "../../components/about/InitiativesSection";
 import ExpertTeam from "../../components/about/ExpertTeam";
 import TestimonialsSection from '../../components/common/TestimonialsSection';
+
+import { API_BASE_URL } from "@/lib/config";
 import { useAboutPageData } from "@/hooks/useAboutPageData";
 
 export default function AboutPage() {
-  const { data, updateSection, editMode, setEditMode, saveData, isLoaded } = useAboutPageData();
+  const { data, updateSection, editMode, setEditMode, saveData, isLoaded: hookLoaded } = useAboutPageData();
+  const [apiData, setApiData] = useState<any>(null);
+  const [isApiLoaded, setIsApiLoaded] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const [isSaving, setIsSaving] = React.useState(false);
-  const [isEditLoading, setIsEditLoading] = React.useState(false);
+  useEffect(() => {
+    const fetchAboutData = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/page/about`);
+        const json = await response.json();
 
-  if (!isLoaded) {
+        if (json.success && json.data) {
+          setApiData(json.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch about page data:", error);
+        toast.error("Failed to load page updated content");
+      } finally {
+        setIsApiLoaded(true);
+      }
+    };
+
+    fetchAboutData();
+  }, []);
+
+  if (!hookLoaded || !isApiLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC]">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
@@ -24,23 +47,27 @@ export default function AboutPage() {
     );
   }
 
-  const handleEditClick = () => {
-    setIsEditLoading(true);
-    // Simulate a small delay for better UX or if actual async work is needed later
-    setTimeout(() => {
-      setEditMode(true);
-      setIsEditLoading(false);
-    }, 600);
+  // Merge API data with local data
+  const finalData = {
+    ...data,
+    hero: {
+      ...data.hero,
+      heading: apiData?.title || data.hero.heading,
+      subtitle: apiData?.subtitle || data.hero.subtitle,
+      image: apiData?.featured_image_url || data.hero.image,
+      h2: apiData?.name || data.hero.h2,
+      // If API has body, use it. Pass as single array item for existing component structure.
+      paragraphs: apiData?.body ? [apiData.body] : data.hero.paragraphs,
+    }
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     setIsSaving(true);
-    await saveData(); // Ensure saveData is awaited if it returns a promise, or just wait
-    // Simulate save delay if saveData is synchronous/fast
     setTimeout(() => {
+      saveData();
       setEditMode(false);
       setIsSaving(false);
-      toast.success("✅ Content saved successfully");
+      toast.success("Content saved locally");
     }, 800);
   };
 
@@ -48,58 +75,52 @@ export default function AboutPage() {
     <main className="bg-[#F7F9FC] relative min-h-screen">
       <Toaster position="top-right" />
 
-      {/* Global Edit Control */}
+      {/* Edit Controls */}
       <div className="fixed bottom-6 right-6 z-[1000] flex gap-2">
         {!editMode ? (
           <button
-            onClick={handleEditClick}
-            disabled={isEditLoading}
-            className={`flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-blue-700 transition-all font-medium ${isEditLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            onClick={() => setEditMode(true)}
+            className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-blue-700 transition-all font-medium"
           >
-            {isEditLoading ? (
-              <Loader2 size={18} className="animate-spin" />
-            ) : (
-              <Edit size={18} />
-            )}
-            {isEditLoading ? 'Loading...' : 'Edit Page'}
+            <Edit size={18} /> Edit Page
           </button>
         ) : (
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className={`flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-green-700 transition-all font-medium animate-in fade-in zoom-in ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className="flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-green-700 transition-all font-medium"
           >
-            {isSaving ? (
-              <Loader2 size={18} className="animate-spin" />
-            ) : (
-              <Save size={18} />
-            )}
-            {isSaving ? 'Saving...' : 'Save Changes'}
+            {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+            {isSaving ? "Saving..." : "Save Changes"}
           </button>
         )}
       </div>
 
-      <div className={editMode ? "ring-4 ring-blue-500/20" : ""}>
+      <div className="">
         <AboutHero
-          data={data.hero}
+          data={finalData.hero}
           editMode={editMode}
-          updateData={(heroData) => updateSection("hero", heroData)}
+          updateData={(d) => updateSection("hero", d)}
         />
+
         <MissionVision
           data={data.mission}
           editMode={editMode}
           updateData={(missionData) => updateSection("mission", missionData)}
         />
+
         <InitiativesSection
           data={data.initiatives}
           editMode={editMode}
           updateData={(initData) => updateSection("initiatives", initData)}
         />
+
         <ExpertTeam
           data={data.team}
           editMode={editMode}
           updateData={(teamData) => updateSection("team", teamData)}
         />
+
         <TestimonialsSection
           data={data.testimonials}
           editMode={editMode}

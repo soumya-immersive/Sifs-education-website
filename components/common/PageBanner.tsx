@@ -22,10 +22,13 @@ const PageBanner: React.FC<PageBannerProps> = ({ title, subtitle, bgImage }) => 
       />
 
       {subtitle && (
-        <div
-          className="mt-2 text-sm md:text-base opacity-90"
-          dangerouslySetInnerHTML={{ __html: subtitle as string }}
-        />
+        <div className="mt-2 text-sm md:text-base opacity-90">
+          {typeof subtitle === 'string' ? (
+            <span dangerouslySetInnerHTML={{ __html: subtitle }} />
+          ) : (
+            subtitle
+          )}
+        </div>
       )}
     </div>
   );

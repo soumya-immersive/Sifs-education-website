@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit, Save, Loader2 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 
@@ -13,19 +13,64 @@ import AcademicCollaborations from "../../components/achievements/AcademicCollab
 import ClientsPortfolio from "../../components/achievements/ClientsPortfolio";
 import TestimonialsSection from '../../components/common/TestimonialsSection';
 import { useAchievementsPageData } from "@/hooks/useAchievementsPageData";
+import { API_BASE_URL } from "@/lib/config";
 
 export default function AchievementsPage() {
-    const { data, updateSection, editMode, setEditMode, saveData, isLoaded } = useAchievementsPageData();
+    const { data, updateSection, editMode, setEditMode, saveData, isLoaded: hookLoaded } = useAchievementsPageData();
     const [isSaving, setIsSaving] = useState(false);
     const [isEditLoading, setIsEditLoading] = useState(false);
+    const [apiData, setApiData] = useState<any>(null);
+    const [apiLoaded, setApiLoaded] = useState(false);
 
-    if (!isLoaded) {
+    useEffect(() => {
+        const fetchAchievementsData = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/page/our-achievements`);
+                const json = await response.json();
+                if (json.success && json.data) {
+                    setApiData(json.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch achievements data", error);
+                toast.error("Failed to lead updated content");
+            } finally {
+                setApiLoaded(true);
+            }
+        };
+        fetchAchievementsData();
+    }, []);
+
+    if (!hookLoaded || !apiLoaded) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-white">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
             </div>
         );
     }
+
+    // Merge API data with local data
+    // We prioritize API data for specific fields
+    const finalData = {
+        ...data,
+        hero: {
+            ...data.hero,
+            // User requested to remove static data image
+            image: ""
+        },
+        intro: {
+            ...data.intro,
+            heading: apiData?.title || data.intro.heading,
+            badgeText: apiData?.subtitle || data.intro.badgeText,
+            // Map API featured image to Intro Main Image and remove static fallback
+            mainImage: apiData?.featured_image_url || "",
+            // If API has body, use it as the single paragraph (HTML supported). 
+            // Otherwise fall back to local paragraphs.
+            paragraphs: apiData?.body ? [apiData.body] : data.intro.paragraphs,
+            // If using API body, likely we don't want the static list appended unless specified. 
+            // For now, we'll keep the list from local data.
+            list: data.intro.list
+        }
+    };
 
     const handleEditClick = () => {
         setIsEditLoading(true);
@@ -82,46 +127,46 @@ export default function AchievementsPage() {
             </div>
 
             <AchievementsHero
-                data={data.hero}
+                data={finalData.hero}
                 editMode={editMode}
                 updateData={(d) => updateSection("hero", d)}
             />
             <AchievementsIntro
-                data={data.intro}
+                data={finalData.intro}
                 editMode={editMode}
                 updateData={(d) => updateSection("intro", d)}
             />
             <section className="max-w-7xl mx-auto py-20 px-6">
                 <div className="grid lg:grid-cols-2 gap-12">
                     <ParticipationTimeline
-                        data={data.participationTimeline}
+                        data={finalData.participationTimeline}
                         editMode={editMode}
                         updateData={(d) => updateSection("participationTimeline", d)}
                     />
                     <AchievementYearCard
-                        data={data.achievementYears}
+                        data={finalData.achievementYears}
                         editMode={editMode}
                         updateData={(d) => updateSection("achievementYears", d)}
                     />
                 </div>
             </section>
             <OurPresence
-                data={data.presence}
+                data={finalData.presence}
                 editMode={editMode}
                 updateData={(d) => updateSection("presence", d)}
             />
             <AcademicCollaborations
-                data={data.universityCollaborations}
+                data={finalData.universityCollaborations}
                 editMode={editMode}
                 updateData={(d) => updateSection("universityCollaborations", d)}
             />
             <ClientsPortfolio
-                data={data.clients}
+                data={finalData.clients}
                 editMode={editMode}
                 updateData={(d) => updateSection("clients", d)}
             />
             <TestimonialsSection
-                data={data.testimonials}
+                data={finalData.testimonials}
                 editMode={editMode}
                 updateData={(d) => updateSection("testimonials", d)}
             />

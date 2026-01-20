@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { TEAMS_PAGE_INITIAL_DATA } from "@/lib/data/teams-page-data";
 
-const STORAGE_KEY = "teamsPageContent:v1";
+const STORAGE_KEY = "teamsPageContent:v2";
 
 export function useTeamsPageData() {
   const [data, setData] = useState(TEAMS_PAGE_INITIAL_DATA);
@@ -16,7 +16,7 @@ export function useTeamsPageData() {
         setData(JSON.parse(raw));
       } else {
         // First run: persist initial data
-         localStorage.setItem(STORAGE_KEY, JSON.stringify(TEAMS_PAGE_INITIAL_DATA));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(TEAMS_PAGE_INITIAL_DATA));
       }
     } catch (e) {
       console.error("Failed to load teams data", e);
@@ -26,13 +26,15 @@ export function useTeamsPageData() {
   }, []);
 
   const updateSection = (sectionKey: keyof typeof TEAMS_PAGE_INITIAL_DATA, newData: any) => {
-    const updated = { ...data, [sectionKey]: newData };
-    setData(updated);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.error("Failed to save updates", e);
-    }
+    setData((prev) => {
+      const updated = { ...prev, [sectionKey]: newData };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      } catch (e) {
+        console.error("Failed to save updates", e);
+      }
+      return updated;
+    });
   };
 
   const saveData = () => {

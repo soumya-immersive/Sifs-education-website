@@ -29,15 +29,17 @@ const fadeUp: Variants = {
 };
 
 export default function InternshipHighlights({ internship }: Props) {
-  // Use dynamic highlights from the data, or fallback to default internship highlights
-  const highlightList = internship.highlights || [
-    "Practical hands-on training with real-world case studies",
-    "Expert mentorship from seasoned forensic professionals",
-    "Comprehensive study modules and research resources",
-    "Interactive doubt-clearing sessions and group discussions",
-    "Professional networking within the forensic science community",
-    "Official certification recognized by industry experts",
-  ];
+  // Use dynamic highlights from the data (from meta_keywords), or fallback
+  const highlightList = (internship.highlights && internship.highlights.length > 0)
+    ? internship.highlights.slice(0, 10)
+    : [
+      "Practical hands-on training with real-world case studies",
+      "Expert mentorship from seasoned forensic professionals",
+      "Comprehensive study modules and research resources",
+      "Interactive doubt-clearing sessions and group discussions",
+      "Professional networking within the forensic science community",
+      "Official certification recognized by industry experts",
+    ];
 
   return (
     <motion.div
@@ -67,7 +69,7 @@ export default function InternshipHighlights({ internship }: Props) {
             className="flex items-start gap-3"
           >
             <Image
-              src="/course/check-circle.png" 
+              src="/course/check-circle.png"
               alt="check"
               width={18}
               height={18}

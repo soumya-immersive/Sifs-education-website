@@ -35,9 +35,8 @@ export default function TrainingHero({ training }: Props) {
     <section
       className="relative bg-cover bg-center bg-no-repeat py-24 overflow-hidden"
       style={{
-        backgroundImage: `url(${
-          training.heroImage || "/training/hero-bg.png"
-        })`,
+        backgroundImage: `url(${training.heroImage || "/training/hero-bg.png"
+          })`,
       }}
     >
       <motion.div

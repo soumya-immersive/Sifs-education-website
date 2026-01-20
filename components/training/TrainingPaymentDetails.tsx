@@ -44,7 +44,7 @@ export default function TrainingPaymentDetails({ training }: Props) {
       </motion.h3>
 
       <div className="grid md:grid-cols-2 gap-8 text-sm text-gray-700">
-        
+
         {/* LEFT: Bank & PayPal Details */}
         <motion.div variants={itemVariants} className="space-y-4">
           <div>

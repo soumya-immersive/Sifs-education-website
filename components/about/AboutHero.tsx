@@ -105,37 +105,39 @@ export default function AboutHero({ data, editMode, updateData }: AboutHeroProps
               />
             </div>
 
-            {/* Experience Badge */}
-            <motion.div
-              variants={scaleFade}
-              className="
-                absolute
-                bottom-2
-                left-1/2 -translate-x-1/2
-                lg:left-68 lg:right-20 lg:translate-x-0
-                bg-[#3f3e3e]
-                rounded-xl shadow-lg
-                px-6 py-4 md:px-8 md:py-6
-                flex items-center gap-4
-              "
-            >
-              <div className="text-3xl md:text-4xl text-white font-normal">
-                <EditableText
-                  html={content.badgeNumber}
-                  editMode={editMode}
-                  onChange={(h) => updateAndSave({ ...content, badgeNumber: h })}
-                  className="text-white"
-                />
-              </div>
-              <div className="text-xs text-white border-l pl-4 leading-tight">
-                <EditableText
-                  html={content.badgeText}
-                  editMode={editMode}
-                  onChange={(h) => updateAndSave({ ...content, badgeText: h })}
-                  className="text-white"
-                />
-              </div>
-            </motion.div>
+            {/* Experience Badge - Only show if content exists */}
+            {content.badgeNumber && (
+              <motion.div
+                variants={scaleFade}
+                className="
+                  absolute
+                  bottom-2
+                  left-1/2 -translate-x-1/2
+                  lg:left-68 lg:right-20 lg:translate-x-0
+                  bg-[#3f3e3e]
+                  rounded-xl shadow-lg
+                  px-6 py-4 md:px-8 md:py-6
+                  flex items-center gap-4
+                "
+              >
+                <div className="text-3xl md:text-4xl text-white font-normal">
+                  <EditableText
+                    html={content.badgeNumber}
+                    editMode={editMode}
+                    onChange={(h) => updateAndSave({ ...content, badgeNumber: h })}
+                    className="text-white"
+                  />
+                </div>
+                <div className="text-xs text-white border-l pl-4 leading-tight">
+                  <EditableText
+                    html={content.badgeText}
+                    editMode={editMode}
+                    onChange={(h) => updateAndSave({ ...content, badgeText: h })}
+                    className="text-white"
+                  />
+                </div>
+              </motion.div>
+            )}
           </motion.div>
 
           {/* RIGHT – Text */}

@@ -44,7 +44,7 @@ export default function InternshipCard({ internship }: Props) {
       {/* IMAGE */}
       <div className="relative h-44 rounded-t-xl overflow-hidden">
         <Image
-          src={internship.heroImage}
+          src={internship.heroImage || internship.image || "/internships/internship.png"}
           alt={internship.title}
           fill
           className="object-cover"
@@ -57,7 +57,7 @@ export default function InternshipCard({ internship }: Props) {
       <div className="py-4">
         {/* Using internshipCode instead of courseCode */}
         <p className="text-xs text-[#D08522] font-medium mb-1">
-          {internship.internshipCode}
+          {internship.internshipCode || internship.category || "Internship"}
         </p>
 
         <h3 className="font-medium text-black mb-2 leading-snug text-lg min-h-[3rem]">
@@ -66,12 +66,18 @@ export default function InternshipCard({ internship }: Props) {
 
         {/* Using overview from your internship data */}
         <p className="text-sm text-[#6B7385] mb-4 line-clamp-2">
-          {internship.overview}
+          {internship.overview || internship.description}
         </p>
 
         <motion.div variants={buttonVariants} whileHover="hover">
           <Link
-            href={`/internships/${internship.programSlug}/${internship.slug}`}
+            href={
+              internship.programSlug === "lab-based-internship"
+                ? `/lab-based-internship/${internship.slug}`
+                : internship.programSlug === "online-forensic-internship"
+                  ? `/online-forensic-internship/${internship.slug}`
+                  : `/internships/${internship.programSlug}/${internship.slug}`
+            }
             className="
               inline-block bg-gradient-to-r
               from-purple-500 to-indigo-600
