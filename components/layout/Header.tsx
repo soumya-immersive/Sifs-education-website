@@ -78,11 +78,31 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<Record<string, boolean>>({});
   const [navItems, setNavItems] = useState<NavItem[]>(defaultNavItems);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Ensure component is mounted (client-side only)
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
+    // Only run on client-side after component is mounted
+    if (!isMounted) return;
+
     const fetchHeaderData = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
+        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`, {
+          cache: 'no-store',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          console.error("API request failed:", response.status);
+          return;
+        }
+
         const json = await response.json();
 
         console.log("API Response:", json); // Debugging
@@ -122,7 +142,7 @@ export default function Header() {
     };
 
     fetchHeaderData();
-  }, []);
+  }, [isMounted]);
 
   /* -------------------------
      Helper to Sanitize API Paths
@@ -167,12 +187,33 @@ export default function Header() {
   };
 
   const parseHeaderHTML = (htmlString: string): NavItem[] => {
-    if (typeof window === "undefined") return [];
+    // Triple check we're in browser environment
+    if (typeof window === "undefined") {
+      console.warn("parseHeaderHTML called on server-side, returning empty array");
+      return [];
+    }
+
+    if (typeof DOMParser === "undefined") {
+      console.error("DOMParser is not available");
+      return [];
+    }
+
+    if (!htmlString || htmlString.trim() === "") {
+      console.warn("Empty HTML string provided to parseHeaderHTML");
+      return [];
+    }
 
     try {
       const parser = new DOMParser();
       // Parse the snippet. Wrapping in body ensures we have a root.
       const doc = parser.parseFromString(`<body>${htmlString}</body>`, "text/html");
+
+      // Check if parsing was successful
+      if (!doc || !doc.body) {
+        console.error("Failed to parse HTML document");
+        return [];
+      }
+
       const body = doc.body;
 
       const items: NavItem[] = [];
@@ -258,6 +299,7 @@ export default function Header() {
         allLinks.forEach(a => items.push(extractLink(a)));
       }
 
+      console.log(`Successfully parsed ${items.length} navigation items`);
       return items;
     } catch (e) {
       console.error("Error parsing header HTML:", e);
