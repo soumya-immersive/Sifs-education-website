@@ -86,20 +86,35 @@ export default function Header() {
         const json = await response.json();
 
         console.log("API Response:", json); // Debugging
+        console.log("Data object keys:", json.data ? Object.keys(json.data) : "No data"); // Debugging
 
-        // Prioritize 'be' then 'bs' as per user instruction
-        const headerText = json.data?.be?.header_text || json.data?.bs?.header_text;
+        // header_text is inside data.be object
+        const headerText = json.data?.be?.header_text;
 
         if (json.success && headerText) {
           console.log("Found header text length:", headerText.length);
+          console.log("Header text content:", headerText.substring(0, 200)); // Show first 200 chars
           const parsedItems = parseHeaderHTML(headerText);
           console.log("Parsed Nav Items:", parsedItems);
 
           if (parsedItems.length > 0) {
             setNavItems(parsedItems);
+          } else {
+            console.warn("No nav items parsed from header_text");
           }
         } else {
-          console.warn("Header text not found in API response under data.be or data.bs");
+          console.warn("Header text not found in data.be. Checking data.bs...");
+          // Fallback to data.bs if data.be doesn't have header_text
+          const headerTextBs = json.data?.bs?.header_text;
+          if (headerTextBs) {
+            console.log("Found header text in bs, length:", headerTextBs.length);
+            const parsedItems = parseHeaderHTML(headerTextBs);
+            if (parsedItems.length > 0) {
+              setNavItems(parsedItems);
+            }
+          } else {
+            console.warn("Header text not found in data.be or data.bs");
+          }
         }
       } catch (error) {
         console.error("Failed to fetch header data:", error);
@@ -169,64 +184,77 @@ export default function Header() {
         target: a.getAttribute("target") || undefined
       });
 
-      // We expect a structure like: <p><a>Target</a></p> <ul>...</ul> <p><a>Target</a></p>
-      // But we iterate simply over children to maintain order roughly, 
-      // though the core request is to handle the UL's messy internal structure.
+      // Strategy:
+      // 1. First, get any standalone links in <p> tags BEFORE the <ul>
+      // 2. Process the <ul> with dropdown logic
+      // 3. Get any standalone links in <p> tags AFTER the <ul>
 
-      const children = Array.from(body.children);
       const ul = body.querySelector("ul");
 
-      // Strategy:
-      // 1. If we find a UL, we treat its internal structure with special "grouping" logic.
-      // 2. Anything outside the UL (before or after) is treated as a top-level link.
+      if (ul) {
+        // Get all direct children of body to maintain order
+        const bodyChildren = Array.from(body.children);
 
-      children.forEach((node) => {
-        if (node.tagName.toLowerCase() === 'ul') {
-          // Process the UL - Reconstruct Dropdows
-          // The API returns distinct groups starting with href="#" links.
-          // Because of WYSIWYG flattening, nested Uls might be gone or LIs merged.
-          // We flatten the search to all A tags inside the UL.
-          const anchors = Array.from(node.querySelectorAll("a"));
-          let currentGroup: NavItem | null = null;
-
-          anchors.forEach((a) => {
-            const rawHref = a.getAttribute("href");
-            const isHeader = rawHref === "#" || rawHref === "" || rawHref === "javascript:void(0)";
-
-            if (isHeader) {
-              // This acts as a Section Header (Dropdown Parent)
-              currentGroup = {
-                label: a.textContent?.trim() || "",
-                path: "#",
-                children: []
-              };
-              items.push(currentGroup);
-            } else {
-              // This is a Link
-              const linkItem = extractLink(a);
-
-              if (currentGroup) {
-                // If we have an active header, add to it
-                currentGroup.children?.push(linkItem);
-              } else {
-                // Result of loose link at start of UL? Treat as top level.
-                items.push(linkItem);
-              }
+        // Process elements before UL
+        for (const child of bodyChildren) {
+          if (child === ul) break;
+          if (child.tagName === "P") {
+            const link = child.querySelector("a");
+            if (link) {
+              items.push(extractLink(link));
             }
-          });
-
-        } else {
-          // Process standard tags (p, div, etc) containing simple links
-          const links = node.querySelectorAll("a");
-          links.forEach((a) => {
-            items.push(extractLink(a));
-          });
+          }
         }
-      });
 
-      // Fallback: If no structure found at all (empty body children?)
-      if (items.length === 0) {
-        const allLinks = doc.querySelectorAll("a");
+        // Process the UL - Reconstruct Dropdowns
+        const anchors = Array.from(ul.querySelectorAll("a"));
+        let currentGroup: NavItem | null = null;
+
+        anchors.forEach((a) => {
+          const rawHref = a.getAttribute("href");
+          // Check for section headers (href="#" or specific javascript void)
+          const isHeader = rawHref === "#" || rawHref === "" || rawHref === "javascript:void(0)" || rawHref === "javascript:;";
+
+          if (isHeader) {
+            // This acts as a Section Header (Dropdown Parent)
+            currentGroup = {
+              label: a.textContent?.trim() || "",
+              path: "#",
+              children: []
+            };
+            items.push(currentGroup);
+          } else {
+            // This is a Link
+            const linkItem = extractLink(a);
+
+            if (currentGroup) {
+              // If we have an active header, add to it
+              currentGroup.children?.push(linkItem);
+            } else {
+              // Result of loose link before any header? Treat as top level.
+              items.push(linkItem);
+            }
+          }
+        });
+
+        // Process elements after UL
+        let foundUl = false;
+        for (const child of bodyChildren) {
+          if (child === ul) {
+            foundUl = true;
+            continue;
+          }
+          if (foundUl && child.tagName === "P") {
+            const link = child.querySelector("a");
+            if (link) {
+              items.push(extractLink(link));
+            }
+          }
+        }
+      } else {
+        // Fallback: If no UL structure found at all (e.g. just flat text or divs)
+        // We just grab all links found in the body.
+        const allLinks = body.querySelectorAll("a");
         allLinks.forEach(a => items.push(extractLink(a)));
       }
 
