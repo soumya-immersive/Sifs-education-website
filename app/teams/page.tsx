@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence, easeOut } from "framer-motion";
 import {
   Facebook, Twitter, Linkedin, Instagram,
   Edit, Save, Loader2, Plus, Trash2, Eye
 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
+import { API_BASE_URL } from "@/lib/config";
 
 import PageBanner from "../../components/common/PageBanner";
 import EditableText from "../../components/editable/EditableText";
@@ -26,7 +27,11 @@ const fadeUp = {
   },
 };
 
-const defaultFilters = ["All", "Core Team", "Supportive Body", "Volunteer"];
+const categoryMap: Record<string, string> = {
+  "3": "Forensic Experts",
+  "4": "Advisory Board",
+};
+
 const ITEMS_PER_VIEW = 8;
 
 export default function TeamMembersPage() {
@@ -38,8 +43,69 @@ export default function TeamMembersPage() {
   const [isEditLoading, setIsEditLoading] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
-  // Initialize filters if missing
-  const filters = data.filters || defaultFilters;
+  // Fetch API Data
+  useEffect(() => {
+    const fetchTeam = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/team`);
+        const result = await response.json();
+
+        if (result.success && result.data && Array.isArray(result.data.members)) {
+          const mappedMembers: TeamMember[] = result.data.members.map((item: any) => {
+            // Image handling
+            let imageUrl = item.image || "";
+            if (imageUrl) {
+              imageUrl = imageUrl.replace(/\\/g, "/");
+              if (!imageUrl.startsWith("http")) {
+                imageUrl = `http://localhost:3000/uploads/${imageUrl}`;
+              }
+            }
+
+            // Category Mapping
+            const catId = (item.team_category_id || "").toString().trim();
+            const categoryName = categoryMap[catId] || "Other";
+
+            // Helper to clean strings
+            const clean = (str: any) => (str ? str.toString().replace(/^"|"$/g, '') : "");
+
+            return {
+              id: item.id.toString(),
+              name: clean(item.name) || "Unknown",
+              role: clean(item.rank),
+              category: categoryName,
+              image: imageUrl,
+              description: clean(item.about),
+              slug: item.slug, // Map slug for detailed fetch
+              socials: {
+                facebook: clean(item.facebook) || "#",
+                twitter: clean(item.twitter) || "#",
+                instagram: clean(item.instagram) || "#",
+                linkedin: clean(item.linkedin) || "#"
+              }
+            };
+          });
+
+          // Update Team Data
+          updateSection("team", mappedMembers);
+
+          // Update Filters dynamically based on categories found
+          const uniqueCategories = Array.from(new Set(mappedMembers.map(m => m.category))).sort();
+          updateSection("filters", ["All", ...uniqueCategories]);
+        } else {
+          console.error("Invalid API structure:", result);
+          toast.error("Invalid API response format");
+        }
+      } catch (error) {
+        console.error("Failed to fetch team data:", error);
+        toast.error("Failed to load team data from API");
+      }
+    };
+
+    fetchTeam();
+  }, []);
+
+  // Initialize filters 
+  const filters = data.filters || ["All"];
 
   /* ---------- FILTER DATA ---------- */
   const filteredTeam: TeamMember[] = useMemo(() => {
@@ -82,6 +148,67 @@ export default function TeamMembersPage() {
       setShowConfirmation(false);
       toast.success("✅ Content saved successfully");
     }, 800);
+  };
+
+  const handleMemberClick = async (member: TeamMember) => {
+    // In edit mode, we use local state only
+    if (editMode) {
+      setSelectedMember(member);
+      return;
+    }
+
+    // Validate slug
+    if (!member.slug) {
+      setSelectedMember(member);
+      return;
+    }
+
+    const toastId = toast.loading("Loading details...");
+    try {
+      // console.log(`Fetching details for: ${member.slug}`);
+      const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/team-details/${member.slug}`);
+      const result = await response.json();
+
+      if (result.success && result.data && result.data.members) {
+        const m = result.data.members;
+        const clean = (str: any) => (str ? str.toString().replace(/^"|"$/g, '') : "");
+
+        let imageUrl = m.image || "";
+        if (imageUrl) {
+          imageUrl = imageUrl.replace(/\\/g, "/");
+          if (!imageUrl.startsWith("http")) {
+            imageUrl = `http://localhost:3000/uploads/${imageUrl}`;
+          }
+        }
+
+        const detailedMember: TeamMember = {
+          ...member,
+          name: clean(m.name),
+          role: clean(m.rank),
+          description: clean(m.about),
+          image: imageUrl,
+          education: clean(m.education),
+          slug: m.slug,
+          socials: {
+            facebook: clean(m.facebook) || "#",
+            twitter: clean(m.twitter) || "#",
+            instagram: clean(m.instagram) || "#",
+            linkedin: clean(m.linkedin) || "#"
+          }
+        };
+
+        setSelectedMember(detailedMember);
+      } else {
+        // Fallback
+        setSelectedMember(member);
+      }
+    } catch (error) {
+      console.error("Failed to fetch member details:", error);
+      toast.error("Could not load additional details");
+      setSelectedMember(member);
+    } finally {
+      toast.dismiss(toastId);
+    }
   };
 
   /* ----- FILTER HANDLERS ----- */
@@ -360,7 +487,7 @@ export default function TeamMembersPage() {
                     {!editMode && (
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                         <button
-                          onClick={() => setSelectedMember(member)}
+                          onClick={() => handleMemberClick(member)}
                           className="px-4 py-2 text-sm border border-white text-white rounded hover:bg-white hover:text-black transition"
                         >
                           Read More

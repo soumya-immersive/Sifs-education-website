@@ -1,3 +1,24 @@
+export interface TrainingReview {
+  id: number;
+  student_name: string;
+  star: number;
+  review: string;
+  created_at: string;
+}
+
+export interface TrainingFAQ {
+  id: number;
+  question: string;
+  answer: string;
+}
+
+export interface TrainingComment {
+  id: number;
+  name: string;
+  query: string;
+  reply: string;
+}
+
 export interface Training {
   id: number;
   slug: string;
@@ -11,7 +32,26 @@ export interface Training {
   reviewsCount: number;
   bannerImage: string;
   highlights?: string[];
+
+  // API Fields
+  price?: string;
+  duration?: string;
+  level?: string;
+  courseOutline?: string; // mapping training_outline to this or similar
+  priceLevel1?: string;
+  priceLevel2?: string;
+  priceLevel3?: string;
+  instructors?: import("@/types/course").ApiInstructor[];
+  video_url?: string;
+  video_id?: string;
+  callForAssistance?: string;
+  trainingOutline?: string;
+  caseStudies?: string;
+  reviews?: TrainingReview[];
+  faqs?: TrainingFAQ[];
+  comments?: TrainingComment[];
 }
+
 
 export const trainings: Training[] = [
   {

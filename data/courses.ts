@@ -1,3 +1,5 @@
+import { ApiComment } from "@/types/course";
+
 export interface Course {
   id: number;
 
@@ -15,6 +17,24 @@ export interface Course {
   rating: number;
   reviewsCount: number;
   bannerImage: string;
+
+  // 🔹 Dynamic API Fields
+  priceLevel1?: string;
+  priceLevel2?: string;
+  priceLevel3?: string;
+  callForAssistance?: string;
+  duration?: string;
+  level?: string;
+  courseOutline?: string; // HTML content
+  caseStudies?: string; // HTML content
+  faqs?: ApiComment[];
+  video_url?: string;
+
+  // 🔹 New Dynamic Fields (Full API Support)
+  instructors?: import("@/types/course").ApiInstructor[];
+  courseFaqs?: import("@/types/course").ApiFaq[];
+  reviewsList?: import("@/types/course").ApiReview[];
+  prospectus?: import("@/types/course").ApiProspectus;
 }
 
 export const courses: Course[] = [

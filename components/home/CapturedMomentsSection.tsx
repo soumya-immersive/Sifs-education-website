@@ -1,48 +1,38 @@
 "use client";
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
 import { motion, Variants } from 'framer-motion';
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useRouter } from 'next/navigation';
+import { API_BASE_URL } from '../../lib/config';
 
-// --- Interfaces and Data ---
-interface Moment {
+// --- Interfaces ---
+interface GalleryImage {
   id: number;
-  subtitle: string;
-  title: string;
+  gallery_id: number;
+  thumbnail: string | null;
   image: string;
 }
 
-const momentData: Moment[] = [
-  {
-    id: 1,
-    subtitle: 'From Clues to Conclusions:',
-    title: 'Inside the CSI Workshop at Lucknow',
-    image: '/captured-moments/1.png',
-  },
-  {
-    id: 2,
-    subtitle: 'A new academic collaboration:',
-    title: 'Bridging Academia and Real-World Forensics',
-    image: '/captured-moments/1.png',
-  },
-  {
-    id: 3,
-    subtitle: 'From Clues to Conclusions:',
-    title: 'Inside the CSI Workshop at Lucknow',
-    image: '/captured-moments/1.png',
-  },
-  {
-    id: 4,
-    subtitle: 'A new academic collaboration:',
-    title: 'Bridging Academia and Real-World Forensics',
-    image: '/captured-moments/1.png',
-  },
-];
+interface GalleryItem {
+  id: number;
+  title: string;
+  slug: string;
+  detail: string;
+  gallery_image: string;
+  category_name: string;
+  images: GalleryImage[];
+  image_count: number;
+}
+
+interface SectionData {
+  gallery_title: string;
+  gallery_subtitle: string;
+}
 
 // --- Framer Motion Variants ---
 
@@ -83,18 +73,23 @@ const rightColumnVariants: Variants = {
 
 // --- Moment Card ---
 interface MomentCardProps {
-  moment: Moment;
+  moment: GalleryItem;
 }
 
 const MomentCard: React.FC<MomentCardProps> = ({ moment }) => {
   const router = useRouter();
 
   const handleNavigate = () => {
-    router.push('/gallery');
+    router.push('/image-gallery');
   };
 
+  // Get the first image from images array or use gallery_image as fallback
+  const imageUrl = moment.images && moment.images.length > 0
+    ? moment.images[0].image
+    : `${API_BASE_URL.replace('/api', '')}/uploads/Education-And-Internship-Admin-Gallery-Image/${moment.gallery_image}`;
+
   return (
-    <div 
+    <div
       onClick={handleNavigate}
       className="rounded-xl overflow-hidden bg-white border border-gray-100 shadow-xl transition-all duration-300 hover:shadow-2xl h-full cursor-pointer group"
     >
@@ -110,7 +105,7 @@ const MomentCard: React.FC<MomentCardProps> = ({ moment }) => {
 
           <div className="relative rounded-lg overflow-hidden">
             <img
-              src={moment.image}
+              src={imageUrl}
               alt={moment.title}
               className="w-full h-full object-cover aspect-[4/3] transition-transform duration-500 group-hover:scale-110"
             />
@@ -123,7 +118,7 @@ const MomentCard: React.FC<MomentCardProps> = ({ moment }) => {
       </div>
 
       <div className="p-4 md:p-6">
-        <p className="text-sm font-semibold text-orange-500 mb-1">{moment.subtitle}</p>
+        <p className="text-sm font-semibold text-orange-500 mb-1">{moment.category_name}</p>
         <h3 className="text-xl font-bold text-gray-900 leading-snug group-hover:text-[#008DD2] transition-colors">
           {moment.title}
         </h3>
@@ -135,6 +130,61 @@ const MomentCard: React.FC<MomentCardProps> = ({ moment }) => {
 // --- Main Component ---
 const CapturedMomentsSection: React.FC = () => {
   const swiperRef = useRef<any>(null);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [sectionData, setSectionData] = useState<SectionData>({
+    gallery_title: 'Image Gallery',
+    gallery_subtitle: 'Forensic Science Events Photo Highlights',
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch section titles from main API
+        const sectionRes = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
+        if (sectionRes.ok) {
+          const sectionJson = await sectionRes.json();
+          if (sectionJson.bs) {
+            setSectionData({
+              gallery_title: sectionJson.bs.gallery_title || 'Image Gallery',
+              gallery_subtitle: sectionJson.bs.gallery_subtitle || 'Forensic Science Events Photo Highlights',
+            });
+          }
+        }
+
+        // Fetch gallery items
+        const galleryRes = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/image-gallery`);
+        if (galleryRes.ok) {
+          const galleryJson = await galleryRes.json();
+          if (galleryJson.success && galleryJson.data?.data) {
+            // Filter only active galleries (status === 1)
+            const activeGalleries = galleryJson.data.data.filter((item: GalleryItem & { status: string | number }) => item.status == 1);
+            setGalleryItems(activeGalleries);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching gallery data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden" style={{ background: 'linear-gradient(to right, #fdf8e6, #ffffff 40%)' }}>
+        <div className="max-w-7xl mx-auto flex justify-center items-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#008DD2]"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (galleryItems.length === 0) {
+    return null;
+  }
 
   return (
     <div
@@ -153,9 +203,9 @@ const CapturedMomentsSection: React.FC = () => {
         {/* LEFT */}
         <motion.div className="text-left" variants={leftColumnVariants}>
           <p className="text-sm font-bold text-[#3A58EE] uppercase mb-2">Captured Achievements</p>
-          <h1 className="text-4xl font-bold text-black mb-4">Our Captured Moments</h1>
+          <h1 className="text-4xl font-bold text-black mb-4">{sectionData.gallery_title}</h1>
           <p className="text-md text-[#6B7385] max-w-md">
-            Cherishing Achievements Framed in Time: Our Legacy of Excellence and Joy
+            {sectionData.gallery_subtitle}
           </p>
 
           <div className="flex space-x-4 mt-8">
@@ -184,16 +234,16 @@ const CapturedMomentsSection: React.FC = () => {
             modules={[Navigation]}
             spaceBetween={30}
             slidesPerView={1.2}
-            loop={true}
+            loop={galleryItems.length > 2}
             breakpoints={{
               768: { slidesPerView: 1.5 },
               1024: { slidesPerView: 2 },
             }}
             className="mySwiper"
           >
-            {momentData.map((moment) => (
-              <SwiperSlide key={moment.id}>
-                <MomentCard moment={moment} />
+            {galleryItems.map((item) => (
+              <SwiperSlide key={item.id}>
+                <MomentCard moment={item} />
               </SwiperSlide>
             ))}
           </Swiper>

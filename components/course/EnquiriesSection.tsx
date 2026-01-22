@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+<<<<<<< HEAD
 import { ChevronDown, ChevronRight, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence, Variants } from "framer-motion";
@@ -12,6 +13,12 @@ interface Props {
   editMode?: boolean;
   onUpdate?: (updatedInfo: Partial<EnquiriesData>) => void;
 }
+=======
+import { ChevronDown, ChevronRight, ChevronLeft } from "lucide-react";
+import Image from "next/image";
+import { motion, Variants } from "framer-motion";
+import { ApiComment } from "@/types/course";
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 
 /* ---------------- Animations ---------------- */
 
@@ -32,9 +39,35 @@ const itemVariants: Variants = {
   },
 };
 
+<<<<<<< HEAD
 export default function EnquiriesSection({ data, editMode, onUpdate }: Props) {
   if (!data) return null;
+=======
+interface Props {
+  enquiries?: ApiComment[];
+}
+
+const ITEMS_PER_PAGE = 5;
+
+export default function EnquiriesSection({ enquiries = [] }: Props) {
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Use dynamic enquiries if available, otherwise fall back to empty or static (User requested dynamic)
+  const items = enquiries && enquiries.length > 0 ? enquiries : [];
+
+  if (items.length === 0) return null;
+
+  // Pagination Logic
+  const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentItems = items.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setOpenIndex(null); // Close accordion on page change
+  };
 
   const handleFaqChange = (index: number, updatedItem: Partial<EnquiryItem>) => {
     const updatedFaqs = [...(data.faqs || [])];
@@ -88,6 +121,7 @@ export default function EnquiriesSection({ data, editMode, onUpdate }: Props) {
           <div className="w-24 h-1.5 bg-indigo-600 mx-auto rounded-full" />
         </motion.div>
 
+<<<<<<< HEAD
         {/* FAQ List */}
         <motion.div variants={containerVariants} className="space-y-6">
           {(data.faqs || []).map((faq, index) => {
@@ -95,11 +129,27 @@ export default function EnquiriesSection({ data, editMode, onUpdate }: Props) {
 
             return (
               <motion.div key={index} variants={itemVariants} className="relative group">
+=======
+        {/* Enquiry List */}
+        <motion.div
+          key={currentPage}
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="space-y-4 min-h-[200px]"
+        >
+          {currentItems.map((item, index) => {
+            const isOpen = openIndex === index;
+
+            return (
+              <motion.div key={item.id || index} variants={itemVariants}>
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
                 {/* Question */}
                 <div
                   role="button"
                   tabIndex={0}
                   onClick={() => setOpenIndex(isOpen ? null : index)}
+<<<<<<< HEAD
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
@@ -123,6 +173,17 @@ export default function EnquiriesSection({ data, editMode, onUpdate }: Props) {
                         editMode={!!editMode}
                         onChange={(val) => handleFaqChange(index, { author: val })}
                       />
+=======
+                  className={`w-full flex items-center justify-between px-5 py-4 rounded-lg text-left transition ${isOpen
+                    ? "bg-[#D08522] text-white"
+                    : "bg-[#F0F0F0] text-gray-700 hover:bg-gray-200"
+                    }`}
+                >
+                  <div className="text-sm font-medium pr-4">
+                    {item.query}{" "}
+                    <span className={`font-semibold ml-1 ${isOpen ? "text-white/90" : "text-gray-500"}`}>
+                      - {item.name}
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
                     </span>
                   </div>
 
@@ -134,6 +195,7 @@ export default function EnquiriesSection({ data, editMode, onUpdate }: Props) {
                 </div>
 
                 {/* Answer */}
+<<<<<<< HEAD
                 <AnimatePresence>
                   {isOpen && (
                     <motion.div
@@ -161,6 +223,12 @@ export default function EnquiriesSection({ data, editMode, onUpdate }: Props) {
                   >
                     <Trash2 size={16} />
                   </button>
+=======
+                {isOpen && item.reply && (
+                  <div className="px-5 pt-4 text-sm text-gray-600 leading-relaxed bg-white/50 rounded-b-lg">
+                    <div dangerouslySetInnerHTML={{ __html: item.reply }} />
+                  </div>
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
                 )}
               </motion.div>
             );
@@ -177,6 +245,49 @@ export default function EnquiriesSection({ data, editMode, onUpdate }: Props) {
             </motion.button>
           )}
         </motion.div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <motion.div
+            variants={itemVariants}
+            className="flex items-center justify-center gap-2 mt-8"
+          >
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`p-2 rounded-full border border-gray-300 transition-colors ${currentPage === 1
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-600 hover:bg-gray-100 hover:text-indigo-600"
+                }`}
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${currentPage === page
+                  ? "bg-[#D08522] text-white"
+                  : "text-gray-600 hover:bg-gray-100"
+                  }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`p-2 rounded-full border border-gray-300 transition-colors ${currentPage === totalPages
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-gray-600 hover:bg-gray-100 hover:text-indigo-600"
+                }`}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </motion.div>
+        )}
       </div>
 
       {/* Zigzag Bottom */}

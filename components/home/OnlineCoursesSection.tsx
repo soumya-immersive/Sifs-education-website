@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
 import { motion, easeOut, AnimatePresence } from 'framer-motion';
+import { API_BASE_URL } from '@/lib/config';
 
 // ----------------------
 //     Types
@@ -18,6 +19,29 @@ interface Course {
   type: string;
   image: string;
   primary: boolean;
+  slug: string;
+}
+
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  course_count: number;
+}
+
+interface SectionData {
+  category_section_title: string;
+  category_section_subtitle: string;
+}
+
+interface ApiCourse {
+  id: number;
+  title: string;
+  slug: string;
+  image: string;
+  image_url?: string;
+  sub_title?: string;
+  course_code?: string;
 }
 
 interface ActiveTabTitleProps {
@@ -33,17 +57,16 @@ const ActiveTabTitle: React.FC<ActiveTabTitleProps> = ({ title, isActive, onClic
   return (
     <button
       onClick={onClick}
-      className={`relative pb-3 text-base md:text-lg font-medium transition duration-200 ease-in-out outline-none cursor-pointer ${
-        isActive
+      className={`relative pb-3 text-base md:text-lg font-medium transition duration-200 ease-in-out outline-none cursor-pointer ${isActive
           ? 'text-black font-bold border-b-2 border-transparent'
           : 'text-black font-medium hover:text-indigo-600'
-      }`}
+        }`}
     >
       {title}
-      
+
       {/* Custom Brush Stroke Indicator */}
       {isActive && (
-        <motion.span 
+        <motion.span
           layoutId="brushStroke"
           className="absolute bottom-0 left-0 w-full h-1"
           style={{
@@ -60,8 +83,9 @@ const ActiveTabTitle: React.FC<ActiveTabTitleProps> = ({ title, isActive, onClic
 // ----------------------
 //     Sub-Component: CourseCard
 // ----------------------
-const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
-  const buttonClasses = course.primary
+const CourseCard: React.FC<{ course: Course; index: number }> = ({ course, index }) => {
+  const isPrimary = index === 0;
+  const buttonClasses = isPrimary
     ? 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white'
     : 'bg-gray-100 hover:bg-gray-300 text-gray-400';
 
@@ -85,35 +109,18 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
 
           <hr className="mt-auto" />
 
-          <button
+          <a
+            href={`/courses/${course.slug}`}
             className={`flex items-center justify-center w-full py-3 rounded-lg font-normal transition duration-300 ease-in-out mt-3 cursor-pointer group ${buttonClasses}`}
           >
             Enroll Now
             <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </button>
+          </a>
         </div>
       </div>
     </div>
   );
 };
-
-// ----------------------
-//     Course Data
-// ----------------------
-const courses: Course[] = [
-  // Tab with more than 4 boxes
-  { id: 'C1', title: 'Crime Scene Investigation', description: 'Explore analysis and solving techniques.', type: 'Classroom Courses', image: '/online-courses/1.png', primary: true },
-  { id: 'C2', title: 'Forensic Ballistics', description: 'Study of firearms and projectiles.', type: 'Classroom Courses', image: '/online-courses/2.png', primary: false },
-  { id: 'C3', title: 'Fingerprint Analysis', description: 'Classifying unique ridge patterns.', type: 'Classroom Courses', image: '/online-courses/3.png', primary: false },
-  { id: 'C4', title: 'Document Exam', description: 'Analyze handwriting for forgery.', type: 'Classroom Courses', image: '/online-courses/1.png', primary: false },
-  { id: 'C5', title: 'Toxicology', description: 'Biological sample analysis.', type: 'Classroom Courses', image: '/online-courses/2.png', primary: false },
-  
-  // Tabs with fewer boxes
-  { id: 'A1', title: 'Forensic Pathology', description: 'Study of post-mortem examination.', type: 'Associate Degree', image: '/online-courses/3.png', primary: false },
-  { id: 'F1', title: 'Graphology', description: 'Handwriting personality secrets.', type: 'Foundation Courses', image: '/online-courses/2.png', primary: false },
-  { id: 'AD1', title: 'Ethical Hacking', description: 'IT Security and hacking techniques.', type: 'Advanced Certificate Courses', image: '/online-courses/3.png', primary: false },
-  { id: 'P1', title: 'Digital Forensics', description: 'Recovering digital evidence.', type: 'Professional Courses', image: '/online-courses/2.png', primary: false },
-];
 
 // ----------------------
 //     Animations
@@ -138,21 +145,148 @@ const itemSlideUpVariants = {
 // ----------------------
 //     Main Component
 // ----------------------
-const OnlineCoursesSection: React.FC = () => {
-  const categories: string[] = [
-    'Classroom Courses',
-    'Associate Degree',
-    'Foundation Courses',
-    'Advanced Certificate Courses',
-    'Professional Courses',
-  ];
+//     Main Component
+// ----------------------
 
-  const [activeCategory, setActiveCategory] = useState(categories[0]);
+const OnlineCoursesSection: React.FC = () => {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [activeCategory, setActiveCategory] = useState<Category | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [sectionData, setSectionData] = useState<SectionData>({
+    category_section_title: "Online Forensic Science Courses. Start Today!",
+    category_section_subtitle: "Give Wings to Your Passion for Investigation. Your Journey to Forensic Excellence Starts Here. Explore Now!",
+  });
+  const [loading, setLoading] = useState(true);
+  const [coursesLoading, setCoursesLoading] = useState(false);
   const swiperRef = useRef<any>(null);
 
-  const filteredCourses = useMemo(() => {
-    return courses.filter((course) => course.type === activeCategory);
+  // Fetch section data and categories on mount
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        // Fetch section data (title & subtitle)
+        const frontResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
+        const frontData = await frontResponse.json();
+        if (frontData?.data?.bs) {
+          setSectionData({
+            category_section_title: frontData.data.bs.category_section_title || "Online Forensic Science Courses. Start Today!",
+            category_section_subtitle: frontData.data.bs.category_section_subtitle || "Give Wings to Your Passion for Investigation. Your Journey to Forensic Excellence Starts Here. Explore Now!",
+          });
+        }
+
+        // Fetch categories
+        const categoriesResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/courses/categories`);
+        const categoriesData = await categoriesResponse.json();
+        if (categoriesData?.success && categoriesData?.data?.categories) {
+          const fetchedCategories = categoriesData.data.categories;
+          setCategories(fetchedCategories);
+          if (fetchedCategories.length > 0) {
+            setActiveCategory(fetchedCategories[0]);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
+
+  // Fetch courses when active category changes
+  useEffect(() => {
+    const fetchCourses = async () => {
+      if (!activeCategory) return;
+
+      setCoursesLoading(true);
+      try {
+        // Use category ID to fetch courses
+        const apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front/courses/category/${activeCategory.id}`;
+
+        console.log('Fetching courses for category:', activeCategory.name, '| ID:', activeCategory.id);
+        console.log('API URL:', apiUrl);
+
+        const response = await fetch(apiUrl);
+
+        if (!response.ok) {
+          console.error(`Failed to fetch courses: ${response.status} ${response.statusText}`);
+          setCourses([]);
+          return;
+        }
+
+        const data = await response.json();
+        console.log('API Response:', data);
+
+        // API response structure: { success, data: { data: [...courses] } }
+        const coursesArray = data?.data?.data;
+
+        if (data?.success && Array.isArray(coursesArray) && coursesArray.length > 0) {
+          const transformedCourses: Course[] = coursesArray.map((course: ApiCourse, index: number) => ({
+            id: course.course_code || `C${index + 1}`,
+            title: course.title,
+            description: course.sub_title || '',
+            type: activeCategory.name,
+            image: course.image_url || '/online-courses/1.png',
+            primary: index === 0,
+            slug: course.slug,
+          }));
+          setCourses(transformedCourses);
+        } else {
+          console.warn('No courses found or invalid response structure:', data);
+          setCourses([]);
+        }
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+        setCourses([]);
+      } finally {
+        setCoursesLoading(false);
+      }
+    };
+
+    fetchCourses();
   }, [activeCategory]);
+
+  // Helper function to strip HTML and truncate
+  const stripHtml = (html: string) => {
+    return html.replace(/<[^>]*>/g, '');
+  };
+
+  // Parse title into two lines
+  const titleParts = useMemo(() => {
+    const title = sectionData.category_section_title;
+    const parts = title.split('.');
+    if (parts.length >= 2) {
+      return {
+        line1: parts[0].trim(),
+        line2: parts.slice(1).join('.').trim(),
+      };
+    }
+    return { line1: title, line2: '' };
+  }, [sectionData.category_section_title]);
+
+  if (loading) {
+    return (
+      <div className="relative py-16 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gray-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-10 bg-gray-200 rounded w-1/2 mx-auto mb-4"></div>
+            <div className="h-6 bg-gray-200 rounded w-1/3 mx-auto mb-12"></div>
+            <div className="flex justify-center gap-8 mb-12">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-8 bg-gray-200 rounded w-32"></div>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-gray-200 rounded-xl h-80"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -172,11 +306,13 @@ const OnlineCoursesSection: React.FC = () => {
       >
         <motion.div className="text-center mb-12" variants={itemSlideUpVariants}>
           <h1 className="text-xl md:text-2xl lg:text-4xl font-semibold text-gray-900">
-            Online Forensic Science Courses
+            <span className="bg-gradient-to-r from-yellow-400 to-yellow-500 px-2">{titleParts.line1}</span> {titleParts.line2 && titleParts.line2.split(' ').slice(0, 2).join(' ')}
           </h1>
-          <h2 className="text-xl md:text-2xl lg:text-4xl font-semibold text-gray-900">
-            Start Today!
-          </h2>
+          {titleParts.line2 && (
+            <h2 className="text-xl md:text-2xl lg:text-4xl font-semibold text-gray-900">
+              {titleParts.line2.split(' ').slice(2).join(' ')}
+            </h2>
+          )}
         </motion.div>
 
         {/* Categories (Styling gaps and underlines preserved) */}
@@ -186,9 +322,9 @@ const OnlineCoursesSection: React.FC = () => {
         >
           {categories.map((category) => (
             <ActiveTabTitle
-              key={category}
-              title={category}
-              isActive={activeCategory === category}
+              key={category.id}
+              title={category.name}
+              isActive={activeCategory?.id === category.id}
               onClick={() => setActiveCategory(category)}
             />
           ))}
@@ -197,34 +333,46 @@ const OnlineCoursesSection: React.FC = () => {
         <motion.div className="relative pt-4 pb-12" variants={itemSlideUpVariants}>
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeCategory}
+              key={activeCategory?.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
             >
-              <Swiper
-                onSwiper={(swiper) => (swiperRef.current = swiper)}
-                modules={[Navigation]}
-                spaceBetween={24}
-                slidesPerView={1.2}
-                loop={filteredCourses.length > 4}
-                breakpoints={{
-                  640: { slidesPerView: 2.2, spaceBetween: 32 },
-                  1024: { slidesPerView: 4, spaceBetween: 24 },
-                }}
-              >
-                {filteredCourses.map((course) => (
-                  <SwiperSlide key={course.id} className="h-auto pb-4">
-                    <CourseCard course={course} />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
+              {coursesLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="bg-gray-100 rounded-xl h-80 animate-pulse"></div>
+                  ))}
+                </div>
+              ) : courses.length > 0 ? (
+                <Swiper
+                  onSwiper={(swiper) => (swiperRef.current = swiper)}
+                  modules={[Navigation]}
+                  spaceBetween={24}
+                  slidesPerView={1.2}
+                  loop={courses.length > 4}
+                  breakpoints={{
+                    640: { slidesPerView: 2.2, spaceBetween: 32 },
+                    1024: { slidesPerView: 4, spaceBetween: 24 },
+                  }}
+                >
+                  {courses.map((course, index) => (
+                    <SwiperSlide key={course.id} className="h-auto pb-4">
+                      <CourseCard course={course} index={index} />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  No courses available in this category.
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
 
           {/* Navigation Arrows (Only show if more than 4 boxes) */}
-          {filteredCourses.length > 4 && (
+          {courses.length > 4 && !coursesLoading && (
             <>
               <button
                 onClick={() => swiperRef.current?.slidePrev()}

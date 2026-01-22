@@ -30,6 +30,7 @@ const PageBanner: React.FC<PageBannerProps> = ({ title, subtitle, bgImage, editM
     >
       <div className="absolute inset-0 bg-black/10 transition-opacity group-hover:opacity-20" />
 
+<<<<<<< HEAD
       {editMode && (
         <div className="absolute top-4 right-4 z-50">
           <label className="cursor-pointer bg-white text-blue-600 p-2 rounded-full shadow-lg hover:bg-blue-50 transition-colors flex items-center justify-center border border-blue-100">
@@ -41,6 +42,15 @@ const PageBanner: React.FC<PageBannerProps> = ({ title, subtitle, bgImage, editM
             />
             <Edit size={20} />
           </label>
+=======
+      {subtitle && (
+        <div className="mt-2 text-sm md:text-base opacity-90">
+          {typeof subtitle === 'string' ? (
+            <span dangerouslySetInnerHTML={{ __html: subtitle }} />
+          ) : (
+            subtitle
+          )}
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
         </div>
       )}
 

@@ -1,12 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+<<<<<<< HEAD
 import { Event } from "../../types/events-page";
 import EditableText from "../editable/EditableText";
 import EditableImage from "../editable/EditableImage";
 import { Edit } from "lucide-react";
+=======
+// import { Event } from "../../data/events"; 
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 
+// Update interface to match API
 interface EventHeroProps {
+<<<<<<< HEAD
   event: Event;
   editMode: boolean;
   onUpdate: (updates: Partial<Event>) => void;
@@ -21,6 +27,28 @@ const EventHero = ({ event, editMode, onUpdate }: EventHeroProps) => {
   // Parse event date for countdown. Assuming format "08 Dec, 2025" or similar.
   // We try to parse it, fallback to extensive future date if fail.
   const targetDate = new Date(event.date).getTime() || new Date().getTime() + 86400000 * 10;
+=======
+  event: {
+    title: string;
+    category?: string;
+    startDate?: string;
+    date: string;
+    mode: string;
+    image?: string;
+    [key: string]: any;
+  };
+}
+
+const EventHero = ({ event }: EventHeroProps) => {
+  // Use image from API as background if available, else fallback
+  const backgroundImage = event.image || "/event/hero-bg.png";
+  const overlapImage = "/event/hero-bg1.png"; // or another image from event if available
+
+  // Use event start date
+  const targetDateStr = event.startDate || event.created_at;
+  // Safety check
+  const targetDate = targetDateStr ? new Date(targetDateStr).getTime() : new Date().getTime();
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 
   const [timeLeft, setTimeLeft] = useState({
     days: "00",
@@ -35,7 +63,9 @@ const EventHero = ({ event, editMode, onUpdate }: EventHeroProps) => {
       const distance = targetDate - now;
 
       if (distance <= 0) {
-        clearInterval(timer);
+        // Optional: clear 00 or show something else
+        setTimeLeft({ days: "00", hours: "00", minutes: "00", seconds: "00" });
+        // clearInterval(timer); // If we stop, it stays 00.
         return;
       }
 
@@ -73,6 +103,7 @@ const EventHero = ({ event, editMode, onUpdate }: EventHeroProps) => {
       <div
         className="relative w-full flex flex-col items-center
                    pt-10 px-6 pb-32 md:pb-44
+<<<<<<< HEAD
                    bg-gradient-to-r from-[#f7f9fc] via-[#eef5e6] to-[#f3fbfa] bg-cover bg-center"
         style={{
           backgroundImage: `url(${backgroundImage})`,
@@ -164,6 +195,54 @@ const EventHero = ({ event, editMode, onUpdate }: EventHeroProps) => {
               /> Platform
             </span>
           </button>
+=======
+                   bg-gradient-to-r from-[#f7f9fc] via-[#eef5e6] to-[#f3fbfa]
+                   before:absolute before:inset-0 before:bg-white/90 md:before:bg-white/80" // Overlay to make text readable on dynamic bg
+        style={{
+          backgroundImage: `url('${backgroundImage}')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        {/* Content wrapper to be above overlay */}
+        <div className="relative z-10 flex flex-col items-center w-full">
+          <p className="text-orange-500 font-bold text-sm md:text-base mb-2 uppercase tracking-widest">
+            {event.category || "Micro Certificate Program"}
+          </p>
+
+          <h1 className="text-3xl md:text-6xl font-black text-gray-900 mb-10 text-center max-w-4xl">
+            {event.title}
+          </h1>
+
+          {/* Countdown */}
+          <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-10">
+            <TimerCard value={timeLeft.days} label="DAYS" color="border-blue-400" bgColor="bg-blue-50/50" />
+            <TimerCard value={timeLeft.hours} label="HOUR" color="border-orange-300" bgColor="bg-orange-50/50" />
+            <TimerCard value={timeLeft.minutes} label="MIN" color="border-green-300" bgColor="bg-green-50/50" />
+            <TimerCard value={timeLeft.seconds} label="SEC" color="border-purple-300" bgColor="bg-purple-50/50" />
+          </div>
+
+          {/* Footer */}
+          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12">
+            <div className="flex items-center">
+              <span className="text-orange-500 text-3xl md:text-5xl font-black mr-3">
+                {event.date.split(" ")[0]}
+              </span>
+              <span className="text-gray-900 font-black text-xl md:text-2xl uppercase tracking-tighter">
+                {event.date.split(" ").slice(1).join(" ")}
+              </span>
+            </div>
+
+            <button className="bg-[#4f46e5] hover:bg-[#4338ca] text-white px-8 py-3.5 rounded-2xl flex items-center gap-3 shadow-xl active:scale-95 transition">
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M21 8.618L15 11.618V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3.618l6 3V8.618z" />
+              </svg>
+              <span className="font-bold text-lg capitalize">
+                {event.mode} Platform
+              </span>
+            </button>
+          </div>
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
         </div>
       </div>
 
@@ -171,8 +250,13 @@ const EventHero = ({ event, editMode, onUpdate }: EventHeroProps) => {
       <div className="relative z-20 -mt-20 md:-mt-32 px-12 hidden md:block">
         <div className="mx-auto max-w-7xl">
           <div className="relative">
+<<<<<<< HEAD
             <EditableImage
               src={overlapImage}
+=======
+            <img
+              src={overlapImage} // Could be dynamic too if API has second image
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
               alt={event.title}
               editMode={editMode}
               onChange={(src) => handleImageChange('coverImage', src)}
@@ -194,6 +278,7 @@ interface TimerCardProps {
   label: string;
   color: string;
   bgColor: string;
+  // style?: React.CSSProperties
 }
 
 const TimerCard = ({ value, label, color, bgColor }: TimerCardProps) => (

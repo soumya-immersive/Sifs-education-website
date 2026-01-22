@@ -5,11 +5,12 @@ export type TeamMember = {
     category: string;
     image: string;
     description: string;
+    slug?: string;
+    education?: string;
     socials?: {
         facebook?: string;
         twitter?: string;
         linkedin?: string;
         instagram?: string;
     };
-  };
-  
+};

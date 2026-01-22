@@ -1,10 +1,15 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
+<<<<<<< HEAD
 import { Share2, Link as LinkIcon, Calendar, User, Facebook, Instagram, Linkedin, Twitter, ExternalLink, X } from "lucide-react";
 import EditableText from "../editable/EditableText";
 import EditableImage from "../editable/EditableImage";
 import { toast } from "react-hot-toast";
+=======
+import { Share2, Link as LinkIcon } from "lucide-react";
+import { BlogPost } from "@/types/blog";
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 
 interface Props {
   post: {
@@ -91,6 +96,7 @@ export default function BlogContent({ post, editMode = false, onUpdate }: Props)
       </motion.h1>
 
       {/* Meta Bar */}
+<<<<<<< HEAD
       <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-t border-b border-gray-100 py-4 gap-4 sm:gap-0">
         <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-600">
           <div className="flex items-center gap-1">
@@ -110,6 +116,17 @@ export default function BlogContent({ post, editMode = false, onUpdate }: Props)
               onChange={(val) => onUpdate?.({ date: val })}
             />
           </div>
+=======
+      <motion.div variants={fadeUp} className="flex items-center justify-between border-t border-b border-gray-100 py-4">
+        <div className="flex items-center gap-4 text-sm font-medium text-gray-600">
+          <span>By {post.author || "SIFS India"}</span>
+          <span className="w-1 h-1 bg-gray-300 rounded-full" />
+          <span>{new Date(post.publish_date).toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "short",
+            year: "numeric"
+          })}</span>
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
         </div>
         <div className="flex gap-4">
           <button
@@ -131,6 +148,7 @@ export default function BlogContent({ post, editMode = false, onUpdate }: Props)
         </div>
       </motion.div>
 
+<<<<<<< HEAD
       {/* Main Content Area */}
       <motion.div variants={fadeUp} className="prose prose-lg max-w-none prose-headings:font-bold prose-p:text-gray-600 prose-li:text-gray-600">
         <EditableText
@@ -190,6 +208,37 @@ export default function BlogContent({ post, editMode = false, onUpdate }: Props)
             Enter the full URLs for your social media profiles above.
           </p>
         )}
+=======
+      {/* Dynamic Content */}
+      <motion.div
+        variants={fadeUp}
+        className="prose prose-lg text-gray-600 leading-relaxed max-w-none"
+        dangerouslySetInnerHTML={{ __html: post.content }}
+      />
+
+      {/* Footer Socials */}
+      <motion.div variants={fadeUp} className="flex gap-4 pt-6">
+        {[
+          { name: 'facebook', icon: '/blog/facebook.png' },
+          { name: 'instagram', icon: '/blog/insta.png' },
+          { name: 'linkedin', icon: '/blog/linkedin.png' },
+          { name: 'twitter', icon: '/blog/twitter.png' }
+        ].map((social) => (
+          <a
+            key={social.name}
+            href="#"
+            className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 cursor-pointer transition-colors"
+          >
+            <img
+              src={social.icon}
+              alt={social.name}
+              width={42}
+              height={42}
+              className="opacity-70"
+            />
+          </a>
+        ))}
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
       </motion.div>
     </motion.div>
   );

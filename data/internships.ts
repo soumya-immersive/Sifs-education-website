@@ -1,16 +1,51 @@
 export interface Internship {
-  id: number;
-  programSlug: "lab-based" | "online";
+  id: number | string;
+  programSlug: string;
   slug: string;
   title: string;
-  overview: string;
-  internshipCode: string;
+  overview?: string; // Made optional
+  internshipCode?: string; // Made optional
   heroImage: string;
-  // 🔹 NEW (used by Inner cards)
-  rating: number;
-  reviewsCount: number;
-  bannerImage: string;
+  rating?: number; // Made optional
+  reviewsCount?: number; // Made optional
+  bannerImage?: string; // Made optional
   highlights?: string[];
+  // Add other fields that might come from API or your mapped object
+  description?: string;
+  image?: string;
+  category?: string;
+  duration?: string;
+  level?: string;
+  price?: string;
+  originalPrice?: number;
+  students?: number;
+  tags?: string[];
+  features?: string[];
+  video_id?: string;
+  video_url?: string;
+  instructors?: import("@/types/course").ApiInstructor[];
+  priceLevel1?: string;
+  priceLevel2?: string;
+  priceLevel3?: string;
+  callForAssistance?: string;
+  faq?: any[];
+  reviews?: any[];
+  comments?: any[];
+  case_studies?: string; // HTML content
+  training_outline?: string; // HTML content
+  prospectus?: {
+    level_one?: string;
+    body_one?: string;
+    level_two?: string;
+    body_two?: string;
+    level_three?: string;
+    body_three?: string;
+    level_four?: string;
+    body_four?: string;
+  };
+  seo_title?: string;
+  meta_keywords?: string;
+  meta_description?: string;
 }
 
 export const internships: Internship[] = [

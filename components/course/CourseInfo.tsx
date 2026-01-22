@@ -106,6 +106,7 @@ export default function CourseInfo({ course, editMode, onUpdate }: Props) {
         className="space-y-6"
         variants={container}
       >
+<<<<<<< HEAD
         <motion.div variants={fadeUp} className="text-lg font-bold text-gray-800 border-l-4 border-blue-600 pl-6 py-1 bg-blue-50/30 rounded-r-xl">
           <EditableText
             html={course.overview}
@@ -156,6 +157,43 @@ export default function CourseInfo({ course, editMode, onUpdate }: Props) {
           * This program is part of the SIFS India standard training series and matches
           the requirements for professional certification in forensic sciences.
         </motion.div>
+=======
+        {course.courseOutline ? (
+          <div className="prose max-w-none text-gray-600 space-y-4 overflow-hidden break-words" dangerouslySetInnerHTML={{ __html: course.courseOutline }} />
+        ) : (
+          <>
+            <motion.p variants={fadeUp} className="font-medium text-gray-800">
+              {course.description || "Comprehensive learning program designed for forensic professionals."}
+            </motion.p>
+
+            <motion.p variants={fadeUp}>
+              This certificate program on <strong>{course.title}</strong> serves as an essential resource
+              for students, practitioners, and forensic enthusiasts. It bridges the gap between
+              theoretical principles and practical field application.
+            </motion.p>
+
+            <motion.p variants={fadeUp}>
+              Guided by industry veterans, the curriculum delves into the intricacies of evidence analysis,
+              legal frameworks, and the evolving landscape of criminal investigation. Every module is
+              meticulously designed to include the latest advancements in forensic technology.
+            </motion.p>
+
+            <motion.p variants={fadeUp}>
+              Participants will find a structured approach to complex topics. The inclusion of real-life
+              case studies provides a narrative backbone to the technical data, making it both an
+              educational powerhouse and an engaging learning experience.
+            </motion.p>
+
+            <motion.div
+              variants={fadeUp}
+              className="p-4 bg-gray-50 rounded-xl border border-gray-100 italic text-gray-500 text-sm"
+            >
+              * This program is part of the SIFS India standard training series and matches
+              the requirements for professional certification in forensic sciences.
+            </motion.div>
+          </>
+        )}
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
       </motion.div>
     </motion.div>
   );

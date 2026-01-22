@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
 import { TeamMember } from "../../types/team";
 
 interface Props {
@@ -58,6 +58,12 @@ export default function TeamModal({ member, onClose, editMode, onUpdate, onSave 
                 className="font-medium text-gray-700 mt-1"
                 dangerouslySetInnerHTML={{ __html: member.role }}
               />
+
+              {member.education && (
+                <div className="text-sm text-gray-500 mt-2 italic">
+                  {member.education}
+                </div>
+              )}
             </div>
 
             <div className="mt-4 text-sm text-gray-600 leading-relaxed whitespace-pre-line flex-grow">
@@ -79,9 +85,35 @@ export default function TeamModal({ member, onClose, editMode, onUpdate, onSave 
                   )}
                 </div>
               ) : (
-                member.description
+                <div dangerouslySetInnerHTML={{ __html: member.description }} />
               )}
             </div>
+
+            {/* SOCIALS (View Mode) */}
+            {!editMode && member.socials && (
+              <div className="mt-6 pt-4 border-t flex gap-4">
+                {member.socials.facebook && member.socials.facebook !== "#" && (
+                  <button onClick={() => window.open(member.socials!.facebook, "_blank")} className="text-blue-600 hover:scale-110 transition">
+                    <Facebook size={20} />
+                  </button>
+                )}
+                {member.socials.twitter && member.socials.twitter !== "#" && (
+                  <button onClick={() => window.open(member.socials!.twitter, "_blank")} className="text-blue-400 hover:scale-110 transition">
+                    <Twitter size={20} />
+                  </button>
+                )}
+                {member.socials.linkedin && member.socials.linkedin !== "#" && (
+                  <button onClick={() => window.open(member.socials!.linkedin, "_blank")} className="text-blue-700 hover:scale-110 transition">
+                    <Linkedin size={20} />
+                  </button>
+                )}
+                {member.socials.instagram && member.socials.instagram !== "#" && (
+                  <button onClick={() => window.open(member.socials!.instagram, "_blank")} className="text-pink-600 hover:scale-110 transition">
+                    <Instagram size={20} />
+                  </button>
+                )}
+              </div>
+            )}
 
             {editMode && (
               <p className="text-xs text-gray-400 mt-2 italic">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { Toaster, toast } from "react-hot-toast";
 import { Loader2, Save, Edit, Plus } from "lucide-react";
@@ -8,15 +8,21 @@ import PageBanner from "../../components/common/PageBanner";
 import ForensicInsightsSection from '../../components/career/ForensicInsightsSection';
 import JobCard from '../../components/career/JobCard';
 import JobCategoriesSidebar from '../../components/career/JobCategoriesSidebar';
+<<<<<<< HEAD
 import { useCareerPageData } from "@/hooks/useCareerPageData";
 import { JobOpening } from "@/types/career-page";
 import ConfirmationDialog from "../../components/common/ConfirmationDialog";
+=======
+import { API_BASE_URL } from "@/lib/config";
+import type { CareerJob, CareerCategory, CareersResponse } from "@/types/career";
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 
 export default function CareerPage() {
     const { data, updateSection, updateMultiple, editMode, setEditMode, saveData, isLoaded } = useCareerPageData();
     const [isSaving, setIsSaving] = useState(false);
     const [isEditLoading, setIsEditLoading] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState("All");
+<<<<<<< HEAD
     const [showConfirmation, setShowConfirmation] = useState(false);
 
     // JOB DATA HANDLING
@@ -139,6 +145,69 @@ export default function CareerPage() {
     }
 
     // ANIMATION VARIANTS
+=======
+    const [jobs, setJobs] = useState<CareerJob[]>([]);
+    const [categories, setCategories] = useState<CareerCategory[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // 2. FETCH DATA
+    useEffect(() => {
+        const fetchCareers = async () => {
+            try {
+                setLoading(true);
+                // Fetching a larger limit to get all jobs for client-side filtering/counting in this simple implementation
+                const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/career?page=1&limit=100`);
+                const json: CareersResponse = await response.json();
+
+                if (json.success && json.data) {
+                    setJobs(json.data.data || []);
+                    setCategories(json.data.jcats || []);
+                }
+            } catch (error) {
+                console.error("Failed to fetch career opportunities:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCareers();
+    }, []);
+
+    // 3. PREPARE CATEGORY DATA WITH COUNTS
+    const sidebarCategories = useMemo(() => {
+        const categoryCounts = new Map<number, number>();
+
+        // Count jobs per category
+        jobs.forEach(job => {
+            const count = categoryCounts.get(job.jcategory_id) || 0;
+            categoryCounts.set(job.jcategory_id, count + 1);
+        });
+
+        const formattedCategories = categories.map(cat => ({
+            id: cat.id,
+            name: cat.name,
+            count: categoryCounts.get(cat.id) || 0
+        }));
+
+        // Add "All" category
+        return [
+            { name: "All", count: jobs.length },
+            ...formattedCategories
+        ];
+    }, [jobs, categories]);
+
+    // 4. FILTER LOGIC
+    const filteredJobs = useMemo(() => {
+        if (selectedCategory === "All") return jobs;
+        return jobs.filter(job => {
+            // Find the category object for this job to check its name matches selectedCategory
+            const cat = categories.find(c => c.id === job.jcategory_id);
+            return cat && cat.name === selectedCategory;
+        });
+    }, [selectedCategory, jobs, categories]);
+
+    // 5. ANIMATION VARIANTS
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
     const fadeUp: Variants = {
         hidden: { opacity: 0, y: 40 },
         visible: {
@@ -162,11 +231,16 @@ export default function CareerPage() {
 
     return (
         <motion.div
+<<<<<<< HEAD
             className="w-full min-h-screen relative"
+=======
+            className="w-full min-h-screen bg-[#FBFCFF]"
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
             initial="hidden"
             animate="visible"
             variants={fadeUp}
         >
+<<<<<<< HEAD
             <Toaster position="top-right" />
 
             {/* Confirmation Dialog */}
@@ -184,6 +258,32 @@ export default function CareerPage() {
                 username="admin@sifs.com"
                 expectedPassword="admin123"
             />
+=======
+            {/* COMMON BANNER */}
+            <motion.div variants={fadeUp}>
+                <PageBanner
+                    title="Join Us! Your Path to Excellence"
+                    subtitle="Explore exciting career opportunities and become part of our dynamic team."
+                    bgImage="/contact-gradient-bg.png"
+                />
+            </motion.div>
+
+            {/* MAIN CONTENT AREA */}
+            <div className="max-w-7xl mx-auto px-4 py-12 md:py-20">
+                <div className="flex flex-col lg:flex-row gap-8 items-start">
+
+                    {/* LEFT SIDEBAR: Category Selection */}
+                    <motion.aside
+                        className="w-full lg:w-1/3 xl:w-1/4 sticky top-24"
+                        variants={fadeUp}
+                    >
+                        <JobCategoriesSidebar
+                            categories={sidebarCategories}
+                            activeCategory={selectedCategory}
+                            onSelect={(categoryName) => setSelectedCategory(categoryName)}
+                        />
+                    </motion.aside>
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 
             {/* Global Edit Control */}
             <div className="fixed bottom-6 right-6 z-[1000] flex gap-2">
@@ -193,6 +293,7 @@ export default function CareerPage() {
                         disabled={isEditLoading}
                         className={`flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-blue-700 transition-all font-medium ${isEditLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                     >
+<<<<<<< HEAD
                         {isEditLoading ? (
                             <Loader2 size={18} className="animate-spin" />
                         ) : (
@@ -261,6 +362,15 @@ export default function CareerPage() {
                                     <Plus size={20} /> Add New Job Opening
                                 </button>
                             )}
+=======
+                        {loading ? (
+                            <div className="space-y-4">
+                                {[...Array(3)].map((_, i) => (
+                                    <div key={i} className="h-64 bg-gray-100 rounded-2xl animate-pulse"></div>
+                                ))}
+                            </div>
+                        ) : (
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
                             <AnimatePresence mode="popLayout">
                                 {filteredJobs.length > 0 ? (
                                     filteredJobs.map((job) => (
@@ -273,11 +383,19 @@ export default function CareerPage() {
                                             transition={{ duration: 0.3 }}
                                         >
                                             <JobCard
+<<<<<<< HEAD
                                                 job={job}
                                                 editMode={editMode}
                                                 onChange={updateJob}
                                                 onDelete={() => deleteJob(job.id)}
                                                 availableCategories={(data.categories || []).map(c => c.name)}
+=======
+                                                title={job.title}
+                                                experience={job.experience}
+                                                deadline={job.deadline}
+                                                educationalExperience={job.educational_requirements || "Not specified"}
+                                                slug={job.slug}
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
                                             />
                                         </motion.div>
                                     ))
@@ -287,7 +405,11 @@ export default function CareerPage() {
                                         animate={{ opacity: 1 }}
                                         className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-200"
                                     >
+<<<<<<< HEAD
                                         <p className="text-gray-500 font-medium font-bold">No job openings found in this category.</p>
+=======
+                                        <p className="text-gray-500 font-medium">No job openings found in this category.</p>
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
                                         <button
                                             onClick={() => setSelectedCategory("All")}
                                             className="mt-4 text-blue-600 font-bold hover:underline"
@@ -297,6 +419,7 @@ export default function CareerPage() {
                                     </motion.div>
                                 )}
                             </AnimatePresence>
+<<<<<<< HEAD
                         </motion.div>
                     </div>
 
@@ -307,6 +430,9 @@ export default function CareerPage() {
                             editMode={editMode}
                             updateData={(newData) => updateSection("insights", newData)}
                         />
+=======
+                        )}
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
                     </motion.div>
                 </div>
             </div>

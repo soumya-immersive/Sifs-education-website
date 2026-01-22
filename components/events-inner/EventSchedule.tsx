@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+<<<<<<< HEAD
 import { Clock, Plus, Trash2 } from "lucide-react";
 import { Event } from "../../types/events-page";
 import EditableText from "../editable/EditableText";
@@ -11,18 +12,48 @@ interface Props {
   event: Event;
   editMode: boolean;
   onUpdate: (updates: Partial<Event>) => void;
+=======
+import { Clock } from "lucide-react";
+// import { Event } from "../../data/events";
+
+interface ScheduleItem {
+  day: string;
+  title: string;
+  description: string;
+}
+
+interface EventWithSchedule {
+  date: string;
+  schedule: ScheduleItem[];
+  [key: string]: any;
+}
+
+interface Props {
+  event: EventWithSchedule;
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 }
 
 export default function EventSchedule({ event, editMode, onUpdate }: Props) {
   const [activeTab, setActiveTab] = useState(0);
 
+  // Safety check
+  if (!event || !event.schedule || event.schedule.length === 0) {
+    return null; // Or return a "No schedule available" message
+  }
+
   // Helper to calculate consecutive dates based on event start date
   const getFormattedDate = (baseDateStr: string, dayOffset: number) => {
+<<<<<<< HEAD
     // Simple parsing, assuming baseDateStr is somewhat standard or just using the string if parsing fails
     // Ideally this date logic should be robust.
     try {
       const date = new Date(baseDateStr);
       if (isNaN(date.getTime())) return baseDateStr; // Fallback
+=======
+    try {
+      const date = new Date(baseDateStr);
+      if (isNaN(date.getTime())) return ""; // Handle invalid date
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
       date.setDate(date.getDate() + dayOffset);
       return date.toLocaleDateString('en-GB', {
         day: '2-digit',
@@ -30,11 +61,16 @@ export default function EventSchedule({ event, editMode, onUpdate }: Props) {
         year: 'numeric'
       });
     } catch (e) {
+<<<<<<< HEAD
       return baseDateStr;
+=======
+      return "";
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
     }
   };
 
   const dayLabels = ["First Day", "Second Day", "Third Day", "Fourth Day", "Fifth Day"];
+  const currentItem = event.schedule[activeTab];
 
   const handleUpdateSchedule = (index: number, updates: any) => {
     const newSchedule = [...event.schedule];
@@ -89,6 +125,7 @@ export default function EventSchedule({ event, editMode, onUpdate }: Props) {
         {/* Left Side: Vertical Tabs */}
         <div className="lg:w-1/3 flex flex-col gap-3">
           {event.schedule.map((day, index) => (
+<<<<<<< HEAD
             <div key={index} className="relative group">
               <button
                 onClick={() => setActiveTab(index)}
@@ -112,13 +149,32 @@ export default function EventSchedule({ event, editMode, onUpdate }: Props) {
                 </button>
               )}
             </div>
+=======
+            <button
+              key={index}
+              onClick={() => setActiveTab(index)}
+              className={`flex flex-col items-start p-4 rounded-2xl transition-all text-left border ${activeTab === index
+                  ? "bg-gradient-to-r from-[#6366f1] to-[#a855f7] text-white border-transparent shadow-lg"
+                  : "bg-[#f8f9fa] text-gray-600 border-transparent hover:bg-gray-100"
+                }`}
+            >
+              <span className="font-bold text-lg">{dayLabels[index] || `Day ${day.day}`}</span>
+              <span className={`text-xs ${activeTab === index ? "text-white/80" : "text-gray-400"}`}>
+                {getFormattedDate(event.date || event.startDate, index)}
+              </span>
+            </button>
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
           ))}
         </div>
 
         {/* Right Side: Tab Content */}
         <div className="lg:w-2/3">
           <AnimatePresence mode="wait">
+<<<<<<< HEAD
             {event.schedule[activeTab] && (
+=======
+            {currentItem && (
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
               <motion.div
                 key={activeTab}
                 initial={{ opacity: 0, x: 10 }}
@@ -127,6 +183,7 @@ export default function EventSchedule({ event, editMode, onUpdate }: Props) {
                 transition={{ duration: 0.3 }}
               >
                 <h3 className="text-2xl font-bold text-gray-900 mb-4 leading-tight">
+<<<<<<< HEAD
                   <EditableText
                     html={event.schedule[activeTab].title}
                     editMode={editMode}
@@ -158,6 +215,24 @@ export default function EventSchedule({ event, editMode, onUpdate }: Props) {
                     alt="Session illustration"
                     editMode={editMode}
                     onChange={(src) => handleUpdateSchedule(activeTab, { image: src })}
+=======
+                  {currentItem.title}
+                </h3>
+
+                <p className="text-gray-600 leading-relaxed mb-6">
+                  {currentItem.description}
+                </p>
+
+                <div className="inline-flex items-center gap-2 bg-[#c27803] text-white px-4 py-2 rounded-lg font-bold text-sm mb-8">
+                  <Clock className="w-4 h-4" />
+                  06:00 PM - 07:00 PM
+                </div>
+
+                <div className="rounded-3xl overflow-hidden shadow-md">
+                  <img
+                    src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop"
+                    alt="Session illustration"
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
                     className="w-full h-64 object-cover"
                   />
                 </div>

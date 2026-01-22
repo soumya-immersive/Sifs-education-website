@@ -1,5 +1,6 @@
 "use client";
 import { FC } from "react";
+<<<<<<< HEAD
 import EditableText from "../editable/EditableText";
 import { JobOpening } from "@/types/career-page";
 import { Trash2 } from "lucide-react";
@@ -17,6 +18,19 @@ const stripHtml = (html: string) => {
 };
 
 const JobCard: FC<JobCardProps> = ({ job, editMode, onChange, onDelete, availableCategories = [] }) => {
+=======
+import Link from "next/link";
+
+interface JobCardProps {
+  title: string;
+  experience: string;
+  deadline: string;
+  educationalExperience: string;
+  slug: string;
+}
+
+const JobCard: FC<JobCardProps> = ({ title, experience, deadline, educationalExperience, slug }) => {
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
   return (
     <div className="border-2 border-blue-50 rounded-2xl bg-white p-6 shadow-sm hover:shadow-md transition-all mb-4 relative group">
       {editMode && onDelete && (
@@ -80,6 +94,7 @@ const JobCard: FC<JobCardProps> = ({ job, editMode, onChange, onDelete, availabl
             <p className="text-[10px] font-black text-black uppercase mb-1 tracking-tight">
               Educational Experience:
             </p>
+<<<<<<< HEAD
             <div className="text-sm text-gray-600 leading-snug">
               <EditableText
                 html={job.educationalExperience}
@@ -87,6 +102,11 @@ const JobCard: FC<JobCardProps> = ({ job, editMode, onChange, onDelete, availabl
                 onChange={(h) => onChange({ ...job, educationalExperience: h })}
               />
             </div>
+=======
+            <p className="text-sm text-gray-600 leading-snug line-clamp-2">
+              {educationalExperience}
+            </p>
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
           </div>
 
           {/* Column 2: Deadline (Spans 3 columns) */}
@@ -105,6 +125,7 @@ const JobCard: FC<JobCardProps> = ({ job, editMode, onChange, onDelete, availabl
 
           {/* Column 3: Button (Spans 3 columns) */}
           <div className="md:col-span-3 flex justify-end">
+<<<<<<< HEAD
             {editMode ? (
               <div className="group whitespace-nowrap bg-gradient-to-r from-[#4F65F1] to-[#9B66E4] text-white py-3 px-6 rounded-xl font-normal flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all w-full md:w-auto min-w-[140px] cursor-default">
                 <span>{stripHtml(job.applyButtonLabel || "Apply Now")}</span>
@@ -121,6 +142,11 @@ const JobCard: FC<JobCardProps> = ({ job, editMode, onChange, onDelete, availabl
             ) : (
               <button className="group whitespace-nowrap bg-gradient-to-r from-[#4F65F1] to-[#9B66E4] text-white py-3 px-6 rounded-xl font-normal flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all w-full md:w-auto min-w-[140px]">
                 {stripHtml(job.applyButtonLabel || "Apply Now")}
+=======
+            <Link href={`/career/${slug}`} className="w-full md:w-auto">
+              <button className="group whitespace-nowrap bg-gradient-to-r from-[#4F65F1] to-[#9B66E4] text-white py-3 px-6 rounded-xl font-normal flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all w-full min-w-[140px]">
+                Apply Now
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
                 <svg
                   className="w-5 h-5 transition-transform group-hover:translate-x-1"
                   fill="none"
@@ -131,7 +157,11 @@ const JobCard: FC<JobCardProps> = ({ job, editMode, onChange, onDelete, availabl
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </button>
+<<<<<<< HEAD
             )}
+=======
+            </Link>
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
           </div>
 
         </div>

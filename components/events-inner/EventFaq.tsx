@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+<<<<<<< HEAD
 import { Event } from "../../types/events-page";
 import EditableText from "../editable/EditableText";
 
@@ -10,11 +11,28 @@ interface Props {
   event: Event;
   editMode: boolean;
   onUpdate: (updates: Partial<Event>) => void;
+=======
+// import { Event } from "../../data/events";
+
+interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+interface EventWithFaq {
+  faqs: FaqItem[];
+  [key: string]: any;
+}
+
+interface Props {
+  event: EventWithFaq;
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 }
 
 export default function EventFaq({ event, editMode, onUpdate }: Props) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
+<<<<<<< HEAD
   const handleUpdateFaq = (index: number, updates: any) => {
     const newFaqs = [...event.faqs];
     newFaqs[index] = { ...newFaqs[index], ...updates };
@@ -35,6 +53,11 @@ export default function EventFaq({ event, editMode, onUpdate }: Props) {
     onUpdate({ faqs: newFaqs });
     setOpenIndex(null);
   };
+=======
+  if (!event || !event.faqs || event.faqs.length === 0) {
+    return null;
+  }
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 
   return (
     <section className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
@@ -64,7 +87,11 @@ export default function EventFaq({ event, editMode, onUpdate }: Props) {
             >
               <button
                 onClick={() => setOpenIndex(isOpen ? null : index)}
+<<<<<<< HEAD
                 className={`w-full flex items-center justify-between p-3 text-left transition-all duration-300 pr-12 ${isOpen
+=======
+                className={`w-full flex items-center justify-between p-3 text-left transition-all duration-300 ${isOpen
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
                     ? 'bg-[#E08A23] text-white shadow-lg'
                     : 'bg-[#F2F2F2] text-[#4D4D4D] hover:bg-gray-200'
                   }`}
@@ -85,6 +112,7 @@ export default function EventFaq({ event, editMode, onUpdate }: Props) {
                   )}
                 </div>
               </button>
+<<<<<<< HEAD
               {editMode && (
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDeleteFaq(index); }}
@@ -94,6 +122,8 @@ export default function EventFaq({ event, editMode, onUpdate }: Props) {
                   <Trash2 size={14} />
                 </button>
               )}
+=======
+>>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 
               <AnimatePresence>
                 {isOpen && (
