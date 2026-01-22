@@ -1,13 +1,12 @@
-// components/courses/Learning.tsx
 "use client";
 
 import { ArrowRight } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 
+// You can use the same student image or a more professional "intern" themed one
 const studentImage = "/student-pointing.png";
 
 /* ---------------- Framer Motion Easing ---------------- */
-// Same as easeOut
 const easeOutCubic: [number, number, number, number] = [
   0.25, 0.46, 0.45, 0.94,
 ];
@@ -90,16 +89,16 @@ export default function Learning() {
           variants={textBlockVariants}
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Step into the New Era of Learning
+            Launch Your Career in Forensics
           </h2>
 
           <p className="text-sm md:text-base opacity-90 mb-8 max-w-xl">
-            Our courses blend in-depth learning and interactive sessions, all
-            while staying deeply grounded in core principles.
+            Our internships bridge the gap between academic knowledge and real-world 
+            investigation. Gain hands-on experience with industry tools and professional mentorship.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            {/* Explore Button */}
+            {/* Explore Internships Button */}
             <motion.button
               variants={buttonItemVariants}
               className="
@@ -110,11 +109,11 @@ export default function Learning() {
                 transition duration-300
               "
             >
-              Explore
+              Explore Opportunities
               <ArrowRight className="ml-2 w-5 h-5" />
             </motion.button>
 
-            {/* Watch Video Button */}
+            {/* Career Guide Button */}
             <motion.button
               variants={buttonItemVariants}
               className="
@@ -126,7 +125,7 @@ export default function Learning() {
                 transition duration-300
               "
             >
-              Watch Video
+              Career Guide
               <ArrowRight className="ml-2 w-5 h-5" />
             </motion.button>
           </div>
@@ -144,7 +143,7 @@ export default function Learning() {
         >
           <img
             src={studentImage}
-            alt="Smiling student pointing"
+            alt="Intern pointing to career opportunities"
             className="h-full w-auto object-cover z-20"
             style={{
               maxHeight: "100%",

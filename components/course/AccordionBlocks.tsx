@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronRight, Plus, Trash2 } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { Course, CourseAccordionItem } from "../../types/courses-page";
-import EditableText from "../editable/EditableText";
+
+import { Course } from "../../data/courses";
 
 interface Props {
   course: Course;
-  editMode?: boolean;
-  onUpdate?: (updatedInfo: Partial<Course>) => void;
 }
+
+const SECTIONS = ["Curriculum", "FAQ", "Case Studies", "Reviews"];
 
 /* ---------------- Animations ---------------- */
 
@@ -43,124 +43,47 @@ const accordionContent: Variants = {
   },
 };
 
-export default function AccordionBlocks({ course, editMode, onUpdate }: Props) {
+export default function AccordionBlocks({ course }: Props) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const handleItemChange = (index: number, updatedItem: Partial<CourseAccordionItem>) => {
-    const updatedItems = [...(course.accordionItems || [])];
-    updatedItems[index] = { ...updatedItems[index], ...updatedItem };
-    onUpdate?.({ accordionItems: updatedItems });
-  };
-
-  const addItem = () => {
-    const newItem: CourseAccordionItem = {
-      title: "New Section",
-      content: "Content for the new section goes here..."
-    };
-    onUpdate?.({ accordionItems: [...(course.accordionItems || []), newItem] });
-  };
-
-  const removeItem = (index: number) => {
-    const updatedItems = (course.accordionItems || []).filter((_, i) => i !== index);
-    onUpdate?.({ accordionItems: updatedItems });
-    if (openIndex === index) setOpenIndex(null);
-  };
-
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-          <span className="w-1.5 h-6 bg-green-500 rounded-full" />
-          Course Curriculum & Information
-        </h3>
-        {editMode && (
-          <button
-            onClick={addItem}
-            className="flex items-center gap-2 text-green-600 font-bold text-sm hover:text-green-700 transition px-3 py-1.5 bg-green-50 rounded-lg border border-green-200"
-          >
-            <Plus size={14} />
-            Add Section
-          </button>
-        )}
-      </div>
-
-      {(course.accordionItems || []).map((item, index) => {
+    <div className="space-y-3">
+      {SECTIONS.map((title, index) => {
         const isOpen = openIndex === index;
 
         return (
           <motion.div
-            key={index}
-            className={`rounded-2xl overflow-hidden border transition-all duration-300 ${isOpen ? "border-indigo-200 shadow-md bg-indigo-50/10" : "border-gray-100 bg-white"
-              }`}
+            key={title}
+            className="bg-[#4559ed26] rounded-lg overflow-hidden border border-[#E3E9FF]"
             variants={itemFade}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
           >
             {/* Header */}
-            <div className="relative group">
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => setOpenIndex(isOpen ? null : index)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setOpenIndex(isOpen ? null : index);
-                  }
-                }}
-                className={`w-full flex items-center justify-between px-6 py-5 
-                           text-left font-bold transition-all cursor-pointer select-none ${isOpen ? "text-indigo-600 bg-indigo-50/50" : "text-gray-800 hover:bg-gray-50"
-                  }`}
-              >
-                <EditableText
-                  html={item.title}
-                  editMode={!!editMode}
-                  onChange={(val) => handleItemChange(index, { title: val })}
-                />
+            <button
+              onClick={() => setOpenIndex(isOpen ? null : index)}
+              className="w-full flex items-center justify-between px-5 py-4 
+                         text-sm font-medium text-black hover:bg-[#E8EEFF] transition"
+            >
+              {title}
 
-<<<<<<< HEAD
-                <ChevronRight
-                  className={`w-5 h-5 transition-transform duration-300 ${isOpen ? "rotate-90 text-indigo-600" : "text-gray-400"
-                    }`}
-                />
-              </div>
-
-              {editMode && (
-                <button
-                  onClick={() => removeItem(index)}
-                  className="absolute right-14 top-1/2 -translate-y-1/2 p-1.5 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Remove Section"
-                >
-                  <Trash2 size={16} />
-                </button>
-              )}
-            </div>
-=======
               <ChevronRight
                 className={`w-4 h-4 transition-transform ${isOpen ? "rotate-90" : ""
                   }`}
               />
             </button>
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 
             {/* Content */}
             <AnimatePresence initial={false}>
               {isOpen && (
                 <motion.div
-                  className="px-6 py-6 text-base text-gray-600 bg-white border-t border-indigo-50 leading-relaxed"
+                  className="px-5 py-4 text-sm text-gray-600 bg-white"
                   variants={accordionContent}
                   initial="hidden"
                   animate="visible"
                   exit="exit"
                 >
-<<<<<<< HEAD
-                  <EditableText
-                    html={item.content}
-                    editMode={!!editMode}
-                    onChange={(val) => handleItemChange(index, { content: val })}
-                  />
-=======
                   <div className="prose max-w-none text-gray-600">
                     {title === "Curriculum" ? (
                       course.prospectus ? (
@@ -230,7 +153,6 @@ export default function AccordionBlocks({ course, editMode, onUpdate }: Props) {
                       </p>
                     )}
                   </div>
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
                 </motion.div>
               )}
             </AnimatePresence>

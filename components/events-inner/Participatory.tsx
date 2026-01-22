@@ -58,24 +58,7 @@ const textItemVariants = {
   },
 };
 
-interface ParticipatoryProps {
-  data?: {
-    title: string;
-    description: string;
-    partners: { name: string; logo: string; }[];
-  }
-}
-
-export default function Participatory({ data }: ParticipatoryProps) {
-  const partners = data?.partners || [
-    { name: "Aster Heal Group", logo: "/events/participatory1.png" },
-    { name: "ACPM Medical College", logo: "/events/participatory2.png" },
-    { name: "Birla Sun Life", logo: "/events/participatory3.png" },
-    { name: "University Partner", logo: "/events/participatory4.png" },
-    { name: "Accenture", logo: "/events/participatory5.png" },
-    { name: "Sri Paramakalyani College", logo: "/events/participatory6.png" },
-  ]; // Fallback if data not passed
-
+export default function Participatory() {
   return (
     <section className="bg-white py-16">
       <div className="mx-auto max-w-7xl px-4">
@@ -97,22 +80,22 @@ export default function Participatory({ data }: ParticipatoryProps) {
                 className="text-2xl font-extrabold text-gray-900 md:text-3xl"
                 variants={textItemVariants}
               >
-                {data?.title || "Participatory"}
+                Participatory
               </motion.h2>
 
               <motion.p
                 className="mt-2 text-sm text-gray-500 md:text-base"
                 variants={textItemVariants}
               >
-                {data?.description || "Supporters from different organizations who participated in remarkable program."}
+                Supporters from different organizations who participated in remarkable program.
               </motion.p>
             </div>
 
             {/* Logos */}
             <motion.div className="mt-10 flex flex-wrap items-center justify-center gap-4 md:gap-4">
-              {partners.map((partner, index) => (
+              {partners.map((partner) => (
                 <motion.div
-                  key={index}
+                  key={partner.name}
                   className="flex h-16 w-28 items-center justify-center md:h-32 md:w-40"
                   variants={logoItemVariants}
                 >

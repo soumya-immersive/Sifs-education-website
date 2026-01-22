@@ -1,8 +1,4 @@
 import { notFound } from "next/navigation";
-<<<<<<< HEAD
-import { events } from "../../../data/events";
-import EventDetailClient from "./EventDetailClient";
-=======
 import EventHero from "../../../components/events-inner/EventHero";
 import EventContent from "../../../components/events-inner/EventContent";
 import EventSchedule from "../../../components/events-inner/EventSchedule";
@@ -110,7 +106,6 @@ async function getUpcomingEvents() {
     return [];
   }
 }
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -119,26 +114,17 @@ interface Props {
 export default async function EventDetailPage({ params }: Props) {
   const { slug } = await params;
 
-<<<<<<< HEAD
-  // Find event in static data for initial render / server side validation
-  // The client component will look it up in dynamic data (localStorage) as well.
-  const event = events.find((e) => e.slug === slug);
-=======
   // Parallel data fetching
   const [event, upcomingEvents] = await Promise.all([
     getEventDetails(slug),
     getUpcomingEvents()
   ]);
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 
   if (!event) {
     notFound();
   }
 
   return (
-<<<<<<< HEAD
-    <EventDetailClient slug={slug} initialEvent={event} />
-=======
     <main className="min-h-screen bg-white mb-24">
       <EventHero event={event as any} />
 
@@ -161,6 +147,5 @@ export default async function EventDetailPage({ params }: Props) {
       <UpcomingEvents events={upcomingEvents || []} />
       <Participatory />
     </main>
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
   );
 }

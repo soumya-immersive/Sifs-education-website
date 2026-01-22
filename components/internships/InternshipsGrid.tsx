@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { motion, Variants } from "framer-motion";
-import CourseCard from "./CourseCard";
-import { Course } from "../../data/courses";
+import InternshipCard from "./InternshipCard";
+import { Internship } from "@/data/internships";
 
 /* ---------------- Props ---------------- */
 
 interface Props {
-  courses: Course[];
+  internships: Internship[];
 }
 
 const ITEMS_PER_LOAD = 3;
@@ -35,14 +35,13 @@ const fadeUp: Variants = {
 
 /* ---------------- Component ---------------- */
 
-/* ---------------- Component ---------------- */
-
-export default function CoursesGrid({ courses }: Props) {
+export default function InternshipsGrid({ internships }: Props) {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
   const [loading, setLoading] = useState(false);
 
   const handleLoadMore = () => {
     setLoading(true);
+    // Simulating a network delay for the loading state
     setTimeout(() => {
       setVisibleCount((prev) => prev + ITEMS_PER_LOAD);
       setLoading(false);
@@ -51,22 +50,20 @@ export default function CoursesGrid({ courses }: Props) {
 
   const handleLoadLess = () => {
     setVisibleCount(ITEMS_PER_LOAD);
-    // Optional: Scroll back up to the top of the grid smoothly
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (!courses || courses.length === 0) {
+  if (!internships || internships.length === 0) {
     return (
       <section className="max-w-7xl mx-auto px-4 mt-16 text-center">
         <p className="text-gray-500 text-lg">
-          No courses available for this program.
+          No internships available for this program at the moment.
         </p>
       </section>
     );
   }
 
   return (
-    <section className="max-w-7xl mx-auto px-4 mt-10">
+    <section className="max-w-7xl mx-auto px-4 mt-10 mb-20">
       {/* GRID */}
       <motion.div
         className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
@@ -75,15 +72,15 @@ export default function CoursesGrid({ courses }: Props) {
         whileInView="visible"
         viewport={{ once: true }}
       >
-        {courses.slice(0, visibleCount).map((course) => (
-          <motion.div key={course.id} variants={fadeUp}>
-            <CourseCard course={course} />
+        {internships.slice(0, visibleCount).map((internship) => (
+          <motion.div key={internship.id} variants={fadeUp}>
+            <InternshipCard internship={internship} />
           </motion.div>
         ))}
       </motion.div>
 
-      {/* ACTIONS - Only show if total courses > 3 */}
-      {courses.length > ITEMS_PER_LOAD && (
+      {/* ACTIONS */}
+      {internships.length > ITEMS_PER_LOAD && (
         <motion.div
           variants={fadeUp}
           initial="hidden"
@@ -91,7 +88,7 @@ export default function CoursesGrid({ courses }: Props) {
           viewport={{ once: true }}
           className="flex justify-center mt-12"
         >
-          {visibleCount < courses.length ? (
+          {visibleCount < internships.length ? (
             <button
               onClick={handleLoadMore}
               disabled={loading}
@@ -99,7 +96,7 @@ export default function CoursesGrid({ courses }: Props) {
                 bg-gradient-to-r from-purple-500 to-indigo-600
                 text-white px-8 py-3 rounded-lg
                 text-sm font-medium flex items-center gap-2
-                disabled:opacity-70 transition-all hover:shadow-lg
+                disabled:opacity-70 shadow-md hover:shadow-lg transition-all
               "
             >
               {loading ? (
@@ -108,17 +105,16 @@ export default function CoursesGrid({ courses }: Props) {
                   Loading...
                 </>
               ) : (
-                <>Load More →</>
+                <>Load More Internships →</>
               )}
             </button>
           ) : (
-            // Only shows "Load Less" if we are currently showing more than the initial row
             <button
               onClick={handleLoadLess}
               className="
                 bg-gradient-to-r from-purple-500 to-indigo-600
                 text-white px-8 py-3 rounded-lg
-                text-sm font-medium transition-all hover:shadow-lg
+                text-sm font-medium shadow-md hover:shadow-lg transition-all
               "
             >
               Load Less ↑

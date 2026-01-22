@@ -18,12 +18,12 @@ export default function AchievementsHero({
   if (!data) return null;
 
   return (
-    <div className="w-full h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden">
+    <div className="w-full">
       <EditableImage
         src={data.image}
         alt="Achievements"
         editMode={editMode}
-        className="w-full h-full object-cover"
+        className="w-full h-auto object-cover"
         onChange={(newSrc) => updateData({ ...data, image: newSrc })}
       />
     </div>

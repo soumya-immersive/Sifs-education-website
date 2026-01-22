@@ -63,17 +63,7 @@ const defaultNavItems = [
       { label: "Visual Gallery", path: "/video" },
     ],
   },
-<<<<<<< HEAD
-  {
-    label: "Books",
-    children: bookCategories.map((category) => ({
-      label: category.label,
-      path: `/books/${category.slug}`,
-    })),
-  },
-=======
   { label: "Books", path: "/courses/associate-degree" },
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
   { label: "Reach Us", path: "/contact" },
 ];
 

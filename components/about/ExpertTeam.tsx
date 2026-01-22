@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -16,9 +15,6 @@ interface ExpertTeamProps {
 }
 
 export default function ExpertTeam({ data, editMode, updateData }: ExpertTeamProps) {
-  const [showAll, setShowAll] = React.useState(false);
-
-  const displayExperts = editMode ? data.experts : data.experts.slice(0, 4);
 
   const addExpert = () => {
     updateData({
@@ -96,28 +92,26 @@ export default function ExpertTeam({ data, editMode, updateData }: ExpertTeamPro
             </h2>
           </div>
 
-          {editMode ? (
-            <div className="px-5 py-2 rounded-lg text-sm text-white bg-gradient-to-r from-violet-600 to-indigo-600">
-              <EditableText
-                html={data.browseText || "Explore All Team →"}
-                editMode={editMode}
-                onChange={(val) => updateData({ ...data, browseText: val })}
-                as="span"
-              />
-            </div>
-          ) : (
-            <Link
-              href={data.browseLink || "/teams"}
-              className="px-5 py-2 rounded-lg text-sm text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 transition"
-            >
-              {data.browseText || "Explore All Team →"}
-            </Link>
-          )}
+          <Link
+            href={data.browseLink}
+            onClick={(e) => editMode && e.preventDefault()}
+            className={`px-5 py-2 rounded-lg text-sm text-white
+                       bg-gradient-to-r from-violet-600 to-indigo-600
+                       hover:from-violet-700 hover:to-indigo-700
+                       transition ${editMode ? 'cursor-not-allowed opacity-80' : ''}`}
+          >
+            <EditableText
+              html={data.browseText}
+              editMode={editMode}
+              onChange={(val) => updateData({ ...data, browseText: val })}
+              as="span"
+            />
+          </Link>
         </div>
 
         {/* TEAM GRID */}
         <div className="grid md:grid-cols-4 gap-6">
-          {displayExperts.map((item, i) => (
+          {data.experts.map((item, i) => (
             <motion.div
               key={i}
               whileHover="hover"

@@ -19,32 +19,18 @@ const fadeUp: Variants = {
   },
 };
 
-interface FilterBarProps {
-  editMode?: boolean;
-  searchQuery: string;
-  onSearchChange: (val: string) => void;
-  level: string;
-  onLevelChange: (val: string) => void;
-  duration: string;
-  onDurationChange: (val: string) => void;
-  sortOrder: string;
-  onSortChange: (val: string) => void;
-}
+export default function CoursesFilterBar() {
+  // 1. State for Search and Filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [level, setLevel] = useState("");
+  const [duration, setDuration] = useState("");
+  const [sortOrder, setSortOrder] = useState("newest");
 
-export default function CoursesFilterBar({
-  editMode,
-  searchQuery,
-  onSearchChange,
-  level,
-  onLevelChange,
-  duration,
-  onDurationChange,
-  sortOrder,
-  onSortChange
-}: FilterBarProps) {
-  // Handle Search submit
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  // 2. Handle Search (Triggered on button click or 'Enter')
+  const handleSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    console.log("Searching for:", searchQuery);
+    
   };
 
   return (
@@ -57,15 +43,15 @@ export default function CoursesFilterBar({
         viewport={{ once: true }}
       >
         {/* LEFT: Search Bar */}
-        <motion.form
+        <motion.form 
           onSubmit={handleSearch}
-          variants={fadeUp}
+          variants={fadeUp} 
           className="flex w-full lg:max-w-md"
         >
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="What do you want to learn?"
             className="w-full border border-r-0 border-[#f4f4f4] rounded-l-lg px-4 py-2.5 text-sm outline-none placeholder:text-gray-400 focus:border-[#8E5BEF]"
           />
@@ -83,9 +69,9 @@ export default function CoursesFilterBar({
           className="flex flex-wrap w-full lg:w-auto gap-3 justify-between lg:justify-end"
         >
           {/* Skill Level */}
-          <select
+          <select 
             value={level}
-            onChange={(e) => onLevelChange(e.target.value)}
+            onChange={(e) => setLevel(e.target.value)}
             className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-[48%] lg:w-auto outline-none focus:ring-1 focus:ring-[#8E5BEF]"
           >
             <option value="">Skill Level</option>
@@ -95,9 +81,9 @@ export default function CoursesFilterBar({
           </select>
 
           {/* Duration */}
-          <select
+          <select 
             value={duration}
-            onChange={(e) => onDurationChange(e.target.value)}
+            onChange={(e) => setDuration(e.target.value)}
             className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-[48%] lg:w-auto outline-none focus:ring-1 focus:ring-[#8E5BEF]"
           >
             <option value="">Duration</option>
@@ -107,9 +93,9 @@ export default function CoursesFilterBar({
           </select>
 
           {/* Sort */}
-          <select
+          <select 
             value={sortOrder}
-            onChange={(e) => onSortChange(e.target.value)}
+            onChange={(e) => setSortOrder(e.target.value)}
             className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-full lg:w-auto outline-none focus:ring-1 focus:ring-[#8E5BEF]"
           >
             <option value="newest">Newest</option>

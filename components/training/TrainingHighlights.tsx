@@ -2,11 +2,7 @@
 
 import Image from "next/image";
 import { motion, Variants } from "framer-motion";
-import { Course } from "../../data/courses";
-
-interface Props {
-  course: Course;
-}
+import { Training } from "../../data/trainings";
 
 /* ---------------- Animations ---------------- */
 
@@ -28,36 +24,35 @@ const fadeUp: Variants = {
   },
 };
 
-export default function CourseHighlights({ course }: Props) {
+/* ---------------- Component ---------------- */
+
+interface Props {
+  training: Training;
+}
+
+export default function TrainingHighlights({ training }: Props) {
   return (
     <motion.div
-      className="bg-white"
+      className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm"
       variants={container}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true }}
     >
-      {/* Title */}
+      {/* Bold Title - Matching your Hero and Schedule style */}
       <motion.h3
         variants={fadeUp}
-        className="text-md font-medium text-[#4559ED] mb-4"
+        className="text-xl font-black text-[#4559ED] mb-6 uppercase tracking-tight"
       >
-        Course Highlights:
+        Training Highlights:
       </motion.h3>
 
-      {/* List */}
+      {/* List - Dynamically mapped from training.highlights */}
       <motion.ul
-        className="space-y-3 text-sm text-gray-600"
+        className="space-y-4 text-sm text-gray-600"
         variants={container}
       >
-        {[
-          "Pre-recorded sessions with practical insights about forensic tools and technologies",
-          "Experienced mentors with years of real-world experience",
-          "In-depth study of various forensic domains",
-          "Industry-specific and comprehensive study material and reference books",
-          "Networking opportunities with professionals and fellow enthusiasts",
-          "Skill development to critically analyze evidence, make accurate conclusions, and present findings effectively",
-        ].map((item, index) => (
+        {training.highlights?.map((item, index) => (
           <motion.li
             key={index}
             variants={fadeUp}
@@ -65,12 +60,14 @@ export default function CourseHighlights({ course }: Props) {
           >
             <Image
               src="/course/check-circle.png"
-              alt=""
-              width={16}
-              height={16}
+              alt="check"
+              width={18}
+              height={18}
               className="mt-0.5 shrink-0"
             />
-            <span>{item}</span>
+            <span className="text-gray-700 font-medium leading-relaxed">
+              {item}
+            </span>
           </motion.li>
         ))}
       </motion.ul>

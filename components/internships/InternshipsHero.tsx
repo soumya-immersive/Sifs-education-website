@@ -25,24 +25,20 @@ const scaleFade: Variants = {
   },
 };
 
-interface Program {
+interface InternshipProgram {
   label: string;
   slug: string;
   image?: string;
 }
 
-export default function CoursesHero({
+export default function InternshipsHero({
   program,
 }: {
-  program: {
-    label: string;
-    slug: string;
-    image?: string;
-  };
+  program: InternshipProgram;
 }) {
   return (
     <section
-      className="relative py-16 bg-[url('/courses/hero-bg.png')]
+      className="relative py-16 bg-[url('/internships/hero-bg.png')]
       bg-cover bg-center bg-no-repeat overflow-hidden"
     >
       <motion.div
@@ -57,16 +53,16 @@ export default function CoursesHero({
         <motion.div variants={container}>
           <motion.h1
             variants={fadeUp}
-            className="text-3xl font-bold text-gray-900"
+            className="text-4xl font-bold text-gray-900"
           >
             {program.label}
           </motion.h1>
 
           <motion.p
             variants={fadeUp}
-            className="text-sm text-gray-600 mt-1"
+            className="text-lg text-gray-600 mt-2"
           >
-            Explore our {program.label}
+            Explore our {program.label}s
           </motion.p>
         </motion.div>
 
@@ -77,7 +73,7 @@ export default function CoursesHero({
           rounded-xl overflow-hidden"
         >
           <img
-            src={program.image || "/courses/hero.png"}
+            src={program.image || "/internships/hero.png"}
             alt={program.label}
             className="w-full h-full object-cover"
           />

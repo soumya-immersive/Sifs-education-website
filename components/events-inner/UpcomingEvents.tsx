@@ -1,23 +1,8 @@
-<<<<<<< HEAD
-// components/events-inner/UpcomingEvents.tsx
-=======
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
-<<<<<<< HEAD
-import { Event } from "../../types/events-page";
-
-// Helper function to generate slugs
-const generateSlug = (title: string): string => {
-  return title
-    .toLowerCase()
-    .replace(/[^\w\s]/g, '')
-    .replace(/\s+/g, '-')
-    .substring(0, 50);
-=======
 import { useEffect, useState } from "react";
 
 type Event = {
@@ -76,22 +61,10 @@ const calculateTimeLeft = (targetDateStr: string) => {
     };
   }
   return { days: 0, hours: 0, minutes: 0, seconds: 0 };
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 };
 
 const timerTitles = ["Days", "Hours", "Min", "Sec"];
 
-<<<<<<< HEAD
-// Mock values for timers if not dynamic yet
-const timerValues: { [key: number]: string[] } = {
-  1: ["12", "11", "45", "38"],
-  2: ["10", "20", "07", "55"],
-  3: ["05", "03", "18", "22"],
-  4: ["01", "15", "30", "40"],
-};
-
-=======
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 const timerStyles = [
   { container: "bg-sky-500 border border-sky-500", number: "text-white", title: "text-sky-100" },
   { container: "bg-white border border-dashed border-sky-400", number: "text-sky-500", title: "text-sky-500" },
@@ -106,15 +79,7 @@ const sectionContainerVariants: Variants = {
 
 const headerItemVariants: Variants = {
   hidden: { y: 20, opacity: 0 },
-<<<<<<< HEAD
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: { duration: 0.5, ease: "easeOut" }
-  },
-=======
   visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } },
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 };
 
 const gridVariants: Variants = {
@@ -124,15 +89,7 @@ const gridVariants: Variants = {
 
 const cardVariants: Variants = {
   hidden: { y: 50, opacity: 0 },
-<<<<<<< HEAD
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: { duration: 0.6, ease: "easeOut" }
-  },
-=======
   visible: { y: 0, opacity: 1, transition: { duration: 0.6, ease: "easeOut" } },
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 };
 
 const cardContentVariants: Variants = {
@@ -145,15 +102,6 @@ const subItemVariants: Variants = {
   visible: { y: 0, opacity: 1, transition: { duration: 0.3 } },
 };
 
-<<<<<<< HEAD
-interface UpcomingEventsProps {
-  events: Event[];
-}
-
-export default function UpcomingEvents({ events }: UpcomingEventsProps) {
-  // If no events provided, don't crash, max show 4
-  const displayEvents = events?.slice(0, 4) || [];
-=======
 export default function UpcomingEvents({ events }: UpcomingEventsProps) {
   const [timeLefts, setTimeLefts] = useState<{ [key: number]: any }>({});
 
@@ -193,7 +141,6 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
   }, [events]);
 
   if (!events || events.length === 0) return null;
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 
   return (
     <section className="bg-gradient-to-r from-white via-white to-violet-50 py-16">
@@ -215,48 +162,12 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
             </h2>
           </motion.div>
           <Link href="/events">
-<<<<<<< HEAD
-            <motion.button
-              className="rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-2 text-sm font-semibold text-white shadow-lg hover:shadow-xl"
-              variants={headerItemVariants}
-            >
-              Show All →
-=======
             <motion.button className="rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-2 text-sm font-semibold text-white shadow-lg hover:shadow-xl" variants={headerItemVariants}>
               More About →
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
             </motion.button>
           </Link>
         </div>
 
-<<<<<<< HEAD
-        {/* Cards Grid */}
-        <motion.div
-          className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"
-          variants={gridVariants}
-        >
-          {displayEvents.map((event) => {
-            const slug = event.slug || generateSlug(event.title);
-
-            return (
-              <motion.article
-                key={event.id}
-                className="flex h-full p-3 flex-col overflow-hidden rounded-2xl bg-white shadow-[0_18px_40px_rgba(15,23,42,0.08)] hover:shadow-[0_18px_40px_rgba(15,23,42,0.12)] transition-shadow duration-300 relative group"
-                variants={cardVariants}
-              >
-                {/* Make the whole card clickable as a Link */}
-                <Link href={`/events/${slug}`} className="flex flex-col flex-1">
-                  {/* Image */}
-                  <motion.div className="relative h-44 w-full" variants={subItemVariants}>
-                    <Image
-                      src={event.heroImage || event.coverImage || "/events/1.png"}
-                      alt={event.title}
-                      fill
-                      className="object-cover rounded-lg hover:scale-105 transition-transform duration-300"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                    />
-                  </motion.div>
-=======
         <motion.div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4" variants={gridVariants}>
           {events.map((event) => {
             const timerVal = timeLefts[event.id];
@@ -268,7 +179,6 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
                 String(timerVal.seconds).padStart(2, "0"),
               ]
               : ["00", "00", "00", "00"];
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
 
             const imageUrl = event.image_url || ((event.image && !event.image.startsWith('http')) ? `http://localhost:3000/uploads/events/${event.image}` : event.image) || "/events/1.png";
             const dateDisplay = event.formatted_date || (event.start_date ? new Date(event.start_date).toLocaleDateString() : "TBA");
@@ -294,13 +204,7 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
                           const style = timerStyles[i];
                           return (
                             <div key={title} className={`rounded-md px-2 py-1 ${style.container}`}>
-<<<<<<< HEAD
-                              <div className={`text-sm font-bold ${style.number}`}>
-                                {timerValues[event.id % 4 + 1]?.[i] || "00"}
-                              </div>
-=======
                               <div className={`text-sm font-bold ${style.number}`}>{timerValues[i]}</div>
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
                               <div className={`text-[9px] ${style.title}`}>{title}</div>
                             </div>
                           );

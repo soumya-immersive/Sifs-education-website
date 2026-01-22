@@ -1,14 +1,11 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
-import { Course } from "../../types/courses-page";
-import { Info, Plus, Trash2 } from "lucide-react";
-import EditableText from "../editable/EditableText";
+import { Course } from "../../data/courses"; // 1. Changed from Book to Course
+import { Info } from "lucide-react";
 
 interface Props {
-  course: Course;
-  editMode?: boolean;
-  onUpdate?: (updatedInfo: Partial<Course>) => void;
+  course: Course; // 2. Updated prop name
 }
 
 /* ---------------- Animations ---------------- */
@@ -31,133 +28,50 @@ const fadeUp: Variants = {
   },
 };
 
-export default function CourseInfo({ course, editMode, onUpdate }: Props) {
-  const handlePartChange = (index: number, val: string) => {
-    const updatedParts = [...(course.descriptionParts || [])];
-    updatedParts[index] = val;
-    onUpdate?.({ descriptionParts: updatedParts });
-  };
-
-  const addPart = () => {
-    const updatedParts = [...(course.descriptionParts || []), "New paragraph content here..."];
-    onUpdate?.({ descriptionParts: updatedParts });
-  };
-
-  const removePart = (index: number) => {
-    const updatedParts = (course.descriptionParts || []).filter((_, i) => i !== index);
-    onUpdate?.({ descriptionParts: updatedParts });
-  };
-
+export default function CourseInfo({ course }: Props) {
   return (
     <motion.div
-      className="bg-white relative mt-12"
+      className="bg-white relative mt-10"
       variants={container}
-      initial={editMode ? "visible" : "hidden"}
+      initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, amount: 0 }}
+      viewport={{ once: true }}
     >
+      {/* Decorative lines (top-left) */}
+      {/*<motion.div
+        variants={fadeUp}
+        className="absolute -top-2 -left-2 w-12 h-12 bg-[url('/books/lines-blue.svg')] bg-contain bg-no-repeat opacity-50"
+      />*/}
+
       {/* Header */}
       <motion.div
         variants={fadeUp}
-        className="flex items-center justify-between mb-8 border-b border-gray-100 pb-6"
+        className="flex items-center justify-between mb-6 border-b border-gray-50 pb-4"
       >
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-blue-600 rounded-xl shadow-lg shadow-blue-100">
-            <Info className="w-6 h-6 text-white" />
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-blue-50 rounded-lg">
+            <Info className="w-5 h-5 text-blue-600" />
           </div>
-          <div>
-            <h2 className="text-2xl font-black text-gray-900 tracking-tight">
-              <EditableText
-                html={course.aboutTitle || "About this Course"}
-                editMode={!!editMode}
-                onChange={(val) => onUpdate?.({ aboutTitle: val })}
-              />
-            </h2>
-            <div className="text-gray-400 text-xs font-semibold uppercase tracking-widest mt-1">
-              <EditableText
-                html={course.aboutSubtitle || "Information & Overview"}
-                editMode={!!editMode}
-                onChange={(val) => onUpdate?.({ aboutSubtitle: val })}
-              />
-            </div>
-          </div>
+          <h2 className="text-xl font-bold text-gray-900">
+            About this Course
+          </h2>
         </div>
 
-        <div className="text-right hidden sm:block">
-          <span className="block font-bold text-sm text-blue-600 uppercase tracking-tighter">
-            <EditableText
-              html={course.editionLabel || "2025 Edition"}
-              editMode={!!editMode}
-              onChange={(val) => onUpdate?.({ editionLabel: val })}
-            />
+        <div className="text-right">
+          <span className="block font-bold text-sm text-blue-600 uppercase tracking-tight">
+            2025 Edition
           </span>
-          <span className="text-[10px] font-black text-gray-400 block uppercase tracking-widest">
-            <EditableText
-              html={course.programLabel || "Professional Program"}
-              editMode={!!editMode}
-              onChange={(val) => onUpdate?.({ programLabel: val })}
-            />
+          <span className="text-xs font-medium text-gray-400 block">
+            Professional Program
           </span>
         </div>
       </motion.div>
 
       {/* Description / Overview */}
       <motion.div
-        className="space-y-6"
+        className="space-y-4 text-sm md:text-base text-gray-600 leading-relaxed"
         variants={container}
       >
-<<<<<<< HEAD
-        <motion.div variants={fadeUp} className="text-lg font-bold text-gray-800 border-l-4 border-blue-600 pl-6 py-1 bg-blue-50/30 rounded-r-xl">
-          <EditableText
-            html={course.overview}
-            editMode={!!editMode}
-            onChange={(val) => onUpdate?.({ overview: val })}
-          />
-        </motion.div>
-
-        <div className="space-y-6">
-          {(course.descriptionParts || []).map((part, index) => (
-            <motion.div key={index} variants={fadeUp} className="relative group pr-8">
-              <div className="text-base text-gray-600 leading-relaxed text-justify">
-                <EditableText
-                  html={part}
-                  editMode={!!editMode}
-                  onChange={(val) => handlePartChange(index, val)}
-                />
-              </div>
-              {editMode && (
-                <button
-                  onClick={() => removePart(index)}
-                  className="absolute right-0 top-0 p-1 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Remove Paragraph"
-                >
-                  <Trash2 size={16} />
-                </button>
-              )}
-            </motion.div>
-          ))}
-
-          {editMode && (
-            <motion.button
-              variants={fadeUp}
-              onClick={addPart}
-              className="flex items-center gap-2 text-blue-600 font-bold text-sm hover:text-blue-700 transition px-4 py-2 bg-blue-50 rounded-lg border-2 border-dashed border-blue-200"
-            >
-              <Plus size={16} />
-              Add Paragraph
-            </motion.button>
-          )}
-        </div>
-
-        <motion.div
-          variants={fadeUp}
-          className="p-6 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100 italic text-gray-500 text-sm mt-10 relative"
-        >
-          <span className="absolute -top-3 left-6 px-3 bg-white border border-gray-100 rounded-full text-[10px] font-bold text-gray-400 uppercase tracking-widest">Note</span>
-          * This program is part of the SIFS India standard training series and matches
-          the requirements for professional certification in forensic sciences.
-        </motion.div>
-=======
         {course.courseOutline ? (
           <div className="prose max-w-none text-gray-600 space-y-4 overflow-hidden break-words" dangerouslySetInnerHTML={{ __html: course.courseOutline }} />
         ) : (
@@ -193,7 +107,6 @@ export default function CourseInfo({ course, editMode, onUpdate }: Props) {
             </motion.div>
           </>
         )}
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e
       </motion.div>
     </motion.div>
   );

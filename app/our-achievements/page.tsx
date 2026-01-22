@@ -13,22 +13,14 @@ import AcademicCollaborations from "../../components/achievements/AcademicCollab
 import ClientsPortfolio from "../../components/achievements/ClientsPortfolio";
 import TestimonialsSection from '../../components/common/TestimonialsSection';
 import { useAchievementsPageData } from "@/hooks/useAchievementsPageData";
-<<<<<<< HEAD:app/achievements/page.tsx
-import ConfirmationDialog from "../../components/common/ConfirmationDialog";
-=======
 import { API_BASE_URL } from "@/lib/config";
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e:app/our-achievements/page.tsx
 
 export default function AchievementsPage() {
     const { data, updateSection, editMode, setEditMode, saveData, isLoaded: hookLoaded } = useAchievementsPageData();
     const [isSaving, setIsSaving] = useState(false);
     const [isEditLoading, setIsEditLoading] = useState(false);
-<<<<<<< HEAD:app/achievements/page.tsx
-    const [showConfirmation, setShowConfirmation] = useState(false);
-=======
     const [apiData, setApiData] = useState<any>(null);
     const [apiLoaded, setApiLoaded] = useState(false);
->>>>>>> 1cc90f746229fa7dd4dbbdbfc00fa50b69451e2e:app/our-achievements/page.tsx
 
     useEffect(() => {
         const fetchAchievementsData = async () => {
@@ -88,18 +80,13 @@ export default function AchievementsPage() {
         }, 600);
     };
 
-    const handleSaveClick = () => {
-        setShowConfirmation(true);
-    };
-
-    const handleConfirmSave = () => {
+    const handleSave = () => {
         setIsSaving(true);
         // Simulate save
         setTimeout(() => {
             saveData();
             setEditMode(false);
             setIsSaving(false);
-            setShowConfirmation(false);
             toast.success("✅ Content saved successfully");
         }, 800);
     };
@@ -107,22 +94,6 @@ export default function AchievementsPage() {
     return (
         <section className="bg-white relative min-h-screen">
             <Toaster position="top-right" />
-
-            {/* Confirmation Dialog */}
-            <ConfirmationDialog
-                isOpen={showConfirmation}
-                onClose={() => setShowConfirmation(false)}
-                onConfirm={handleConfirmSave}
-                title="Save Changes"
-                message="Are you sure you want to save all the changes made to this page? This action will update the content permanently."
-                confirmText="Save Changes"
-                cancelText="Cancel"
-                type="success"
-                isLoading={isSaving}
-                requirePassword={true}
-                username="admin@sifs.com"
-                expectedPassword="admin123"
-            />
 
             {/* Global Edit Control - Fixed at bottom right like About Page */}
             <div className="fixed bottom-6 right-6 z-[1000] flex gap-2">
@@ -141,7 +112,7 @@ export default function AchievementsPage() {
                     </button>
                 ) : (
                     <button
-                        onClick={handleSaveClick}
+                        onClick={handleSave}
                         disabled={isSaving}
                         className={`flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-green-700 transition-all font-medium animate-in fade-in zoom-in ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
                     >
