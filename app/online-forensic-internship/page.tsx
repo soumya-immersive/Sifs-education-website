@@ -5,7 +5,7 @@ import InternshipsGrid from "../../components/internships/InternshipsGrid";
 import Learning from "../../components/internships/Learning";
 
 async function getOnlineForensicInternships() {
-    const res = await fetch('http://localhost:3000/api/EducationAndInternship/Website/training/online-forensic-internship', { cache: 'no-store' });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/training/online-forensic-internship`, { cache: 'no-store' });
     if (!res.ok) {
         throw new Error('Failed to fetch data');
     }

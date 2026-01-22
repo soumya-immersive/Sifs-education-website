@@ -1,7 +1,7 @@
 // components/home/TestimonialsSection.tsx
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
@@ -9,64 +9,21 @@ import "swiper/css/pagination";
 import "swiper/css/autoplay";
 import { Pagination, Autoplay } from "swiper/modules";
 import { motion } from "framer-motion";
+import { API_BASE_URL } from "../../lib/config";
 
-// --- Interfaces and Data ---
+// --- Interfaces ---
 interface Testimonial {
   id: number;
   name: string;
-  course: string;
-  content: string;
-  quote: string;
-  avatar: string;
+  rank: string;
+  comment: string;
+  image_url: string;
 }
 
-const testimonialsData: Testimonial[] = [
-  {
-    id: 1,
-    name: "Zodia-Kay Smith",
-    course: "Document & Handwriting Examination",
-    content:
-      "SIFS provided me with an excellent online learning opportunity. The website was easy to use, and the course content and work was extensive.",
-    quote: "Great Learning Experience Overall",
-    avatar: "https://randomuser.me/api/portraits/women/32.jpg",
-  },
-  {
-    id: 2,
-    name: "Patrice Tyron Johnson",
-    course: "Criminology and Victimology",
-    content:
-      "SIFS provided me with an excellent online learning opportunity. The website was easy to use, and the course content and work was extensive.",
-    quote: "Fantastic platform with quality courses",
-    avatar: "https://randomuser.me/api/portraits/men/54.jpg",
-  },
-  {
-    id: 3,
-    name: "Felissa Aliyah Jones",
-    course: "Fingerprint Examination & Analysis",
-    content:
-      "SIFS provided me with an excellent online learning opportunity. The website was easy to use, and the course content and work was extensive.",
-    quote: "Very satisfied with the lessons",
-    avatar: "https://randomuser.me/api/portraits/women/65.jpg",
-  },
-  {
-    id: 4,
-    name: "Patrice Tyron Johnson",
-    course: "Criminology and Victimology",
-    content:
-      "SIFS provided me with an excellent online learning opportunity. The website was easy to use, and the course content and work was extensive.",
-    quote: "Fantastic platform with quality courses",
-    avatar: "https://randomuser.me/api/portraits/men/54.jpg",
-  },
-  {
-    id: 5,
-    name: "Felissa Aliyah Jones",
-    course: "Fingerprint Examination & Analysis",
-    content:
-      "SIFS provided me with an excellent online learning opportunity. The website was easy to use, and the course content and work was extensive.",
-    quote: "Very satisfied with the lessons",
-    avatar: "https://randomuser.me/api/portraits/women/65.jpg",
-  },
-];
+interface SectionData {
+  testimonial_title: string;
+  testimonial_subtitle: string;
+}
 
 // -------------------- Framer Motion Variants --------------------
 
@@ -100,6 +57,68 @@ const itemSlideUpVariants = {
 const TestimonialsSection: React.FC = () => {
   const swiperRef = useRef<any>(null);
   const paginationRef = useRef<any>(null);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [sectionData, setSectionData] = useState<SectionData>({
+    testimonial_title: "Students Speak",
+    testimonial_subtitle: "Real Success Stories. Hear What Our Course Attendees Have to Say!",
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch section titles from main API
+        const sectionRes = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
+        if (sectionRes.ok) {
+          const sectionJson = await sectionRes.json();
+          if (sectionJson.bs) {
+            setSectionData({
+              testimonial_title: sectionJson.bs.testimonial_title || "What Our Happy Student Say About Us",
+              testimonial_subtitle: sectionJson.bs.testimonial_subtitle || "Real Success Stories. Hear What Our Course Attendees Have to Say!",
+            });
+          }
+        }
+
+        // Fetch testimonials
+        const testimonialsRes = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/testimonials?page=1&limit=10&search=`);
+        if (testimonialsRes.ok) {
+          const testimonialsJson = await testimonialsRes.json();
+          if (testimonialsJson.success && testimonialsJson.data?.data) {
+            setTestimonials(testimonialsJson.data.data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching testimonials data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Generate a short quote from the comment
+  const generateQuote = (comment: string): string => {
+    const words = comment.split(' ').slice(0, 5).join(' ');
+    return `"${words}..."`;
+  };
+
+  if (loading) {
+    return (
+      <div
+        className="relative py-16 md:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/testimonials-bg.png')", backgroundColor: "#F6F8FB" }}
+      >
+        <div className="max-w-7xl mx-auto flex justify-center items-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#008DD2]"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (testimonials.length === 0) {
+    return null;
+  }
 
   return (
     <div
@@ -122,10 +141,10 @@ const TestimonialsSection: React.FC = () => {
           variants={itemSlideUpVariants}
         >
           <h1 className="text-3xl md:text-4xl font-bold text-black mb-4">
-            What Our Happy Student Say About Us
+            {sectionData.testimonial_title}
           </h1>
           <p className="text-lg text-[#6B7385]">
-            Real Success Stories. Hear What Our Course Attendees Have to Say!
+            {sectionData.testimonial_subtitle}
           </p>
         </motion.div>
 
@@ -155,7 +174,7 @@ const TestimonialsSection: React.FC = () => {
             }}
             className="pb-12"
           >
-            {testimonialsData.map((testimonial) => (
+            {testimonials.map((testimonial) => (
               <SwiperSlide key={testimonial.id}>
                 <div className="bg-white rounded-lg shadow-lg overflow-hidden h-full relative">
                   <div className="absolute top-4 right-4">
@@ -172,17 +191,17 @@ const TestimonialsSection: React.FC = () => {
 
                   <div className="p-5 pt-12">
                     <h3 className="text-md font-bold text-gray-900 mb-4 min-h-12">
-                      "{testimonial.quote}"
+                      {generateQuote(testimonial.comment)}
                     </h3>
 
                     <p className="text-gray-700 text-sm mb-6">
-                      {testimonial.content}
+                      {testimonial.comment}
                     </p>
 
                     <div className="flex items-center gap-2 bg-blue-50 rounded-lg p-2">
                       <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-gray-200">
                         <img
-                          src={testimonial.avatar}
+                          src={testimonial.image_url}
                           alt={testimonial.name}
                           className="w-full h-full object-cover"
                         />
@@ -193,7 +212,7 @@ const TestimonialsSection: React.FC = () => {
                           {testimonial.name}
                         </div>
                         <div className="text-gray-600 text-xs">
-                          {testimonial.course}
+                          {testimonial.rank}
                         </div>
                       </div>
                     </div>

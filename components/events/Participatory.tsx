@@ -1,18 +1,27 @@
-// components/home/Participatory.tsx
+// components/events/Participatory.tsx
 "use client";
 
 import Image from "next/image";
 import { motion, spring, easeOut } from "framer-motion";
 
-// Partner logos
-const partners = [
-  { name: "Aster Heal Group", logo: "/events/participatory1.png" },
-  { name: "ACPM Medical College", logo: "/events/participatory2.png" },
-  { name: "Birla Sun Life", logo: "/events/participatory3.png" },
-  { name: "University Partner", logo: "/events/participatory4.png" },
-  { name: "Accenture", logo: "/events/participatory5.png" },
-  { name: "Sri Paramakalyani College", logo: "/events/participatory6.png" },
-];
+interface Partner {
+  id: number;
+  image: string;
+  image_url?: string;
+  url: string;
+}
+
+interface Testimonial {
+  id: number;
+  name: string;
+  heading: string;
+  comment: string;
+}
+
+interface ParticipatoryProps {
+  partners: Partner[];
+  testimonials: Testimonial[];
+}
 
 // --------------------
 //     VARIANTS FIXED
@@ -58,7 +67,10 @@ const textItemVariants = {
   },
 };
 
-export default function Participatory() {
+export default function Participatory({ partners, testimonials }: ParticipatoryProps) {
+  // Use partners if available, otherwise show default
+  const displayPartners = partners && partners.length > 0 ? partners.slice(0, 6) : [];
+
   return (
     <section className="bg-white py-16">
       <div className="mx-auto max-w-7xl px-4">
@@ -92,23 +104,41 @@ export default function Participatory() {
             </div>
 
             {/* Logos */}
-            <motion.div className="mt-10 flex flex-wrap items-center justify-center gap-4 md:gap-4">
-              {partners.map((partner) => (
-                <motion.div
-                  key={partner.name}
-                  className="flex h-16 w-28 items-center justify-center md:h-32 md:w-40"
-                  variants={logoItemVariants}
-                >
-                  <Image
-                    src={partner.logo}
-                    alt={partner.name}
-                    width={150}
-                    height={100}
-                    className="max-h-full max-w-full object-contain"
-                  />
-                </motion.div>
-              ))}
-            </motion.div>
+            {displayPartners.length > 0 ? (
+              <motion.div className="mt-10 flex flex-wrap items-center justify-center gap-4 md:gap-4">
+                {displayPartners.map((partner) => {
+                  // Ensure valid image source
+                  const imageSrc = (partner.image_url && partner.image_url.trim() !== '')
+                    ? partner.image_url
+                    : (partner.image && partner.image.trim() !== '')
+                      ? partner.image
+                      : "/placeholder-partner.png";
+
+                  return (
+                    <motion.div
+                      key={partner.id}
+                      className="flex h-16 w-28 items-center justify-center md:h-32 md:w-40"
+                      variants={logoItemVariants}
+                    >
+                      <a href={partner.url} target="_blank" rel="noopener noreferrer">
+                        <Image
+                          src={imageSrc}
+                          alt="Partner"
+                          width={150}
+                          height={100}
+                          className="max-h-full max-w-full object-contain hover:scale-110 transition-transform"
+                          unoptimized={imageSrc.startsWith('http')}
+                        />
+                      </a>
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            ) : (
+              <div className="mt-10 text-center text-gray-500">
+                <p>No partners available at the moment.</p>
+              </div>
+            )}
           </div>
         </motion.div>
       </div>

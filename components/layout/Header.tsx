@@ -156,59 +156,79 @@ export default function Header() {
 
     try {
       const parser = new DOMParser();
-      // Ensure specific wrapper to avoid parsing issues with li elements
-      const doc = parser.parseFromString(`<body><ul>${htmlString}</ul></body>`, "text/html");
-      const ul = doc.querySelector("ul");
-
-      if (!ul) {
-        console.error("Failed to parse UL from header HTML");
-        return [];
-      }
+      // Parse the snippet. Wrapping in body ensures we have a root.
+      const doc = parser.parseFromString(`<body>${htmlString}</body>`, "text/html");
+      const body = doc.body;
 
       const items: NavItem[] = [];
-      const liElements = Array.from(ul.children);
 
-      liElements.forEach((node) => {
-        if (node.tagName.toLowerCase() !== 'li') return;
-        const li = node as Element;
+      // Helper to extract clean link data
+      const extractLink = (a: Element): NavItem => ({
+        label: a.textContent?.trim() || "",
+        path: sanitizePath(a.getAttribute("href") || "#"),
+        target: a.getAttribute("target") || undefined
+      });
 
-        const anchor = li.querySelector(":scope > a");
-        if (!anchor && !li.classList.contains("dropdown")) return;
+      // We expect a structure like: <p><a>Target</a></p> <ul>...</ul> <p><a>Target</a></p>
+      // But we iterate simply over children to maintain order roughly, 
+      // though the core request is to handle the UL's messy internal structure.
 
-        const label = anchor?.textContent?.trim() || "";
-        const rawPath = anchor?.getAttribute("href") || "#";
-        const path = sanitizePath(rawPath);
+      const children = Array.from(body.children);
+      const ul = body.querySelector("ul");
 
-        // If sanitized path is internal, remove target="_blank"
-        const isSanitizedInternal = path.startsWith("/") && !rawPath.startsWith("/");
-        const target = isSanitizedInternal ? undefined : (anchor?.getAttribute("target") || undefined);
+      // Strategy:
+      // 1. If we find a UL, we treat its internal structure with special "grouping" logic.
+      // 2. Anything outside the UL (before or after) is treated as a top-level link.
 
-        const subUl = li.querySelector("ul");
-        let children: NavItem[] | undefined;
+      children.forEach((node) => {
+        if (node.tagName.toLowerCase() === 'ul') {
+          // Process the UL - Reconstruct Dropdows
+          // The API returns distinct groups starting with href="#" links.
+          // Because of WYSIWYG flattening, nested Uls might be gone or LIs merged.
+          // We flatten the search to all A tags inside the UL.
+          const anchors = Array.from(node.querySelectorAll("a"));
+          let currentGroup: NavItem | null = null;
 
-        if (subUl) {
-          children = [];
-          const subLis = Array.from(subUl.children);
-          subLis.forEach((subNode) => {
-            if (subNode.tagName.toLowerCase() !== 'li') return;
-            const subLi = subNode as Element;
-            const subA = subLi.querySelector("a");
-            if (subA) {
-              const subRawPath = subA.getAttribute("href") || "#";
-              const subPath = sanitizePath(subRawPath);
-              const subIsInternal = subPath.startsWith("/") && !subRawPath.startsWith("/");
+          anchors.forEach((a) => {
+            const rawHref = a.getAttribute("href");
+            const isHeader = rawHref === "#" || rawHref === "" || rawHref === "javascript:void(0)";
 
-              children!.push({
-                label: subA.textContent?.trim() || "",
-                path: subPath,
-                target: subIsInternal ? undefined : (subA.getAttribute("target") || undefined)
-              });
+            if (isHeader) {
+              // This acts as a Section Header (Dropdown Parent)
+              currentGroup = {
+                label: a.textContent?.trim() || "",
+                path: "#",
+                children: []
+              };
+              items.push(currentGroup);
+            } else {
+              // This is a Link
+              const linkItem = extractLink(a);
+
+              if (currentGroup) {
+                // If we have an active header, add to it
+                currentGroup.children?.push(linkItem);
+              } else {
+                // Result of loose link at start of UL? Treat as top level.
+                items.push(linkItem);
+              }
             }
           });
-        }
 
-        items.push({ label, path, target, children });
+        } else {
+          // Process standard tags (p, div, etc) containing simple links
+          const links = node.querySelectorAll("a");
+          links.forEach((a) => {
+            items.push(extractLink(a));
+          });
+        }
       });
+
+      // Fallback: If no structure found at all (empty body children?)
+      if (items.length === 0) {
+        const allLinks = doc.querySelectorAll("a");
+        allLinks.forEach(a => items.push(extractLink(a)));
+      }
 
       return items;
     } catch (e) {
@@ -242,6 +262,7 @@ export default function Header() {
             width={100}
             height={100}
             priority
+            className="w-auto h-auto"
           />
         </Link>
 

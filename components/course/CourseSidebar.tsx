@@ -112,7 +112,7 @@ export default function CourseSidebar({ course }: Props) {
     setQueryMessage(null);
 
     try {
-      const response = await fetch(`http://localhost:3000/api/EducationAndInternship/Website/courses/${course.id}/comment`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/courses/${course.id}/comment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

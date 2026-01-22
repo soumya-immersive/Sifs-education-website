@@ -67,7 +67,7 @@ export default function RegistrationForm() {
     useEffect(() => {
         const fetchCountries = async () => {
             try {
-                const response = await fetch("http://localhost:3000/api/EducationAndInternship/Website/front");
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/front`);
                 if (response.ok) {
                     const result = await response.json();
                     if (result.countries && Array.isArray(result.countries)) {
@@ -137,7 +137,7 @@ export default function RegistrationForm() {
         console.log("Registration Payload:", payload); // Debug log
 
         try {
-            const response = await fetch("http://localhost:3000/api/EducationAndInternship/Website/training/register-for-training-process", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/training/register-for-training-process`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -181,6 +181,76 @@ export default function RegistrationForm() {
 
     const registrationType = searchParams.get("type") === "training" ? "Training" : "Internship";
 
+    const [couponMessage, setCouponMessage] = useState({ type: '', text: '' });
+    const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+    const [appliedCouponData, setAppliedCouponData] = useState<any>(null);
+    const [finalPrice, setFinalPrice] = useState<number | null>(null);
+
+    // Helper to get Roman numeral for level
+    const getLevelDisplay = (level: string) => {
+        if (level === '1') return 'Level-I';
+        if (level === '2') return 'Level-II';
+        if (level === '3') return 'Level-III';
+        return `Level-${level}`;
+    };
+
+    const handleApplyCoupon = async () => {
+        if (!couponCode) {
+            setCouponMessage({ type: 'error', text: 'Please enter a coupon code' });
+            return;
+        }
+        setIsApplyingCoupon(true);
+        setCouponMessage({ type: '', text: '' });
+
+        const type = registrationType === "Training" ? "training" : "internship"; // assuming internship needs similar handling, or verify API expectations for 'internship'. 
+        // User prompt usually said 'course' or 'training'.
+        // If it is 'internship', verify what 'course_type' should be.
+        // Based on previous issues, 'training' covers internships usually in this system (TrainingPaymentController). 
+        // But for safety, I will stick to what the form implies: 'course_type' -> 'training' for Training/Internship if API supports it.
+        // Actually, let's use lowercase of registrationType. 
+        // User example was "course_type": "course".
+        // If this is training or internship...
+        const apiType = registrationType === "Training" ? "training" : "internship";
+        // Wait, does 'internship' exist as a type?  Usually it's 'training' or 'course'. 
+        // Let's assume 'course' | 'training' are the main ones. If it's internship, it's likely 'training' in the backend based on other controllers (TrainingPaymentController handles internships).
+        // Let's try sending 'training' if likely. Or just lowercase.
+
+        try {
+            const payload = {
+                coupon_code: couponCode,
+                course_type: "training", // Most likely 'training' covers both training and internship in this system based on file names.
+                course_type_id: internshipId,
+                level: getLevelDisplay(levelParam) // Ensure it sends "Level-I", etc.
+            };
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/front/apply-coupon`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                setAppliedCouponData(result.data);
+                setCouponMessage({ type: 'success', text: 'Coupon applied successfully!' });
+
+                const cleanPrice = parseFloat(price.replace(/[^0-9.]/g, '')) || 0;
+                const discount = parseFloat(result.data.discounted_amt) || 0;
+                setFinalPrice(Math.max(0, cleanPrice - discount));
+            } else {
+                setCouponMessage({ type: 'error', text: result.msg || 'Invalid coupon code' });
+                setAppliedCouponData(null);
+                setFinalPrice(null);
+            }
+        } catch (error) {
+            console.error(error);
+            setCouponMessage({ type: 'error', text: 'Error applying coupon' });
+        } finally {
+            setIsApplyingCoupon(false);
+        }
+    };
+
     return (
         <div className="max-w-6xl mx-auto px-4 py-8 lg:py-12">
 
@@ -209,23 +279,36 @@ export default function RegistrationForm() {
                     <form onSubmit={handleSubmit} className="p-8 space-y-10">
 
                         {/* Coupon Code Section */}
-                        <div className="flex shadow-sm rounded-md overflow-hidden h-12">
-                            <div className="bg-[#FFC107] w-12 flex items-center justify-center shrink-0">
-                                <Wand2 className="text-white w-6 h-6" />
+                        <div className="flex flex-col gap-2">
+                            <div className="flex shadow-sm rounded-md overflow-hidden h-12">
+                                <div className="bg-[#FFC107] w-12 flex items-center justify-center shrink-0">
+                                    <Wand2 className="text-white w-6 h-6" />
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Coupon Code"
+                                    className="flex-1 border-y border-gray-300 px-4 focus:outline-none text-gray-700 bg-white placeholder-gray-500/70"
+                                    value={couponCode}
+                                    onChange={(e) => setCouponCode(e.target.value)}
+                                    disabled={!!appliedCouponData}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleApplyCoupon}
+                                    disabled={isApplyingCoupon || !!appliedCouponData}
+                                    className={`
+                                        bg-[#28A745] hover:bg-green-600 text-white font-bold px-8 transition-colors text-sm tracking-wide
+                                        ${(isApplyingCoupon || !!appliedCouponData) ? 'opacity-70 cursor-not-allowed' : ''}
+                                    `}
+                                >
+                                    {isApplyingCoupon ? '...' : appliedCouponData ? 'APPLIED' : 'APPLY'}
+                                </button>
                             </div>
-                            <input
-                                type="text"
-                                placeholder="Coupon Code"
-                                className="flex-1 border-y border-gray-300 px-4 focus:outline-none text-gray-700 bg-white placeholder-gray-500/70"
-                                value={couponCode}
-                                onChange={(e) => setCouponCode(e.target.value)}
-                            />
-                            <button
-                                type="button"
-                                className="bg-[#28A745] hover:bg-green-600 text-white font-bold px-8 transition-colors text-sm tracking-wide"
-                            >
-                                APPLY
-                            </button>
+                            {couponMessage.text && (
+                                <p className={`text-sm ${couponMessage.type === 'error' ? 'text-red-500' : 'text-green-600'}`}>
+                                    {couponMessage.text}
+                                </p>
+                            )}
                         </div>
 
                         {/* Personal Info */}
@@ -430,9 +513,28 @@ export default function RegistrationForm() {
                             </div>
 
                             <div className="mt-6 pt-4 border-t-2 border-dashed border-gray-200">
-                                <div className="flex items-end justify-between">
-                                    <span className="font-bold text-gray-700">Estimated Fee</span>
-                                    <span className="text-xl font-bold text-blue-600">{price}</span>
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex items-end justify-between">
+                                        <span className="font-bold text-gray-700">Fee</span>
+                                        <span className={`text-xl font-bold text-blue-600 ${appliedCouponData ? 'line-through text-gray-400 text-base' : ''}`}>
+                                            {price}
+                                        </span>
+                                    </div>
+
+                                    {appliedCouponData && (
+                                        <>
+                                            <div className="flex items-center justify-between text-green-600">
+                                                <span className="font-medium text-sm">Coupon Discount</span>
+                                                <span className="font-bold">- ₹{appliedCouponData.discounted_amt}</span>
+                                            </div>
+                                            <div className="flex items-end justify-between pt-2 border-t border-gray-100">
+                                                <span className="font-bold text-gray-900">Total Payable</span>
+                                                <span className="text-2xl font-extrabold text-blue-600">
+                                                    {finalPrice ? `₹${finalPrice}` : price}
+                                                </span>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>

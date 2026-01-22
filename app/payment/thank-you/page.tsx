@@ -1,10 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle2, Download, Home, Loader2 } from "lucide-react";
 
 export default function ThankYouPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+                    <p className="text-gray-500 font-medium">Loading receipt...</p>
+                </div>
+            </div>
+        }>
+            <ThankYouContent />
+        </Suspense>
+    );
+}
+
+function ThankYouContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const paymentId = searchParams.get("payment_id");
@@ -26,9 +41,9 @@ export default function ThankYouPage() {
             try {
                 let url = "";
                 if (type === "training") {
-                    url = `http://localhost:3000/api/EducationAndInternship/Website/training-payment/training-thank-you?payment_id=${paymentId}&registration_no=${registrationNo}`;
+                    url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/training-payment/training-thank-you?payment_id=${paymentId}&registration_no=${registrationNo}`;
                 } else {
-                    url = `http://localhost:3000/api/EducationAndInternship/Website/payment/thank-you?payment_id=${paymentId}&registration_no=${registrationNo}`;
+                    url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/payment/thank-you?payment_id=${paymentId}&registration_no=${registrationNo}`;
                 }
 
                 const response = await fetch(url);
@@ -117,14 +132,6 @@ export default function ThankYouPage() {
                             <Home className="w-5 h-5" />
                             Return Home
                         </button>
-                        {/* 
-                        <button 
-                            className="flex items-center justify-center gap-2 border-2 border-indigo-100 text-indigo-600 bg-indigo-50 px-8 py-3.5 rounded-xl font-bold hover:bg-indigo-100 transition-all hover:-translate-y-0.5"
-                        >
-                            <Download className="w-5 h-5" />
-                            Download Receipt
-                        </button>
-                        */}
                     </div>
                 </div>
             </div>

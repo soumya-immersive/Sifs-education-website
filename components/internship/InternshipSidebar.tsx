@@ -142,7 +142,7 @@ export default function InternshipSidebar({ internship }: Props) {
     // Mock submission or real API if endpoint exists
     try {
       // Using course comment endpoint for now as placeholder
-      const response = await fetch(`http://localhost:3000/api/EducationAndInternship/Website/courses/${internship.id}/comment`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/courses/${internship.id}/comment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...queryForm, type: "internship" }),

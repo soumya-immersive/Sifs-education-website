@@ -2,65 +2,24 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { API_BASE_URL } from "../../lib/config";
-import { Loader2 } from "lucide-react";
 
 interface Expert {
   id: number;
   name: string;
-  role: string;
+  rank: string;
   image: string;
+  image_url?: string;
   slug: string;
 }
 
-export default function ExpertTeam() {
-  const [experts, setExperts] = useState<Expert[]>([]);
-  const [loading, setLoading] = useState(true);
+interface ExpertTeamProps {
+  organizers: Expert[];
+}
 
-  useEffect(() => {
-    const fetchTeam = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/team`);
-        const result = await response.json();
-
-        if (result.success && result.data && Array.isArray(result.data.members)) {
-          const mapped = result.data.members.map((item: any) => {
-            let imageUrl = item.image || "";
-            if (imageUrl) {
-              imageUrl = imageUrl.replace(/\\/g, "/");
-              // Check if absolute or relative
-              if (!imageUrl.startsWith("http")) {
-                // Using localhost:3000 as per other files, or relative /uploads if proxied
-                // app/teams/page.tsx uses http://localhost:3000/uploads
-                imageUrl = `http://localhost:3000/uploads/${imageUrl}`;
-              }
-            }
-
-            const clean = (str: any) => (str ? str.toString().replace(/^"|"$/g, '') : "");
-
-            return {
-              id: item.id,
-              name: clean(item.name),
-              role: clean(item.rank),
-              image: imageUrl,
-              slug: item.slug
-            };
-          });
-
-          // Display first 4 members
-          setExperts(mapped.slice(0, 4));
-        }
-      } catch (error) {
-        console.error("Error fetching expert team:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTeam();
-  }, []);
+export default function ExpertTeam({ organizers }: ExpertTeamProps) {
+  // Take first 4 organizers
+  const experts = organizers && organizers.length > 0 ? organizers.slice(0, 4) : [];
 
   return (
     <section
@@ -107,57 +66,67 @@ export default function ExpertTeam() {
         </div>
 
         {/* TEAM GRID */}
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        {experts && experts.length > 0 ? (
+          <div className="grid md:grid-cols-4 gap-6">
+            {experts.map((item) => {
+              // Ensure valid image source
+              const imageSrc = (item.image_url && item.image_url.trim() !== '')
+                ? item.image_url
+                : (item.image && item.image.trim() !== '')
+                  ? item.image
+                  : "/placeholder-user.jpg";
+
+              return (
+                <motion.div
+                  key={item.id}
+                  whileHover="hover"
+                  initial="rest"
+                  animate="rest"
+                  className="relative rounded-xl overflow-hidden shadow-md group text-center"
+                >
+                  {/* IMAGE */}
+                  <div className="w-full h-[360px] relative bg-gray-200">
+                    <Image
+                      src={imageSrc}
+                      alt={item.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                      unoptimized={imageSrc.startsWith('http')}
+                    />
+                  </div>
+
+                  {/* OVERLAY */}
+                  <div
+                    className="absolute inset-0
+                    bg-gradient-to-t from-black/80 via-black/30 to-transparent"
+                  />
+
+                  {/* TEXT ABOVE OVERLAY */}
+                  <motion.div
+                    variants={{
+                      rest: { scale: 1 },
+                      hover: {
+                        scale: 1.12,
+                        transition: { duration: 0.35, ease: "easeOut" },
+                      },
+                    }}
+                    className="absolute bottom-0 left-0 right-0 p-4 text-white z-10"
+                  >
+                    <p className="font-semibold leading-tight">
+                      {item.name}
+                    </p>
+                    <p className="text-xs opacity-90 text-[#D08522]">
+                      {item.rank}
+                    </p>
+                  </motion.div>
+                </motion.div>
+              );
+            })}
           </div>
         ) : (
-          <div className="grid md:grid-cols-4 gap-6">
-            {experts.map((item, i) => (
-              <motion.div
-                key={item.id}
-                whileHover="hover"
-                initial="rest"
-                animate="rest"
-                className="relative rounded-xl overflow-hidden shadow-md group text-center"
-              >
-                {/* IMAGE */}
-                <div className="w-full h-[360px] relative bg-gray-200">
-                  <Image
-                    src={item.image || "/placeholder-user.jpg"}
-                    alt={item.name}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                  />
-                </div>
-
-                {/* OVERLAY */}
-                <div
-                  className="absolute inset-0
-                    bg-gradient-to-t from-black/80 via-black/30 to-transparent"
-                />
-
-                {/* TEXT ABOVE OVERLAY */}
-                <motion.div
-                  variants={{
-                    rest: { scale: 1 },
-                    hover: {
-                      scale: 1.12,
-                      transition: { duration: 0.35, ease: "easeOut" },
-                    },
-                  }}
-                  className="absolute bottom-0 left-0 right-0 p-4 text-white z-10"
-                >
-                  <p className="font-semibold leading-tight">
-                    {item.name}
-                  </p>
-                  <p className="text-xs opacity-90 text-[#D08522]">
-                    {item.role}
-                  </p>
-                </motion.div>
-              </motion.div>
-            ))}
+          <div className="text-center py-10">
+            <p className="text-gray-500">No team members available at the moment.</p>
           </div>
         )}
 

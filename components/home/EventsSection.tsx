@@ -5,59 +5,52 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/config";
 
 type Event = {
   id: number;
-  slug: string; // Add slug for routing
+  slug: string;
   title: string;
   date: string;
   mode: string;
   description: string;
   image: string;
+  start_date: string;
+  end_date: string;
+  formatted_date: string;
 };
 
-const events: Event[] = [
-  {
-    id: 1,
-    slug: "digital-forensics-cyber-security", // Add slug
-    title: "Digital Forensics & Cyber Security",
-    date: "08 Dec, 2025",
-    mode: "Online Zoom",
-    description:
-      "A micro certificate program offered by Sherlock Institute of Forensic Science (SIFS) India is an intensive 5-day program.",
-    image: "/event/1.png",
-  },
-  {
-    id: 2,
-    slug: "6th-international-forensic-science-conference", // Add slug
-    title: "6th International Forensic Science Conference",
-    date: "08 Dec, 2025",
-    mode: "Online Zoom",
-    description:
-      "An intensive 5-day program focused on contemporary forensic science domains.",
-    image: "/event/2.png",
-  },
-  {
-    id: 3,
-    slug: "global-dimensions-forensic-science-strengthening-justice", // Add slug
-    title: "Global Dimensions of Forensic Science: Strengthening Justice...",
-    date: "08 Dec, 2025",
-    mode: "Online Zoom",
-    description:
-      "A program exploring global best practices in forensic science and justice.",
-    image: "/event/3.png",
-  },
-  {
-    id: 4,
-    slug: "forensic-psychology-principles-practice-ethics", // Add slug
-    title: "Forensic Psychology - Its Principles, Practice & Ethics",
-    date: "08 Dec, 2025",
-    mode: "Online Zoom",
-    description:
-      "An intensive 5-day program focused on forensic psychology applications.",
-    image: "/event/2.png",
-  },
-];
+type APIEvent = {
+  id: number;
+  language_id: number;
+  title: string;
+  slug: string;
+  banner_title: string;
+  banner_subtitle: string;
+  certificate_series: string;
+  download_certificate: number;
+  start_date: string;
+  end_date: string;
+  created_at: string;
+  updated_at: string;
+  start_day: string;
+  start_month_year: string;
+  formatted_date: string;
+};
+
+type APIResponse = {
+  success: boolean;
+  message: string;
+  statusCode: number;
+  timestamp: string;
+  data: {
+    data: APIEvent[];
+    pagination: any;
+    summary: any;
+    filters: any;
+  };
+};
 
 // Helper function to generate slugs (if not provided)
 const generateSlug = (title: string): string => {
@@ -68,14 +61,21 @@ const generateSlug = (title: string): string => {
     .substring(0, 50);
 };
 
-const timerTitles = ["Days", "Hours", "Min", "Sec"];
-
-const timerValues: { [key: number]: string[] } = {
-  1: ["12", "11", "45", "38"],
-  2: ["10", "20", "07", "55"],
-  3: ["05", "03", "18", "22"],
-  4: ["01", "15", "30", "40"],
+// Helper to calculate time remaining
+const calculateTimeLeft = (targetDate: string) => {
+  const difference = +new Date(targetDate) - +new Date();
+  if (difference > 0) {
+    return {
+      days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+      minutes: Math.floor((difference / 1000 / 60) % 60),
+      seconds: Math.floor((difference / 1000) % 60),
+    };
+  }
+  return null;
 };
+
+const timerTitles = ["Days", "Hours", "Min", "Sec"];
 
 const timerStyles = [
   { container: "bg-sky-500 border border-sky-500", number: "text-white", title: "text-sky-100" },
@@ -148,10 +148,142 @@ const subItemVariants: Variants = {
 // ------------------ Component ------------------
 export default function EventsSection() {
   const router = useRouter();
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [timeLefts, setTimeLefts] = useState<{ [key: number]: any }>({});
+
+  // Default event images (cycling through available images)
+  const defaultImages = ["/event/1.png", "/event/2.png", "/event/3.png"];
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          `${API_BASE_URL}/EventManagement/Website/events?type=upcoming`
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch events");
+        }
+
+        const result: APIResponse = await response.json();
+
+        if (result.success && result.data?.data) {
+          // Transform API data to match our Event type
+          const transformedEvents: Event[] = result.data.data.slice(0, 4).map((apiEvent, index) => ({
+            id: apiEvent.id,
+            slug: apiEvent.slug,
+            title: apiEvent.title,
+            date: apiEvent.formatted_date,
+            mode: "Online Zoom", // Default mode
+            description: `${apiEvent.banner_title} ${apiEvent.banner_subtitle}`,
+            image: defaultImages[index % defaultImages.length],
+            start_date: apiEvent.start_date,
+            end_date: apiEvent.end_date,
+            formatted_date: apiEvent.formatted_date,
+          }));
+
+          setEvents(transformedEvents);
+        } else {
+          setError("No events found");
+        }
+      } catch (err) {
+        console.error("Error fetching events:", err);
+        setError(err instanceof Error ? err.message : "Failed to load events");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  // Initialize timers on mount
+  useEffect(() => {
+    if (events && events.length > 0) {
+      const initialTimers: any = {};
+      events.forEach((ev) => {
+        const targetDate = ev.start_date || ev.end_date;
+        if (targetDate) {
+          const tl = calculateTimeLeft(targetDate);
+          if (tl) initialTimers[ev.id] = tl;
+        }
+      });
+      setTimeLefts(initialTimers);
+    }
+  }, [events]);
+
+  // Timer Interval
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (events && events.length > 0) {
+        const updates: any = {};
+        let changed = false;
+        events.forEach((ev) => {
+          const targetDate = ev.start_date || ev.end_date;
+          if (targetDate) {
+            const tl = calculateTimeLeft(targetDate);
+            if (tl) {
+              updates[ev.id] = tl;
+              changed = true;
+            }
+          }
+        });
+        if (changed) setTimeLefts((prev) => ({ ...prev, ...updates }));
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [events]);
 
   const handleExploreClick = () => {
     router.push("/events");
   };
+
+  if (loading) {
+    return (
+      <section className="bg-gradient-to-r from-white via-white to-violet-50 py-16">
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#3A58EE] border-r-transparent"></div>
+              <p className="mt-4 text-gray-600">Loading events...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="bg-gradient-to-r from-white via-white to-violet-50 py-16">
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <p className="text-red-500">Error: {error}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (events.length === 0) {
+    return (
+      <section className="bg-gradient-to-r from-white via-white to-violet-50 py-16">
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <p className="text-gray-600">No upcoming events at the moment.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-gradient-to-r from-white via-white to-violet-50 py-16">
@@ -200,7 +332,19 @@ export default function EventsSection() {
         >
           {events.map((event) => {
             const slug = event.slug || generateSlug(event.title);
-            
+
+            // Get timer values for this event
+            const timerVal = timeLefts[event.id];
+            // Convert timer to array format matched with labels
+            const timerValues = timerVal
+              ? [
+                String(timerVal.days).padStart(2, "0"),
+                String(timerVal.hours).padStart(2, "0"),
+                String(timerVal.minutes).padStart(2, "0"),
+                String(timerVal.seconds).padStart(2, "0"),
+              ]
+              : ["00", "00", "00", "00"];
+
             return (
               <motion.article
                 key={event.id}
@@ -211,11 +355,11 @@ export default function EventsSection() {
                 <Link href={`/events/${slug}`} className="flex flex-col flex-1">
                   {/* Image */}
                   <motion.div className="relative h-44 w-full" variants={subItemVariants}>
-                    <Image 
-                      src={event.image} 
-                      alt={event.title} 
-                      fill 
-                      className="object-cover rounded-lg hover:scale-105 transition-transform duration-300" 
+                    <Image
+                      src={event.image}
+                      alt={event.title}
+                      fill
+                      className="object-cover rounded-lg hover:scale-105 transition-transform duration-300"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                     />
                   </motion.div>
@@ -256,7 +400,7 @@ export default function EventsSection() {
                           return (
                             <div key={title} className={`rounded-md px-2 py-1 ${style.container}`}>
                               <div className={`text-sm font-bold ${style.number}`}>
-                                {timerValues[event.id]?.[i] || "00"}
+                                {timerValues[i]}
                               </div>
                               <div className={`text-[9px] ${style.title}`}>{title}</div>
                             </div>

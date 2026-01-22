@@ -15,7 +15,7 @@ export default function RootLayout({
         <Topbar />
         <Header />
         <main>{children}</main>
-        <Footer/>
+        <Footer />
       </body>
     </html>
   );

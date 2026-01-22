@@ -35,35 +35,46 @@ async function getApiTrainings(program: string): Promise<Training[]> {
   if (!url) return [];
 
   try {
-    const res = await fetch(url, { cache: "no-store" });
+    console.log(`Fetching trainings for ${program} from ${url}`);
+    const res = await fetch(url, { cache: "no-store", headers: { 'Accept': 'application/json' } });
+
     if (!res.ok) {
       console.error(`Failed to fetch trainings for ${program}: ${res.status} ${res.statusText}`);
+      const text = await res.text();
+      console.error('Error Body:', text.slice(0, 500)); // Log first 500 chars
       return [];
     }
-    const json = await res.json();
 
-    if (json.success && json.data?.data) {
-      return json.data.data.map((t: ApiTraining) => ({
-        id: t.id,
-        slug: t.slug,
-        programSlug: program,
-        trainingCode: t.training_code || `CT-${t.id}`,
-        title: t.title,
-        overview: t.sub_title || "",
-        heroImage: t.image_url || "/training/training.png",
-        rating: 4.8,
-        reviewsCount: 150,
-        bannerImage: "/training/hero-bg.png",
-        highlights: ["24/7 Portal Access", "Live Practical Demonstrations", "Industry Recognized Certificate"],
-        price: t.price_level_1,
-        duration: t.duration,
-        trainingOutline: t.training_outline,
-        caseStudies: t.case_studies
-      }));
+    const text = await res.text();
+    try {
+      const json = JSON.parse(text);
+      if (json.success && json.data?.data) {
+        return json.data.data.map((t: ApiTraining) => ({
+          id: t.id,
+          slug: t.slug,
+          programSlug: program,
+          trainingCode: t.training_code || `CT-${t.id}`,
+          title: t.title,
+          overview: t.sub_title || "",
+          heroImage: t.image_url || "/training/training.png",
+          rating: 4.8,
+          reviewsCount: 150,
+          bannerImage: "/training/hero-bg.png",
+          highlights: ["24/7 Portal Access", "Live Practical Demonstrations", "Industry Recognized Certificate"],
+          price: t.price_level_1,
+          duration: t.duration,
+          trainingOutline: t.training_outline,
+          caseStudies: t.case_studies
+        }));
+      }
+      return [];
+    } catch (parseError) {
+      console.error(`Invalid JSON received for ${program}:`, text.slice(0, 200));
+      return [];
     }
-    return [];
+
   } catch (error) {
-    console.error("API Fetch Error:", error);
+    // console.error("API Fetch Error:", error);
     return [];
   }
 }

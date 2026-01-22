@@ -3,24 +3,60 @@
 import { motion, useInView } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
-export default function JourneyStats() {
+interface Statistic {
+  id: number;
+  title: string;
+  quantity: string;
+  icon: string;
+}
+
+interface JourneyStatsProps {
+  statistics: Statistic[];
+}
+
+export default function JourneyStats({ statistics }: JourneyStatsProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
 
-  // Counter states
-  const [events, setEvents] = useState(0);
-  const [participants, setParticipants] = useState(0);
-  const [countries, setCountries] = useState(0);
-  const [speakers, setSpeakers] = useState(0);
+  // Counter states - dynamic based on statistics
+  const [counters, setCounters] = useState<{ [key: number]: number }>({});
 
   useEffect(() => {
-    if (!isInView) return;
+    if (!isInView || !statistics || statistics.length === 0) return;
 
-    animateCounter(setEvents, 120);
-    animateCounter(setParticipants, 350);
-    animateCounter(setCountries, 13);
-    animateCounter(setSpeakers, 15);
-  }, [isInView]);
+    // Initialize counters for each statistic
+    statistics.forEach((stat) => {
+      // Extract numeric value from quantity (e.g., "355000" from "355000" or "100" from "100")
+      const numericValue = parseInt(stat.quantity.replace(/[^0-9]/g, '')) || 0;
+      animateCounter(stat.id, numericValue);
+    });
+  }, [isInView, statistics]);
+
+  const animateCounter = (statId: number, target: number) => {
+    let current = 0;
+    const duration = 1500;
+    const step = target / (duration / 16);
+
+    const interval = setInterval(() => {
+      current += step;
+      if (current >= target) {
+        setCounters((prev) => ({ ...prev, [statId]: target }));
+        clearInterval(interval);
+      } else {
+        setCounters((prev) => ({ ...prev, [statId]: Math.floor(current) }));
+      }
+    }, 16);
+  };
+
+  // Format the display value (add K+ suffix if needed)
+  const formatValue = (stat: Statistic) => {
+    const counterValue = counters[stat.id] || 0;
+    // If original quantity has K+, add it back
+    if (stat.quantity.includes('K+')) {
+      return `${counterValue}K+`;
+    }
+    return counterValue.toString();
+  };
 
   return (
     <section
@@ -35,7 +71,7 @@ export default function JourneyStats() {
 
       {/* Content */}
       <div className="relative container mx-auto px-4 text-center">
-        
+
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -55,35 +91,22 @@ export default function JourneyStats() {
         </motion.p>
 
         <div className="grid md:grid-cols-4 gap-8">
-          <Stat value={events} label="Events Completed" />
-          <Stat value={`${participants}K+`} label="Happy Participants" />
-          <Stat value={countries} label="Countries Reach" />
-          <Stat value={speakers} label="Eminent Speakers" />
+          {statistics && statistics.length > 0 ? (
+            statistics.map((stat) => (
+              <Stat key={stat.id} value={formatValue(stat)} label={stat.title} />
+            ))
+          ) : (
+            <>
+              <Stat value="120" label="Events Completed" />
+              <Stat value="350K+" label="Happy Participants" />
+              <Stat value="13" label="Countries Reach" />
+              <Stat value="15" label="Eminent Speakers" />
+            </>
+          )}
         </div>
       </div>
     </section>
   );
-}
-
-/* ---------------- Counter Animation ---------------- */
-
-function animateCounter(
-  setter: React.Dispatch<React.SetStateAction<number>>,
-  target: number
-) {
-  let current = 0;
-  const duration = 1500;
-  const step = target / (duration / 16);
-
-  const interval = setInterval(() => {
-    current += step;
-    if (current >= target) {
-      setter(target);
-      clearInterval(interval);
-    } else {
-      setter(Math.floor(current));
-    }
-  }, 16);
 }
 
 /* ---------------- Stat UI ---------------- */

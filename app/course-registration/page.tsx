@@ -62,6 +62,10 @@ function RegistrationForm() {
     const [isLoadingCountries, setIsLoadingCountries] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [couponMessage, setCouponMessage] = useState({ type: '', text: '' });
+    const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+    const [appliedCouponData, setAppliedCouponData] = useState<any>(null);
+    const [finalPrice, setFinalPrice] = useState<number | null>(null);
 
     // If level comes as '1', '2', '3', convert to Roman numerals for display
     const displayLevel = courseLevel === "1" ? "Level-I" : courseLevel === "2" ? "Level-II" : "Level-III";
@@ -69,7 +73,7 @@ function RegistrationForm() {
     useEffect(() => {
         const fetchCountries = async () => {
             try {
-                const response = await fetch("http://localhost:3000/api/EducationAndInternship/Website/front");
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/front`);
                 if (response.ok) {
                     const result = await response.json();
                     console.log("Front API Response:", result); // Debug log
@@ -97,6 +101,52 @@ function RegistrationForm() {
 
         fetchCountries();
     }, []);
+
+    const handleApplyCoupon = async () => {
+        if (!couponCode) {
+            setCouponMessage({ type: 'error', text: 'Please enter a coupon code' });
+            return;
+        }
+        setIsApplyingCoupon(true);
+        setCouponMessage({ type: '', text: '' });
+
+        try {
+            const payload = {
+                coupon_code: couponCode,
+                course_type: "course",
+                course_type_id: courseId,
+                level: displayLevel
+            };
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/front/apply-coupon`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                setAppliedCouponData(result.data);
+                setCouponMessage({ type: 'success', text: 'Coupon applied successfully!' });
+
+                // Calculate final price
+                // Assuming coursePrice is a string like "5000" or "₹5000"
+                const cleanPrice = parseFloat(coursePrice.replace(/[^0-9.]/g, '')) || 0;
+                const discount = parseFloat(result.data.discounted_amt) || 0;
+                setFinalPrice(Math.max(0, cleanPrice - discount));
+            } else {
+                setCouponMessage({ type: 'error', text: result.msg || 'Invalid coupon code' });
+                setAppliedCouponData(null);
+                setFinalPrice(null);
+            }
+        } catch (error) {
+            console.error(error);
+            setCouponMessage({ type: 'error', text: 'Structure error while applying coupon' });
+        } finally {
+            setIsApplyingCoupon(false);
+        }
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
@@ -132,7 +182,7 @@ function RegistrationForm() {
         };
 
         try {
-            const response = await fetch("http://localhost:3000/api/EducationAndInternship/Website/courses/register-for-course-process", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/courses/register-for-course-process`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -193,6 +243,10 @@ function RegistrationForm() {
 
 
 
+
+
+
+
     return (
         <div className="max-w-6xl mx-auto px-4 py-8 lg:py-12">
 
@@ -221,23 +275,36 @@ function RegistrationForm() {
                     <form onSubmit={handleSubmit} className="p-8 space-y-10">
 
                         {/* Coupon Code Section - Placed at top as requested */}
-                        <div className="flex shadow-sm rounded-md overflow-hidden h-12">
-                            <div className="bg-[#FFC107] w-12 flex items-center justify-center shrink-0">
-                                <Wand2 className="text-white w-6 h-6" />
+                        <div className="flex flex-col gap-2">
+                            <div className="flex shadow-sm rounded-md overflow-hidden h-12">
+                                <div className="bg-[#FFC107] w-12 flex items-center justify-center shrink-0">
+                                    <Wand2 className="text-white w-6 h-6" />
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Coupon Code"
+                                    className="flex-1 border-y border-gray-300 px-4 focus:outline-none text-gray-700 bg-white placeholder-gray-500/70"
+                                    value={couponCode}
+                                    onChange={(e) => setCouponCode(e.target.value)}
+                                    disabled={!!appliedCouponData}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleApplyCoupon}
+                                    disabled={isApplyingCoupon || !!appliedCouponData}
+                                    className={`
+                                        bg-[#28A745] hover:bg-green-600 text-white font-bold px-8 transition-colors text-sm tracking-wide
+                                        ${(isApplyingCoupon || !!appliedCouponData) ? 'opacity-70 cursor-not-allowed' : ''}
+                                    `}
+                                >
+                                    {isApplyingCoupon ? '...' : appliedCouponData ? 'APPLIED' : 'APPLY'}
+                                </button>
                             </div>
-                            <input
-                                type="text"
-                                placeholder="Coupon Code"
-                                className="flex-1 border-y border-gray-300 px-4 focus:outline-none text-gray-700 bg-white placeholder-gray-500/70"
-                                value={couponCode}
-                                onChange={(e) => setCouponCode(e.target.value)}
-                            />
-                            <button
-                                type="button"
-                                className="bg-[#28A745] hover:bg-green-600 text-white font-bold px-8 transition-colors text-sm tracking-wide"
-                            >
-                                APPLY
-                            </button>
+                            {couponMessage.text && (
+                                <p className={`text-sm ${couponMessage.type === 'error' ? 'text-red-500' : 'text-green-600'}`}>
+                                    {couponMessage.text}
+                                </p>
+                            )}
                         </div>
 
                         {/* Personal Info */}
@@ -445,9 +512,28 @@ function RegistrationForm() {
                             </div>
 
                             <div className="mt-6 pt-4 border-t-2 border-dashed border-gray-200">
-                                <div className="flex items-end justify-between">
-                                    <span className="font-bold text-gray-700">Total Fee</span>
-                                    <span className="text-3xl font-extrabold text-indigo-600">{coursePrice || "₹0"}</span>
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex items-end justify-between">
+                                        <span className="font-bold text-gray-700">Fee</span>
+                                        <span className={`text-3xl font-extrabold text-indigo-600 ${appliedCouponData ? 'line-through text-gray-400 text-xl' : ''}`}>
+                                            {coursePrice || "₹0"}
+                                        </span>
+                                    </div>
+
+                                    {appliedCouponData && (
+                                        <>
+                                            <div className="flex items-center justify-between text-green-600">
+                                                <span className="font-medium text-sm">Coupon Discount</span>
+                                                <span className="font-bold">- ₹{appliedCouponData.discounted_amt}</span>
+                                            </div>
+                                            <div className="flex items-end justify-between pt-2 border-t border-gray-100">
+                                                <span className="font-bold text-gray-900">Total Payable</span>
+                                                <span className="text-3xl font-extrabold text-indigo-600">
+                                                    {finalPrice ? `₹${finalPrice}` : (coursePrice || "₹0")}
+                                                </span>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>

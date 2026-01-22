@@ -6,7 +6,7 @@ import { API_BASE_URL } from "@/lib/config";
 import { BlogDetailsResponse } from "@/types/blog";
 
 // Define the Image Base URL (same as in blog listing)
-const IMAGE_BASE_URL = "http://localhost:3000/uploads/Education-And-Internship-Admin-Blog";
+const IMAGE_BASE_URL = "/uploads/blogs";
 
 interface Props {
   params: Promise<{ slug: string }>;

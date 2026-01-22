@@ -1,58 +1,36 @@
 "use client";
 
-import React, { useState, useRef, useMemo } from "react";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
+import { ArrowRight, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { Navigation } from "swiper/modules";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import Image from "next/image";
+import { API_BASE_URL } from "../../lib/config";
 
 // --- Interfaces ---
-interface Training {
+interface TrainingItem {
   id: number;
-  type: string;
   title: string;
-  subtitle: string;
-  description: string;
+  sub_title: string;
+  slug: string;
   image: string;
-  primary: boolean;
+  mode_of_study: string;
+  duration: string;
+  price_level_1: string;
+  int_price_level_1: string;
+  image_url: string;
 }
 
-// --- Updated Data (4 unique items per category) ---
-const trainingData: Training[] = [
-  // 1. Online Training
-  { id: 101, type: "Online Training", title: "Digital Forensic Essentials", subtitle: "ONLINE MODULE", description: "Master the fundamentals of digital evidence collection and preservation from anywhere.", image: "/training/1.png", primary: true },
-  { id: 102, type: "Online Training", title: "Network Intrusion Analysis", subtitle: "ONLINE MODULE", description: "Learn to identify and track unauthorized network access and security breaches.", image: "/training/2.png", primary: false },
-  { id: 103, type: "Online Training", title: "Mobile Device Forensics", subtitle: "ONLINE MODULE", description: "Advanced techniques for extracting data from various mobile operating systems.", image: "/training/3.png", primary: false },
-  { id: 104, type: "Online Training", title: "Cloud Security Auditing", subtitle: "ONLINE MODULE", description: "Evaluating cloud infrastructure for forensic readiness and security compliance.", image: "/training/1.png", primary: false },
-
-  // 2. Lab Based Internship
-  { id: 201, type: "Lab Based Internship", title: "Cyber Forensic Investigation", subtitle: "LAB BASED", description: "Hands-on experience with industry-standard forensic tools in a lab environment.", image: "/training/1.png", primary: true },
-  { id: 202, type: "Lab Based Internship", title: "Advanced CSI Workshop", subtitle: "LAB BASED", description: "Practical training in evidence recovery and crime scene documentation.", image: "/training/2.png", primary: false },
-  { id: 203, type: "Lab Based Internship", title: "Biometric Data Analysis", subtitle: "LAB BASED", description: "Focus on physiological evidence and advanced identity verification techniques.", image: "/training/3.png", primary: false },
-  { id: 204, type: "Lab Based Internship", title: "Malware Reverse Engineering", subtitle: "LAB BASED", description: "Deconstruct malicious code to understand its origin and functionality.", image: "/training/1.png", primary: false },
-
-  // 3. Lab Based Training
-  { id: 301, type: "Lab Based Training", title: "Summer Training Program", subtitle: "HANDS ON", description: "Intensive summer sessions focused on core forensic methodologies.", image: "/training/2.png", primary: true },
-  { id: 302, type: "Lab Based Training", title: "Forensic Document Examination", subtitle: "HANDS ON", description: "Analyze physical documents for forgery and alterations in a lab setting.", image: "/training/1.png", primary: false },
-  { id: 303, type: "Lab Based Training", title: "Trace Evidence Recovery", subtitle: "HANDS ON", description: "Master the micro-analysis of fibers, hair, and glass fragments.", image: "/training/3.png", primary: false },
-  { id: 304, type: "Lab Based Training", title: "Ballistics and Toolmarks", subtitle: "HANDS ON", description: "Understanding firearm signatures and physical impact analysis.", image: "/training/2.png", primary: false },
-
-  // 4. Online Internship
-  { id: 401, type: "Online Internship", title: "Virtual Forensic Lab", subtitle: "REMOTE INTERNSHIP", description: "Execute real-world forensic cases through our proprietary cloud lab.", image: "/training/3.png", primary: true },
-  { id: 402, type: "Online Internship", title: "Threat Intelligence Ops", subtitle: "REMOTE INTERNSHIP", description: "Monitor and report on emerging global cyber threats in real-time.", image: "/training/1.png", primary: false },
-  { id: 403, type: "Online Internship", title: "Incident Response Lead", subtitle: "REMOTE INTERNSHIP", description: "Lead virtual teams through the lifecycle of a security breach.", image: "/training/2.png", primary: false },
-  { id: 404, type: "Online Internship", title: "OSINT Investigation", subtitle: "REMOTE INTERNSHIP", description: "Mastering open-source intelligence for legal and criminal investigations.", image: "/training/3.png", primary: false },
-];
-
-const trainingCategories = [
-  "Online Training",
-  "Lab Based Internship",
-  "Lab Based Training",
-  "Online Internship",
-];
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  trainings: TrainingItem[];
+  training_count: number;
+}
 
 // --- Framer Motion Variants ---
 // Adding explicit 'Variants' type to ensure compatibility
@@ -89,19 +67,29 @@ const TrainingTabTitle: React.FC<{ title: string; isActive: boolean; onClick: ()
   </button>
 );
 
-const TrainingCard: React.FC<{ training: Training }> = ({ training }) => (
+const TrainingCard: React.FC<{ training: TrainingItem; isFirst: boolean }> = ({ training, isFirst }) => (
   <div className="rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm h-full flex flex-col group hover:shadow-md transition-shadow">
     <div className="relative h-52 overflow-hidden">
-      <img src={training.image} alt={training.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+      <img 
+        src={training.image_url || "/training/1.png"} 
+        alt={training.title} 
+        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+      />
     </div>
     <div className="p-5 flex flex-col flex-grow text-left">
-      <span className="text-[10px] uppercase tracking-wider font-bold text-[#008DD2] mb-1">{training.subtitle}</span>
-      <h3 className="text-lg font-bold text-gray-900 leading-tight mb-2 min-h-[3rem]">{training.title}</h3>
-      <p className="text-xs text-[#6B7385] mb-6 line-clamp-3">{training.description}</p>
+      <span className="text-[10px] uppercase tracking-wider font-bold text-[#008DD2] mb-1">
+        {training.mode_of_study}
+      </span>
+      <h3 className="text-lg font-bold text-gray-900 leading-tight mb-2 min-h-[3rem]">
+        {training.title}
+      </h3>
+      <p className="text-xs text-[#6B7385] mb-6 line-clamp-3">
+        {training.sub_title}
+      </p>
       <div className="mt-auto">
         <hr className="border-gray-100 mb-4" />
         <button className={`flex items-center justify-center w-full py-2.5 rounded-lg transition-all font-semibold text-sm cursor-pointer ${
-          training.primary ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-800"
+          isFirst ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-800"
         }`}>
           Enroll Now <ArrowRight className="ml-2 w-4 h-4" />
         </button>
@@ -112,10 +100,69 @@ const TrainingCard: React.FC<{ training: Training }> = ({ training }) => (
 
 // --- Main Component ---
 const TrainingInternshipSection: React.FC = () => {
-  const [activeCategory, setActiveCategory] = useState(trainingCategories[0]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const swiperRef = useRef<any>(null);
 
-  const filteredData = useMemo(() => trainingData.filter(item => item.type === activeCategory), [activeCategory]);
+  // Fetch categories and trainings from API
+  useEffect(() => {
+    const fetchTrainingCategories = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/training-categories`);
+        const data = await response.json();
+        console.log('Training Categories API Response:', data);
+
+        if (data.success && data.data?.categories) {
+          // Filter categories that have trainings or show all
+          const allCategories = data.data.categories;
+          setCategories(allCategories);
+          
+          // Set first category with trainings as active, or first category if none have trainings
+          const firstWithTrainings = allCategories.find((cat: Category) => cat.training_count > 0);
+          setActiveCategory(firstWithTrainings?.name || allCategories[0]?.name || "");
+        }
+      } catch (err) {
+        console.error("Error fetching training categories:", err);
+        setError("Failed to load training categories");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTrainingCategories();
+  }, []);
+
+  // Get trainings for active category
+  const activeTrainings = useMemo(() => {
+    const activeData = categories.find(cat => cat.name === activeCategory);
+    return activeData?.trainings || [];
+  }, [categories, activeCategory]);
+
+  // Get category names for tabs
+  const categoryNames = useMemo(() => categories.map(cat => cat.name), [categories]);
+
+  if (loading) {
+    return (
+      <div className="relative py-16 px-4 sm:px-6 lg:px-8 bg-[#FBFCFF]">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || categories.length === 0) {
+    return (
+      <div className="relative py-16 px-4 sm:px-6 lg:px-8 bg-[#FBFCFF]">
+        <div className="text-center text-gray-500">
+          {error || "No training categories available"}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative py-16 px-4 sm:px-6 lg:px-8 bg-[#FBFCFF]">
@@ -136,7 +183,7 @@ const TrainingInternshipSection: React.FC = () => {
         </motion.div>
 
         <motion.div className="flex justify-center flex-wrap gap-x-8 gap-y-4 mb-12 border-b border-gray-100" variants={itemSlideUpVariants}>
-          {trainingCategories.map(cat => (
+          {categoryNames.map(cat => (
             <TrainingTabTitle key={cat} title={cat} isActive={activeCategory === cat} onClick={() => setActiveCategory(cat)} />
           ))}
         </motion.div>
@@ -144,33 +191,43 @@ const TrainingInternshipSection: React.FC = () => {
         <motion.div className="relative pb-12" variants={itemSlideUpVariants}>
           <AnimatePresence mode="wait">
             <motion.div key={activeCategory} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-              <Swiper
-                onSwiper={(s) => (swiperRef.current = s)}
-                modules={[Navigation]}
-                spaceBetween={20}
-                slidesPerView={1.2}
-                breakpoints={{
-                  640: { slidesPerView: 2.2 },
-                  1024: { slidesPerView: 3 },
-                  1280: { slidesPerView: 4 },
-                }}
-              >
-                {filteredData.map(item => (
-                  <SwiperSlide key={item.id} className="h-auto">
-                    <TrainingCard training={item} />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
+              {activeTrainings.length > 0 ? (
+                <Swiper
+                  onSwiper={(s) => (swiperRef.current = s)}
+                  modules={[Navigation]}
+                  spaceBetween={20}
+                  slidesPerView={1.2}
+                  breakpoints={{
+                    640: { slidesPerView: 2.2 },
+                    1024: { slidesPerView: 3 },
+                    1280: { slidesPerView: 4 },
+                  }}
+                >
+                  {activeTrainings.map((item, index) => (
+                    <SwiperSlide key={item.id} className="h-auto">
+                      <TrainingCard training={item} isFirst={index === 0} />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  No trainings available in this category yet.
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
 
           {/* Navigation Arrows */}
-          <button onClick={() => swiperRef.current?.slidePrev()} className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full hidden xl:flex items-center justify-center text-[#008DD2] hover:scale-110 cursor-pointer transition-all border border-gray-50">
-            <ChevronLeft size={24} />
-          </button>
-          <button onClick={() => swiperRef.current?.slideNext()} className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-[#008DD2] shadow-lg rounded-full hidden xl:flex items-center justify-center text-white hover:scale-110 cursor-pointer transition-all">
-            <ChevronRight size={24} />
-          </button>
+          {activeTrainings.length > 0 && (
+            <>
+              <button onClick={() => swiperRef.current?.slidePrev()} className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full hidden xl:flex items-center justify-center text-[#008DD2] hover:scale-110 cursor-pointer transition-all border border-gray-50">
+                <ChevronLeft size={24} />
+              </button>
+              <button onClick={() => swiperRef.current?.slideNext()} className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-[#008DD2] shadow-lg rounded-full hidden xl:flex items-center justify-center text-white hover:scale-110 cursor-pointer transition-all">
+                <ChevronRight size={24} />
+              </button>
+            </>
+          )}
         </motion.div>
       </motion.div>
     </div>

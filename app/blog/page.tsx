@@ -3,15 +3,13 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import PageBanner from "../../components/common/PageBanner";
-import { motion, easeOut, AnimatePresence } from "framer-motion";
+import { motion, easeOut } from "framer-motion";
 import {
     Search,
     ChevronRight,
     Calendar,
     User,
-    ChevronLeft,
-    ChevronsLeft,
-    ChevronsRight
+    ChevronLeft
 } from "lucide-react";
 import { API_BASE_URL } from "@/lib/config";
 import type { BlogPost, BlogsResponse, BlogPagination } from "@/types/blog";
@@ -24,7 +22,7 @@ export default function BlogPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
 
-    const IMAGE_BASE_URL = "/uploads/Education-And-Internship-Admin-Blog";
+    const IMAGE_BASE_URL = "/uploads/blogs";
 
     // Debounce Search
     useEffect(() => {
@@ -40,21 +38,25 @@ export default function BlogPage() {
         const fetchBlogs = async () => {
             setLoading(true);
             try {
-                const query = debouncedSearch ? `&search=${encodeURIComponent(debouncedSearch)}` : "";
-                const response = await fetch(
-                    `${API_BASE_URL}/EducationAndInternship/Website/front/blogs?page=${currentPage}&limit=9${query}`
-                );
+                const searchQuery = debouncedSearch ? `&search=${encodeURIComponent(debouncedSearch)}` : "";
+                const apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front/blogs?page=${currentPage}&limit=9${searchQuery}`;
+
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+
                 const json: BlogsResponse = await response.json();
 
-                if (json.success && json.data) {
-                    setBlogs(json.data.data || []);
+                if (json.success && json.data && json.data.data) {
+                    setBlogs(json.data.data);
                     setPagination(json.data.pagination);
                 } else {
-                    console.error("Invalid blog data response:", json);
                     setBlogs([]);
                 }
             } catch (error) {
                 console.error("Failed to fetch blogs:", error);
+                setBlogs([]);
             } finally {
                 setLoading(false);
             }
@@ -94,7 +96,11 @@ export default function BlogPage() {
 
     const staggerContainer = {
         hidden: {},
-        visible: { transition: { staggerChildren: 0.1 } },
+        visible: {
+            transition: {
+                staggerChildren: 0.1
+            }
+        },
     };
 
     const handlePageChange = (newPage: number) => {
@@ -138,64 +144,83 @@ export default function BlogPage() {
                         ) : blogs.length > 0 ? (
                             <motion.div
                                 className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                                initial="hidden"
+                                animate="visible"
                                 variants={staggerContainer}
                             >
                                 {blogs.map((post) => (
                                     <motion.div
                                         key={post.id}
                                         variants={fadeUp}
+                                        className="h-full"
                                     >
-                                        {/* REDIRECTION WRAPPER */}
-                                        <Link href={`/blog/${post.slug}`} className="group block">
-                                            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300">
-                                                <div className="relative h-48 w-full bg-gray-200 overflow-hidden">
-                                                    <img
-                                                        src={`${IMAGE_BASE_URL}/${post.main_image}`}
-                                                        alt={post.title}
-                                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                                        onError={(e) => {
-                                                            const target = e.target as HTMLImageElement;
-                                                            target.src = '/blog/blog-main-hero.png';
-                                                            target.onerror = null; // Prevent infinite loop
-                                                        }}
-                                                    />
-                                                </div>
-                                                <div className="p-5">
-                                                    <span className="bg-[#E0F2FE] text-[#0369A1] text-[10px] font-bold px-2 py-1 rounded uppercase inline-block">
-                                                        Forensic Science
-                                                    </span>
-                                                    <h3 className="text-lg font-bold text-gray-900 mt-3 leading-tight group-hover:text-[#3E58EE] transition-colors">
-                                                        {post.title}
-                                                    </h3>
-                                                    <p className="text-gray-500 text-sm mt-3 line-clamp-2">
-                                                        {getExcerpt(post.content)}
-                                                    </p>
-
-                                                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-50 text-[11px] text-gray-500">
-                                                        <div className="flex items-center gap-1">
-                                                            <Calendar size={14} className="text-black" />
-                                                            {new Date(post.publish_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                        </div>
-                                                        <div className="flex items-center gap-1">
-                                                            <User size={14} className="text-black" />
-                                                            {post.author || "SIFS India"}
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="mt-4">
-                                                        <span className="text-[#3E58EE] font-bold text-[13px] flex items-center gap-1 group-hover:gap-2 transition-all">
-                                                            Read Full Article <ChevronRight size={14} />
-                                                        </span>
-                                                    </div>
+                                        <div className="group h-full flex flex-col bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+                                            {/* Image Container */}
+                                            <div className="relative h-56 w-full bg-gray-200 overflow-hidden">
+                                                <img
+                                                    src={`${IMAGE_BASE_URL}/${post.main_image}`}
+                                                    alt={post.title}
+                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.src = '/blog/blog-main-hero.png'; // Fallback
+                                                        target.onerror = null;
+                                                    }}
+                                                />
+                                                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-[#3E58EE] shadow-sm">
+                                                    Article
                                                 </div>
                                             </div>
-                                        </Link>
+
+                                            {/* Content */}
+                                            <div className="p-6 flex flex-col flex-grow">
+                                                {/* Meta */}
+                                                <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Calendar size={14} className="text-[#3E58EE]" />
+                                                        {new Date(post.publish_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <User size={14} className="text-[#3E58EE]" />
+                                                        <span className="truncate max-w-[100px]">{post.author || "SIFS India"}</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Title */}
+                                                <h3 className="text-lg font-bold text-gray-900 mb-3 leading-snug group-hover:text-[#3E58EE] transition-colors line-clamp-2">
+                                                    <Link href={`/blog/${post.slug}`}>
+                                                        {post.title}
+                                                    </Link>
+                                                </h3>
+
+                                                {/* Excerpt */}
+                                                <p className="text-gray-500 text-sm mb-6 line-clamp-3">
+                                                    {getExcerpt(post.content, 120)}
+                                                </p>
+
+                                                {/* Read More Button */}
+                                                <div className="mt-auto">
+                                                    <Link href={`/blog/${post.slug}`}>
+                                                        <button className="w-full flex items-center justify-center gap-2 bg-gray-50 text-gray-700 py-2.5 rounded-xl font-semibold text-sm group-hover:bg-[#3E58EE] group-hover:text-white transition-all duration-300">
+                                                            Read Full Article
+                                                            <ChevronRight size={16} />
+                                                        </button>
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </motion.div>
                                 ))}
                             </motion.div>
                         ) : (
-                            <div className="text-center py-20 text-gray-500">
-                                No blogs found.
+                            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                                <div className="text-gray-400 mb-2">No blogs found matching your criteria.</div>
+                                <button
+                                    onClick={() => { setSearchTerm(""); setDebouncedSearch(""); }}
+                                    className="text-[#3E58EE] font-semibold hover:underline"
+                                >
+                                    Clear Search
+                                </button>
                             </div>
                         )}
 
@@ -205,26 +230,28 @@ export default function BlogPage() {
                                 <button
                                     onClick={() => handlePageChange(currentPage - 1)}
                                     disabled={!pagination.has_previous}
-                                    className="p-2 border rounded-md text-gray-400 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="p-2.5 border border-gray-200 rounded-lg text-gray-500 hover:bg-white hover:border-[#3E58EE] hover:text-[#3E58EE] transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white shadow-sm"
                                 >
-                                    <ChevronLeft size={16} />
+                                    <ChevronLeft size={18} />
                                 </button>
 
-                                <div className="flex gap-1">
+                                <div className="flex gap-2">
                                     {Array.from({ length: Math.min(5, pagination.total_pages) }, (_, i) => {
                                         let p = i + 1;
                                         if (pagination.total_pages > 5) {
                                             if (currentPage > 3) p = currentPage - 2 + i;
                                             if (p > pagination.total_pages) p = pagination.total_pages - (4 - i);
+                                            // Handle edge case where p < 1
+                                            if (p < 1) p = 1 + i;
                                         }
 
                                         return (
                                             <button
                                                 key={p}
                                                 onClick={() => handlePageChange(p)}
-                                                className={`w-8 h-8 flex items-center justify-center rounded-md border text-sm transition-colors ${currentPage === p
-                                                    ? "bg-[#3E58EE] text-white font-bold border-[#3E58EE]"
-                                                    : "text-gray-600 hover:bg-gray-50"
+                                                className={`w-10 h-10 flex items-center justify-center rounded-lg text-sm font-semibold transition-all shadow-sm ${currentPage === p
+                                                    ? "bg-[#3E58EE] text-white shadow-blue-200"
+                                                    : "bg-white text-gray-600 border border-gray-200 hover:border-[#3E58EE] hover:text-[#3E58EE]"
                                                     }`}
                                             >
                                                 {p}
@@ -236,9 +263,9 @@ export default function BlogPage() {
                                 <button
                                     onClick={() => handlePageChange(currentPage + 1)}
                                     disabled={!pagination.has_next}
-                                    className="p-2 border rounded-md text-gray-400 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="p-2.5 border border-gray-200 rounded-lg text-gray-500 hover:bg-white hover:border-[#3E58EE] hover:text-[#3E58EE] transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white shadow-sm"
                                 >
-                                    <ChevronRight size={16} />
+                                    <ChevronRight size={18} />
                                 </button>
                             </motion.div>
                         )}
@@ -247,17 +274,17 @@ export default function BlogPage() {
                     {/* RIGHT: SIDEBAR */}
                     <div className="space-y-8">
                         {/* SEARCH */}
-                        <motion.div variants={fadeUp} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                        <motion.div variants={fadeUp} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm sticky top-4">
                             <h4 className="text-lg font-bold text-gray-900 mb-4">Search blog</h4>
-                            <div className="relative">
+                            <div className="relative group">
                                 <input
                                     type="text"
-                                    placeholder="Search here"
+                                    placeholder="Search here..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full border border-gray-200 rounded-lg py-2.5 px-4 pr-10 text-sm outline-none focus:ring-2 focus:ring-[#3E58EE]/20 transition-all"
+                                    className="w-full bg-[#FBFCFF] border border-gray-200 rounded-xl py-3 px-4 pr-10 text-sm outline-none focus:ring-2 focus:ring-[#3E58EE]/20 focus:border-[#3E58EE] transition-all group-hover:border-gray-300"
                                 />
-                                <Search className="absolute right-3 top-2.5 text-gray-400" size={18} />
+                                <Search className="absolute right-3 top-3 text-gray-400 group-focus-within:text-[#3E58EE] transition-colors" size={18} />
                             </div>
                         </motion.div>
 
@@ -274,7 +301,7 @@ export default function BlogPage() {
                                 {categories.map((cat, i) => (
                                     <button
                                         key={i}
-                                        className="w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all bg-gray-50 text-gray-700 hover:bg-gray-100"
+                                        className="w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all bg-[#FBFCFF] text-gray-600 hover:bg-[#F3F6FF] hover:text-[#3E58EE]"
                                     >
                                         {cat}
                                         <ChevronRight size={14} />
@@ -291,30 +318,31 @@ export default function BlogPage() {
                                     <Link
                                         key={i}
                                         href={`/blog/${post.slug}`}
-                                        className="flex gap-3 group cursor-pointer"
+                                        className="flex gap-4 group cursor-pointer items-start"
                                     >
-                                        <div className="w-16 h-16 rounded-lg bg-gray-200 flex-shrink-0 overflow-hidden">
+                                        <div className="w-20 h-20 rounded-xl bg-gray-200 flex-shrink-0 overflow-hidden shadow-sm">
                                             <img
                                                 src={`${IMAGE_BASE_URL}/${post.main_image}`}
                                                 alt="post"
-                                                className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                                 onError={(e) => {
-                                                    (e.target as HTMLImageElement).src = '/blog-thumb.png';
+                                                    (e.target as HTMLImageElement).src = '/blog-thumb.png'; // Fallback
+                                                    (e.target as HTMLImageElement).onerror = null;
                                                 }}
                                             />
                                         </div>
-                                        <div className="flex-1">
-                                            <h5 className="text-[13px] font-semibold text-gray-900 leading-tight group-hover:text-[#3E58EE] transition-colors line-clamp-2">
+                                        <div className="flex-1 min-w-0">
+                                            <h5 className="text-sm font-bold text-gray-900 leading-snug group-hover:text-[#3E58EE] transition-colors line-clamp-2 mb-2">
                                                 {post.title}
                                             </h5>
-                                            <p className="text-[11px] text-gray-400 mt-2 flex items-center gap-1 font-medium">
-                                                <Calendar size={12} />
+                                            <p className="text-[11px] text-gray-400 flex items-center gap-1.5 font-medium">
+                                                <Calendar size={12} className="text-[#3E58EE]" />
                                                 {new Date(post.publish_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                                             </p>
                                         </div>
                                     </Link>
                                 ))}
-                                {blogs.length === 0 && !loading && <span className="text-sm text-gray-400">No recent posts.</span>}
+                                {blogs.length === 0 && !loading && <span className="text-sm text-gray-400 block text-center py-4">No recent posts.</span>}
                             </div>
                         </motion.div>
                     </div>

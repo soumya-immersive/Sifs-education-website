@@ -2,24 +2,38 @@
 "use client";
 
 import Image from "next/image";
-import { motion, spring, easeOut } from "framer-motion";
+import { motion, spring, easeOut, AnimatePresence, Variants } from "framer-motion";
+import { useState, useEffect } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+import { X } from "lucide-react";
+import { API_BASE_URL } from "@/lib/config";
+import "swiper/css";
+import "swiper/css/pagination";
 
-// Partner logos
-const partners = [
-  { name: "Aster Heal Group", logo: "/global-influence/1.png" },
-  { name: "ACPM Medical College", logo: "/global-influence/2.png" },
-  { name: "Birla Sun Life", logo: "/global-influence/3.png" },
-  { name: "University Partner", logo: "/global-influence/4.png" },
-  { name: "Accenture", logo: "/global-influence/5.png" },
-  { name: "Sri Paramakalyani College", logo: "/global-influence/6.png" },
-];
+// Types
+interface Portfolio {
+  id: number;
+  title: string;
+  slug: string;
+  tags: string;
+  featured_image: string;
+  featured_image_url: string;
+  meta_description: string;
+  client_category_name: string;
+}
+
+interface SectionData {
+  global_influence_title: string;
+  global_influence_subtitle: string;
+}
 
 // --------------------
-//    VARIANTS FIXED
+//    VARIANTS
 // --------------------
 
 // Main container (stagger)
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -31,7 +45,7 @@ const containerVariants = {
 };
 
 // Logo animation
-const logoItemVariants = {
+const logoItemVariants: Variants = {
   hidden: { y: 20, opacity: 0, scale: 0.85 },
   visible: {
     y: 0,
@@ -46,7 +60,7 @@ const logoItemVariants = {
 };
 
 // Text fade-up
-const textItemVariants = {
+const textItemVariants: Variants = {
   hidden: { y: 15, opacity: 0 },
   visible: {
     y: 0,
@@ -58,11 +72,79 @@ const textItemVariants = {
   },
 };
 
+// Modal variants
+const modalOverlayVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+  exit: { opacity: 0 },
+};
+
+const modalContentVariants: Variants = {
+  hidden: { opacity: 0, scale: 0.9, y: 20 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 300, damping: 25 }
+  },
+  exit: { opacity: 0, scale: 0.9, y: 20 },
+};
+
 export default function GlobalInfluence() {
+  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [sectionData, setSectionData] = useState<SectionData>({
+    global_influence_title: "Creating Global Influence",
+    global_influence_subtitle: "Influencing and spreading forensic skills globally.",
+  });
+  const [loading, setLoading] = useState(true);
+  const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(null);
+
+  // Fetch data on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
+        const data = await response.json();
+
+        if (data?.data) {
+          // Set section data
+          if (data.data.bs) {
+            setSectionData({
+              global_influence_title: data.data.bs.global_influence_title || "Creating Global Influence",
+              global_influence_subtitle: data.data.bs.global_influence_subtitle || "Influencing and spreading forensic skills globally.",
+            });
+          }
+
+          // Set portfolios
+          if (data.data.portfolios && Array.isArray(data.data.portfolios)) {
+            setPortfolios(data.data.portfolios);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching portfolios:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Close modal on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedPortfolio(null);
+      }
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, []);
+
   return (
     <section className="bg-white py-16 relative overflow-hidden">
       {/* Left decorative stars */}
-      <motion.div 
+      <motion.div
         className="absolute left-48 md:left-48 bottom-1 -translate-y-1/2 z-10 hidden lg:block"
         animate={{
           y: [-10, 10, -10],
@@ -83,8 +165,8 @@ export default function GlobalInfluence() {
       </motion.div>
 
       {/* Right decorative leaf */}
-      <motion.div 
-        className="absolute ight-72 md:right-72 top-1/2 -translate-y-1/2 z-0 hidden lg:block"
+      <motion.div
+        className="absolute right-72 md:right-72 top-1/2 -translate-y-1/2 z-0 hidden lg:block"
         animate={{
           y: [-12, 12, -12],
           transition: {
@@ -123,38 +205,158 @@ export default function GlobalInfluence() {
                 className="text-2xl font-extrabold text-gray-900 md:text-3xl"
                 variants={textItemVariants}
               >
-                Creating Global Influence
+                {sectionData.global_influence_title}
               </motion.h2>
 
               <motion.p
                 className="mt-2 text-sm text-gray-500 md:text-base"
                 variants={textItemVariants}
               >
-                Influencing and spreading forensic skills globally.
+                {sectionData.global_influence_subtitle}
               </motion.p>
             </div>
 
-            {/* Logos */}
-            <motion.div className="mt-10 flex flex-wrap items-center justify-center gap-4 md:gap-4">
-              {partners.map((partner) => (
-                <motion.div
-                  key={partner.name}
-                  className="flex h-16 w-28 items-center justify-center md:h-32 md:w-40"
-                  variants={logoItemVariants}
+            {/* Logos Slider */}
+            <motion.div className="mt-10" variants={logoItemVariants}>
+              {loading ? (
+                <div className="flex items-center justify-center gap-4">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div
+                      key={i}
+                      className="h-20 w-32 bg-gray-100 rounded-lg animate-pulse"
+                    />
+                  ))}
+                </div>
+              ) : portfolios.length > 0 ? (
+                <Swiper
+                  modules={[Autoplay, Pagination]}
+                  spaceBetween={20}
+                  slidesPerView={2}
+                  loop={true}
+                  autoplay={{
+                    delay: 2500,
+                    disableOnInteraction: false,
+                  }}
+                  pagination={{
+                    clickable: true,
+                    dynamicBullets: true,
+                  }}
+                  breakpoints={{
+                    480: { slidesPerView: 3 },
+                    640: { slidesPerView: 4 },
+                    768: { slidesPerView: 5 },
+                    1024: { slidesPerView: 6 },
+                  }}
+                  className="portfolio-swiper pb-10"
                 >
-                  <Image
-                    src={partner.logo}
-                    alt={partner.name}
-                    width={150}
-                    height={100}
-                    className="max-h-full max-w-full object-contain"
-                  />
-                </motion.div>
-              ))}
+                  {portfolios.map((portfolio) => (
+                    <SwiperSlide key={portfolio.id}>
+                      <motion.div
+                        className="flex h-20 w-full items-center justify-center cursor-pointer group"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setSelectedPortfolio(portfolio)}
+                      >
+                        <div className="h-16 w-28 md:h-20 md:w-36 overflow-hidden rounded-lg border border-gray-100 bg-white p-2 shadow-sm transition-shadow group-hover:shadow-md flex items-center justify-center">
+                          <img
+                            src={portfolio.featured_image_url}
+                            alt={portfolio.title}
+                            className="max-h-full max-w-full object-contain"
+                          />
+                        </div>
+                      </motion.div>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              ) : (
+                <p className="text-center text-gray-500">No portfolios available</p>
+              )}
             </motion.div>
           </div>
         </motion.div>
       </div>
+
+      {/* Portfolio Detail Modal */}
+      <AnimatePresence>
+        {selectedPortfolio && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            variants={modalOverlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            onClick={() => setSelectedPortfolio(null)}
+          >
+            <motion.div
+              className="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden"
+              variants={modalContentVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedPortfolio(null)}
+                className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/90 hover:bg-gray-100 transition-colors shadow-md"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+
+              {/* Image */}
+              <div className="h-48 md:h-56 bg-gradient-to-br from-purple-50 to-indigo-50 flex items-center justify-center p-6">
+                <img
+                  src={selectedPortfolio.featured_image_url}
+                  alt={selectedPortfolio.title}
+                  className="max-h-full max-w-full object-contain"
+                />
+              </div>
+
+              {/* Content */}
+              <div className="p-6">
+                <span className="inline-block px-3 py-1 text-xs font-medium text-purple-600 bg-purple-100 rounded-full mb-3">
+                  {selectedPortfolio.client_category_name}
+                </span>
+
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  {selectedPortfolio.title}
+                </h3>
+
+                {selectedPortfolio.meta_description && (
+                  <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                    {selectedPortfolio.meta_description}
+                  </p>
+                )}
+
+                {selectedPortfolio.tags && (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedPortfolio.tags.split(",").slice(0, 5).map((tag, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-md"
+                      >
+                        {tag.trim()}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Custom Swiper Styles */}
+      <style jsx global>{`
+        .portfolio-swiper .swiper-pagination-bullet {
+          background: #a855f7;
+          opacity: 0.4;
+        }
+        .portfolio-swiper .swiper-pagination-bullet-active {
+          opacity: 1;
+          background: #7c3aed;
+        }
+      `}</style>
     </section>
   );
 }

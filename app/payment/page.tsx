@@ -1,11 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Script from "next/script";
 import { ShieldCheck, CreditCard, Loader2, CheckCircle2 } from "lucide-react";
 
 export default function PaymentPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+                    <p className="text-gray-500 font-medium">Loading payment...</p>
+                </div>
+            </div>
+        }>
+            <PaymentContent />
+        </Suspense>
+    );
+}
+
+function PaymentContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const registrationNo = searchParams.get("registration_no");
@@ -27,9 +42,9 @@ export default function PaymentPage() {
             try {
                 let url = "";
                 if (type === "training") {
-                    url = `http://localhost:3000/api/EducationAndInternship/Website/training-payment?registration_no=${registrationNo}`;
+                    url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/training-payment?registration_no=${registrationNo}`;
                 } else {
-                    url = `http://localhost:3000/api/EducationAndInternship/Website/payment?registration_no=${registrationNo}`;
+                    url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/payment?registration_no=${registrationNo}`;
                 }
 
                 const response = await fetch(url);
@@ -129,7 +144,7 @@ export default function PaymentPage() {
                 console.warn("Using hardcoded Razorpay key. Please add NEXT_PUBLIC_RAZORPAY_KEY to .env or ensure API returns payment_gateway.key_id");
             }
 
-            successUrl = "http://localhost:3000/api/EducationAndInternship/Website/training-payment/training-pay-success";
+            successUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/training-payment/training-pay-success`;
 
             successPayloadBuilder = (response) => ({
                 razorpay_payment_id: response.razorpay_payment_id,
@@ -153,7 +168,7 @@ export default function PaymentPage() {
             description = "Course Registration Fee";
             key_id = payment_gateway.key_id;
 
-            successUrl = "http://localhost:3000/api/EducationAndInternship/Website/payment/pay-success";
+            successUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/payment/pay-success`;
 
             successPayloadBuilder = (response) => ({
                 razorpay_payment_id: response.razorpay_payment_id,

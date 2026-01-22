@@ -7,81 +7,25 @@ import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import { motion, easeOut } from "framer-motion";
+import Link from "next/link";
 
 /* ----------------------
         Types
 ---------------------- */
-interface Program {
-  date: string;
+interface ArchiveEvent {
+  id: number;
   title: string;
-  image: string;
-  primary?: boolean;
+  slug: string;
+  formatted_date?: string;
+  start_date?: string;
+  end_date?: string;
+  start_day?: string;
+  start_month_year?: string;
 }
 
-/* ----------------------
-        Data
----------------------- */
-const programs: Program[] = [
-  {
-    date: "December 08, 2025",
-    title: "Crime Scene Investigation",
-    image: "/online-courses/1.png",
-    primary: true,
-  },
-  {
-    date: "December 08, 2025",
-    title: "Graphology",
-    image: "/online-courses/2.png",
-    primary: false,
-  },
-  {
-    date: "December 08, 2025",
-    title: "Ethical Hacking & IT Security",
-    image: "/online-courses/3.png",
-    primary: false,
-  },
-  {
-    date: "December 08, 2025",
-    title: "Digital Forensics",
-    image: "/online-courses/2.png",
-    primary: false,
-  },
-];
-
-/* ----------------------
-        Card
----------------------- */
-const ProgramCard = ({ program }: { program: Program }) => {
-    const buttonClasses = program.primary
-    ? 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white'
-    : 'bg-gray-100 hover:bg-gray-300 text-gray-400';
-  return (
-    <div className="rounded-xl overflow-hidden bg-white border border-gray-100">
-      <div className="relative h-48 overflow-hidden">
-        <img
-          src={program.image}
-          alt={program.title}
-          className="w-full h-full object-cover transition duration-300 hover:scale-105"
-        />
-      </div>
-
-      <div className="p-4">
-        <p className="text-sm text-[#008DD2] mb-1">{program.date}</p>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          {program.title}
-        </h3>
-        
-        <hr />
-
-        <button
-            className={`flex items-center justify-center w-full py-3 rounded-lg font-normal transition duration-300 ease-in-out mt-3 cursor-pointer ${buttonClasses}`}
-        >
-          Read More <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
-  );
-};
+interface ArchiveProgramProps {
+  archiveEvents: ArchiveEvent[];
+}
 
 /* ----------------------
         Animations
@@ -104,10 +48,82 @@ const itemVariants = {
 };
 
 /* ----------------------
+        Card
+---------------------- */
+const ProgramCard = ({ program }: { program: ArchiveEvent }) => {
+  // Parse the date to extract day and month/year
+  const getDateParts = () => {
+    if (program.start_date) {
+      try {
+        const date = new Date(program.start_date);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = date.toLocaleDateString('en-US', { month: 'short' });
+        const year = date.getFullYear();
+        return {
+          day,
+          monthYear: `${month} ${year}`
+        };
+      } catch (e) {
+        return { day: 'TBA', monthYear: '' };
+      }
+    }
+    return { day: program.start_day || 'TBA', monthYear: program.start_month_year || '' };
+  };
+
+  const { day, monthYear } = getDateParts();
+
+  return (
+    <div className="rounded-xl overflow-hidden bg-white border border-gray-100">
+      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-4xl font-bold text-indigo-600">
+              {day}
+            </p>
+            <p className="text-sm text-gray-600">{monthYear}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4">
+        <p className="text-sm text-[#008DD2] mb-1">
+          {program.formatted_date || "Date TBA"}
+        </p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+          {program.title}
+        </h3>
+
+        <hr />
+
+        <Link href={`/events/${program.slug}`}>
+          <button className="flex items-center justify-center w-full py-3 rounded-lg font-normal transition duration-300 ease-in-out mt-3 cursor-pointer bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white">
+            Read More <ArrowRight className="w-4 h-4 ml-1" />
+          </button>
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+/* ----------------------
       Main Component
 ---------------------- */
-export default function ArchieveProgram() {
+export default function ArchiveProgram({ archiveEvents }: ArchiveProgramProps) {
   const swiperRef = useRef<any>(null);
+
+  // Show message if no archive events
+  if (!archiveEvents || archiveEvents.length === 0) {
+    return (
+      <section className="relative py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-4">
+            Archive Program
+          </h2>
+          <p className="text-gray-500">No archived programs available at the moment.</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="relative py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
@@ -127,11 +143,13 @@ export default function ArchieveProgram() {
             Archive Program
           </h2>
 
-          <button className="inline-flex items-center gap-2 bg-gradient-to-r from-[#3E58EE] to-[#B565E7] 
-          hover:from-[#354ED8] hover:to-[#A24EDC] text-white px-5 py-2.5 rounded-lg text-sm font-medium ] transition cursor-pointer">
-            Explore All
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <Link href="/events">
+            <button className="inline-flex items-center gap-2 bg-gradient-to-r from-[#3E58EE] to-[#B565E7] 
+            hover:from-[#354ED8] hover:to-[#A24EDC] text-white px-5 py-2.5 rounded-lg text-sm font-medium transition cursor-pointer">
+              Explore All
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </Link>
         </motion.div>
 
         {/* Slider */}
@@ -141,34 +159,37 @@ export default function ArchieveProgram() {
             modules={[Navigation]}
             spaceBetween={24}
             slidesPerView={1.2}
-            loop={true}
-            autoplay={true}
+            loop={archiveEvents.length > 4}
             breakpoints={{
               640: { slidesPerView: 2.2 },
               1024: { slidesPerView: 4 },
             }}
           >
-            {programs.map((program, index) => (
-              <SwiperSlide key={index}>
+            {archiveEvents.map((program) => (
+              <SwiperSlide key={program.id}>
                 <ProgramCard program={program} />
               </SwiperSlide>
             ))}
           </Swiper>
 
           {/* Navigation */}
-          <button
-            onClick={() => swiperRef.current?.slidePrev()}
-            className="absolute -left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white text-[#008DD2] rounded-full shadow-lg z-20 hidden lg:flex items-center justify-center hover:scale-110 transition cursor-pointer"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
+          {archiveEvents.length > 4 && (
+            <>
+              <button
+                onClick={() => swiperRef.current?.slidePrev()}
+                className="absolute -left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white text-[#008DD2] rounded-full shadow-lg z-20 hidden lg:flex items-center justify-center hover:scale-110 transition cursor-pointer"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
 
-          <button
-            onClick={() => swiperRef.current?.slideNext()}
-            className="absolute -right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#008DD2] text-white rounded-full shadow-lg z-20 hidden lg:flex items-center justify-center hover:scale-110 transition cursor-pointer"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
+              <button
+                onClick={() => swiperRef.current?.slideNext()}
+                className="absolute -right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#008DD2] text-white rounded-full shadow-lg z-20 hidden lg:flex items-center justify-center hover:scale-110 transition cursor-pointer"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </>
+          )}
         </motion.div>
       </motion.div>
     </section>

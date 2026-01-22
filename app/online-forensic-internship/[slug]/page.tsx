@@ -10,7 +10,7 @@ import InternshipEnquiriesSection from "../../../components/internship/Internshi
 
 async function getInternshipDetails(slug: string) {
     try {
-        const res = await fetch(`http://localhost:3000/api/EducationAndInternship/Website/training/training-details/${slug}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/training/training-details/${slug}`, {
             cache: 'no-store'
         });
 

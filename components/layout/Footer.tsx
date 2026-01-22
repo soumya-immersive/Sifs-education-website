@@ -175,24 +175,46 @@ const Footer: React.FC = () => {
       const doc = parser.parseFromString(`<body>${html}</body>`, "text/html");
       const sections: Section[] = [];
 
-      const columns = doc.querySelectorAll(".footer-column");
+      // New data structure seems to be flat: <h4>Title</h4> <ul>...</ul> <h4>Title</h4> ...
+      // Old structure had wrappers. We need to support the new flat structure.
 
-      columns.forEach((col) => {
-        const titleEl = col.querySelector("h4");
-        const title = titleEl?.textContent?.trim() || "";
-        const linkEls = col.querySelectorAll("ul li a");
+      const h4s = doc.querySelectorAll("h4");
 
-        const links: LinkItem[] = [];
-        linkEls.forEach((a) => {
-          const rawPath = a.getAttribute("href") || "#";
-          links.push({
-            label: a.textContent?.trim() || "",
-            path: sanitizePath(rawPath),
+      h4s.forEach((h4) => {
+        const title = h4.textContent?.trim() || "";
+
+        // Find the next UL sibling
+        // We traverse siblings until we find a UL or another H4 (which would mean no UL for this title)
+        let next: Element | null = h4.nextElementSibling;
+        let linksList: Element | null = null;
+
+        while (next) {
+          if (next.tagName.toLowerCase() === 'ul') {
+            linksList = next;
+            break;
+          }
+          if (next.tagName.toLowerCase() === 'h4') {
+            // Hit the next title without finding a UL
+            break;
+          }
+          next = next.nextElementSibling;
+        }
+
+        if (linksList) {
+          const linkEls = linksList.querySelectorAll("a");
+          const links: LinkItem[] = [];
+
+          linkEls.forEach((a) => {
+            const rawPath = a.getAttribute("href") || "#";
+            links.push({
+              label: a.textContent?.trim() || "",
+              path: sanitizePath(rawPath),
+            });
           });
-        });
 
-        if (title && links.length > 0) {
-          sections.push({ title, links });
+          if (links.length > 0) {
+            sections.push({ title, links });
+          }
         }
       });
 

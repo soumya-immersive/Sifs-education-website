@@ -8,7 +8,7 @@ import Learning from "../../components/internships/Learning";
 // However, assuming they are reusable or you want to reuse the layout:
 
 async function getLabBasedInternships() {
-    const res = await fetch('http://localhost:3000/api/EducationAndInternship/Website/training/lab-based-internship', { cache: 'no-store' });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/training/lab-based-internship`, { cache: 'no-store' });
     if (!res.ok) {
         throw new Error('Failed to fetch data');
     }

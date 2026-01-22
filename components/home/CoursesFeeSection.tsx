@@ -1,42 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, Variants, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-
-// Tabs
-const tabs = [
-  "Associate Degree Program",
-  "Foundation Courses",
-  "Professional Courses",
-  "Values Added Courses",
-  "Training and Internship",
-];
-
-// Data Mapping
-const pricingData: Record<string, { id: number; label: string; price: string }[]> = {
-  "Associate Degree Program": [
-    { id: 1, label: "Level - I", price: "₹ 11,800" },
-    { id: 2, label: "Level - II", price: "₹ 17,700" },
-    { id: 3, label: "Level - III", price: "₹ 23,600" },
-  ],
-  "Foundation Courses": [
-    { id: 4, label: "Course Fee", price: "₹ 1,770" },
-  ],
-  "Professional Courses": [
-    { id: 5, label: "Course Fee", price: "₹ 23,600" },
-  ],
-  "Values Added Courses": [
-    { id: 6, label: "UGC NET Program", price: "₹ 2,950" },
-    { id: 7, label: "Certification Fee", price: "₹ 4,399" },
-    { id: 8, label: "Certification Fee", price: "₹ 7,999" },
-  ],
-  "Training and Internship": [
-    { id: 9, label: "One Month", price: "₹ 5,900" },
-    { id: 10, label: "Three Months", price: "₹ 17,700" },
-    { id: 11, label: "Six Months", price: "₹ 35,400" },
-  ],
-};
+import { useFeeCategoriesData } from "@/hooks/useFeeCategoriesData";
+import { FeeCategory } from "@/types/fee";
 
 // --- Framer Motion Variants ---
 
@@ -75,11 +43,49 @@ const cardVariants: Variants = {
 };
 
 export default function CoursePricing() {
-  const [activeTab, setActiveTab] = useState(tabs[0]);
+  const { feeCategories, selectedCategoryFees, loading, feesLoading, fetchCategoryFees } = useFeeCategoriesData();
+  const [activeCategory, setActiveCategory] = useState<FeeCategory | null>(null);
   // Track active ID instead of index to maintain highlight state across tabs
   const [activeLevel, setActiveLevel] = useState<number | null>(null);
 
-  const currentLevels = pricingData[activeTab];
+  // Set first category as active when categories are loaded
+  useEffect(() => {
+    if (feeCategories.length > 0 && !activeCategory) {
+      setActiveCategory(feeCategories[0]);
+      fetchCategoryFees(feeCategories[0].slug);
+    }
+  }, [feeCategories, activeCategory, fetchCategoryFees]);
+
+  // Handle category change
+  const handleCategoryChange = (category: FeeCategory) => {
+    setActiveCategory(category);
+    setActiveLevel(null);
+    fetchCategoryFees(category.slug);
+  };
+
+  // Show loading skeleton while fetching categories
+  if (loading) {
+    return (
+      <section className="py-20 bg-gradient-to-b from-white to-[#fbfcff] relative bg-[url('/fee-structure/bg.png')] bg-cover bg-center bg-no-repeat">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-96 mx-auto mb-10"></div>
+            <div className="flex justify-center gap-6 mb-14">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-6 bg-gray-200 rounded w-32"></div>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-40 bg-gray-200 rounded-2xl"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-20 bg-gradient-to-b from-white to-[#fbfcff] relative bg-[url('/fee-structure/bg.png')] bg-cover bg-center bg-no-repeat">
@@ -115,24 +121,19 @@ export default function CoursePricing() {
           className="flex flex-wrap justify-center gap-6 mt-10"
           variants={itemSlideUpVariants}
         >
-          {tabs.map((t) => {
-            const active = t === activeTab;
+          {feeCategories.map((category) => {
+            const active = category.id === activeCategory?.id;
             return (
               <button
-                key={t}
-                onClick={() => {
-                  setActiveTab(t);
-                  setActiveLevel(null); // Reset selection when switching tabs
-                }}
-                className={`relative px-1 pb-2 text-sm font-semibold transition-colors cursor-pointer ${
-                  active ? "text-purple-600" : "text-gray-600 hover:text-purple-500"
-                }`}
-              >
-                <span>{t}</span>
-                <span
-                  className={`absolute left-0 right-0 -bottom-0.5 h-0.5 transition-all ${
-                    active ? "bg-purple-600 scale-x-100" : "bg-transparent scale-x-0"
+                key={category.id}
+                onClick={() => handleCategoryChange(category)}
+                className={`relative px-1 pb-2 text-sm font-semibold transition-colors cursor-pointer ${active ? "text-purple-600" : "text-gray-600 hover:text-purple-500"
                   }`}
+              >
+                <span>{category.name}</span>
+                <span
+                  className={`absolute left-0 right-0 -bottom-0.5 h-0.5 transition-all ${active ? "bg-purple-600 scale-x-100" : "bg-transparent scale-x-0"
+                    }`}
                 />
               </button>
             );
@@ -142,85 +143,107 @@ export default function CoursePricing() {
         {/* Cards Display */}
         <AnimatePresence mode="wait">
           <motion.div
-            key={activeTab}
-            className={`grid gap-8 mt-14 ${
-              currentLevels.length === 1 
-                ? "flex justify-center" 
-                : "grid-cols-1 sm:grid-cols-3"
-            }`}
+            key={activeCategory?.id}
+            className={`grid gap-8 mt-14 ${selectedCategoryFees.length === 0
+                ? "flex justify-center"
+                : selectedCategoryFees.length === 1
+                  ? "flex justify-center"
+                  : selectedCategoryFees.length === 2
+                    ? "grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto"
+                    : "grid-cols-1 sm:grid-cols-3"
+              }`}
             variants={cardsGridVariants}
             initial="hidden"
             animate="visible"
             exit="hidden"
           >
-            {currentLevels.map((l) => {
-              const isActive = activeLevel === l.id || (activeLevel === null && currentLevels.indexOf(l) === 1);
-
-              return (
+            {feesLoading ? (
+              // Loading skeleton for fees
+              [1, 2, 3].map((i) => (
                 <motion.div
-                  key={l.id}
+                  key={i}
                   className="relative flex justify-center w-full max-w-md mx-auto"
                   variants={cardVariants}
                 >
-                  <article
-                    onClick={() => setActiveLevel(l.id)}
-                    className={`w-full rounded-2xl px-12 pt-8 pb-16 relative cursor-pointer transform transition-all duration-300
-                      ${
-                        isActive
+                  <div className="w-full rounded-2xl px-12 pt-8 pb-16 bg-gray-100 animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-20 mb-2"></div>
+                    <div className="h-8 bg-gray-200 rounded w-32"></div>
+                  </div>
+                </motion.div>
+              ))
+            ) : selectedCategoryFees.length === 0 ? (
+              <motion.div
+                className="text-gray-500 text-center py-8"
+                variants={cardVariants}
+              >
+                No fees available for this category
+              </motion.div>
+            ) : (
+              selectedCategoryFees.map((fee, index) => {
+                const isActive = activeLevel === fee.id || (activeLevel === null && index === Math.floor(selectedCategoryFees.length / 2));
+
+                return (
+                  <motion.div
+                    key={fee.id}
+                    className="relative flex justify-center w-full max-w-md mx-auto"
+                    variants={cardVariants}
+                  >
+                    <article
+                      onClick={() => setActiveLevel(fee.id)}
+                      className={`w-full rounded-2xl px-12 pt-8 pb-16 relative cursor-pointer transform transition-all duration-300
+                        ${isActive
                           ? "bg-gradient-to-r from-purple-600 via-purple-500 to-purple-400 text-white shadow-2xl scale-[1.03]"
                           : "bg-gradient-to-br from-white via-gray-50 to-white text-gray-900 shadow-md hover:shadow-lg"
-                      }`}
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="text-left">
-                        <p className={`font-semibold ${isActive ? "text-white" : "text-gray-800"}`}>
-                          {l.label}
-                        </p>
-                        <h3
-                          className={`mt-2 text-2xl font-extrabold ${
-                            isActive ? "text-white" : "text-gray-900"
-                          }`}
-                        >
-                          {l.price}
-                        </h3>
-                      </div>
+                        }`}
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="text-left">
+                          <p className={`font-semibold ${isActive ? "text-white" : "text-gray-800"}`}>
+                            {fee.title}
+                          </p>
+                          <h3
+                            className={`mt-2 text-2xl font-extrabold ${isActive ? "text-white" : "text-gray-900"
+                              }`}
+                          >
+                            ₹ {fee.price}
+                          </h3>
+                        </div>
 
-                      <div
-                        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-md shrink-0
-                          ${
-                            isActive
+                        <div
+                          className={`w-14 h-14 rounded-full flex items-center justify-center shadow-md shrink-0
+                            ${isActive
                               ? "bg-white text-purple-600"
                               : "bg-purple-50 text-purple-600"
-                          }`}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          className="w-6 h-6"
+                            }`}
                         >
-                          <path
-                            fill="currentColor"
-                            d="M12 2L2 7l10 5 10-5-10-5zm0 7.2L6.1 7 12 4.1 17.9 7 12 9.2zM4 10.1v5.6c0 1.2.7 2.3 1.8 2.8L12 21l6.2-2.5c1.1-.45 1.8-1.6 1.8-2.8v-5.6L12 15l-8-4.9z"
-                          />
-                        </svg>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            className="w-6 h-6"
+                          >
+                            <path
+                              fill="currentColor"
+                              d="M12 2L2 7l10 5 10-5-10-5zm0 7.2L6.1 7 12 4.1 17.9 7 12 9.2zM4 10.1v5.6c0 1.2.7 2.3 1.8 2.8L12 21l6.2-2.5c1.1-.45 1.8-1.6 1.8-2.8v-5.6L12 15l-8-4.9z"
+                            />
+                          </svg>
+                        </div>
                       </div>
-                    </div>
-                  </article>
+                    </article>
 
-                  <button
-                    onClick={() => setActiveLevel(l.id)}
-                    className={`absolute left-1/2 -translate-x-1/2 -bottom-5 px-6 py-2 rounded-lg text-sm font-semibold shadow-md z-10 transition-all cursor-pointer
-                      ${
-                        isActive
+                    <button
+                      onClick={() => setActiveLevel(fee.id)}
+                      className={`absolute left-1/2 -translate-x-1/2 -bottom-5 px-6 py-2 rounded-lg text-sm font-semibold shadow-md z-10 transition-all cursor-pointer
+                        ${isActive
                           ? "bg-white text-purple-600"
                           : "bg-purple-600 text-white hover:bg-purple-700"
-                      }`}
-                  >
-                    Visit List →
-                  </button>
-                </motion.div>
-              );
-            })}
+                        }`}
+                    >
+                      Visit List →
+                    </button>
+                  </motion.div>
+                );
+              })
+            )}
           </motion.div>
         </AnimatePresence>
 

@@ -10,7 +10,7 @@ import Participatory from "../../../components/events-inner/Participatory";
 // Fetch event details function
 async function getEventDetails(slug: string) {
   try {
-    const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api"}/EducationAndInternship/Website/event/event-details/${slug}`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api"}/EventManagement/Website/events/${slug}`;
     const response = await fetch(apiUrl, { cache: 'no-store' });
 
     if (!response.ok) {
@@ -20,50 +20,67 @@ async function getEventDetails(slug: string) {
     const result = await response.json();
 
     if (result.success && result.data && result.data.event) {
-      // Correct path to event object: result.data.event
-      // Based on user provided JSON: result.data.event contains fields.
       const item = result.data.event;
       const clean = (str: any) => (str ? str.toString().replace(/^"|"$/g, '') : "");
 
-      let imageUrl = item.image_url || ""; // API provides image_url directly
-      if (!imageUrl && item.image) {
-        imageUrl = `http://localhost:3000/uploads/events/${item.image}`;
-        // Note: Use 'uploads/events/' if API doesn't give full URL, but here image_url is provided.
+      // Handle Image: Try 'image', then 'banner_image', then fallback
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '') || 'http://localhost:3000';
+      let imageUrl = item.image || item.banner_image || "";
+      if (!imageUrl && result.data.gallery_images && result.data.gallery_images.length > 0) {
+        imageUrl = result.data.gallery_images[0].image_url || `${baseUrl}/uploads/events/${result.data.gallery_images[0].image}`;
+      }
+      if (imageUrl && !imageUrl.startsWith('http')) {
+        imageUrl = `${baseUrl}/uploads/events/${imageUrl}`;
       }
 
-      // Use formatted_date from API if available, else date
-      const formattedDate = item.formatted_date || (item.event_date ? new Date(item.event_date).toLocaleDateString("en-GB", {
-        day: "2-digit", month: "long", year: "numeric"
-      }) : "Date TBA");
 
-      // Extract schedules and FAQs if they exist in result.data or item
-      // The JSON provided shows schedule/faqs are NOT in `event` object.
-      // But user provided JSON sample doesn't show `pageSection` content either.
-      // Assuming they might be separate or missing.
-      // If missing, we default to empty.
+      // Date Formatting helper
+      const formatDate = (dateStr: string) => {
+        const d = new Date(dateStr);
+        return isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+      };
 
-      // Check `pageSection` or other fields if arrays are there.
-      // User JSON has "pageSection": {}.
-      // If API returns schedule, it might be in `pageSection` or root of `data`.
-      // We will default to empty for now if not found.
+      let formattedDate = item.formatted_start_date; // Default to API formatted
 
-      const schedule: any[] = []; // Placeholder if not in JSON provided
-      const faqs: any[] = [];    // Placeholder
+      const startDateVal = item.start_date ? new Date(item.start_date) : null;
+      const endDateVal = item.end_date ? new Date(item.end_date) : null;
+
+      if (startDateVal && !isNaN(startDateVal.getTime())) {
+        if (endDateVal && !isNaN(endDateVal.getTime()) && startDateVal.getTime() !== endDateVal.getTime()) {
+          // Check if same month and year
+          if (startDateVal.getMonth() === endDateVal.getMonth() && startDateVal.getFullYear() === endDateVal.getFullYear()) {
+            formattedDate = `${startDateVal.getDate().toString().padStart(2, '0')} - ${formatDate(item.end_date)}`;
+          } else {
+            formattedDate = `${formatDate(item.start_date)} - ${formatDate(item.end_date)}`;
+          }
+        } else {
+          formattedDate = formatDate(item.start_date);
+        }
+      } else if (!formattedDate) {
+        formattedDate = "Date TBA";
+      }
+
+      // Extract schedules and FAQs if available
+      const schedule: any[] = result.data.schedule || [];
+      const faqs: any[] = result.data.faqs || [];
 
       return {
         id: item.id,
         title: clean(item.title),
         slug: item.slug,
-        description: clean(item.event_outline) || clean(item.description) || "",
+        description: clean(item.description) || clean(item.event_outline) || "",
         image: imageUrl,
         category: clean(item.category_name) || "Forensic Science",
         date: formattedDate,
-        startDate: item.event_date,
+        startDate: item.start_date,
+        endDate: item.end_date,
         mode: clean(item.mode_of_study) || "Online",
         location: clean(item.location) || "Online",
-        price: clean(item.int_price_level_1) || clean(item.price_level_1),
+        price: clean(item.price) || clean(item.int_price_level_1) || "Free",
         schedule: schedule,
-        faqs: faqs
+        faqs: faqs,
+        banner_title: item.banner_title,
+        banner_subtitle: item.banner_subtitle
       };
     }
     return null;
@@ -74,6 +91,22 @@ async function getEventDetails(slug: string) {
   }
 }
 
+// Fetch upcoming events
+async function getUpcomingEvents() {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api';
+    const response = await fetch(`${apiUrl}/EventManagement/Website`, {
+      cache: 'no-store',
+    });
+    if (!response.ok) return [];
+    const result = await response.json();
+    return result.success && result.data ? result.data.upcomingEvents : [];
+  } catch (error) {
+    console.error("Error fetching upcoming events:", error);
+    return [];
+  }
+}
+
 interface Props {
   params: Promise<{ slug: string }>;
 }
@@ -81,7 +114,11 @@ interface Props {
 export default async function EventDetailPage({ params }: Props) {
   const { slug } = await params;
 
-  const event = await getEventDetails(slug);
+  // Parallel data fetching
+  const [event, upcomingEvents] = await Promise.all([
+    getEventDetails(slug),
+    getUpcomingEvents()
+  ]);
 
   if (!event) {
     notFound();
@@ -107,7 +144,7 @@ export default async function EventDetailPage({ params }: Props) {
 
         </div>
       </div>
-      <UpcomingEvents />
+      <UpcomingEvents events={upcomingEvents || []} />
       <Participatory />
     </main>
   );
