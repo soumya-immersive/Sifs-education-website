@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Calendar, Users, Phone, Info, Mail, Video, ArrowRight, Facebook } from "lucide-react";
 import { Event } from "../../data/events";
 
@@ -8,15 +9,17 @@ interface Props {
 }
 
 export default function EventSidebar({ event }: Props) {
+  const router = useRouter();
+
   return (
     <div className="space-y-6 sticky top-24 max-w-sm">
-      
+
       {/* 1. Registration Detail Section */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-5 border-b border-gray-100">
           <h3 className="font-bold text-gray-800 text-lg">Registration Detail</h3>
         </div>
-        
+
         <div className="p-5 space-y-5">
           <div className="flex justify-between items-start">
             <div className="flex gap-3">
@@ -25,7 +28,7 @@ export default function EventSidebar({ event }: Props) {
             </div>
             <span className="text-gray-600">{event.date}</span>
           </div>
-          
+
           <div className="flex justify-between items-start">
             <div className="flex gap-3">
               <Users className="w-5 h-5 text-gray-900 mt-0.5" />
@@ -33,7 +36,7 @@ export default function EventSidebar({ event }: Props) {
             </div>
             <span className="text-gray-600">₹ 1,180.00</span>
           </div>
-          
+
           <div className="flex justify-between items-start">
             <div className="flex gap-3">
               <Phone className="w-5 h-5 text-gray-900 mt-0.5" />
@@ -50,7 +53,10 @@ export default function EventSidebar({ event }: Props) {
           </div>
 
           <div className="space-y-3 pt-2">
-            <button className="w-full bg-gradient-to-r from-blue-600 to-purple-500 hover:opacity-90 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all">
+            <button
+              onClick={() => router.push(`/events/register/${event.slug}`)}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-500 hover:opacity-90 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all"
+            >
               Register Now
               <ArrowRight className="w-5 h-5" />
             </button>
@@ -67,7 +73,7 @@ export default function EventSidebar({ event }: Props) {
         <div className="p-5 border-b border-gray-100">
           <h3 className="font-bold text-gray-800 text-lg">Venue</h3>
         </div>
-        
+
         <div className="p-5 space-y-4">
           <div>
             <h4 className="font-bold text-gray-900">Online Zoom</h4>
@@ -105,7 +111,7 @@ export default function EventSidebar({ event }: Props) {
         <div className="p-5 border-b border-gray-100">
           <h3 className="font-bold text-gray-800 text-lg">Ask Your Query</h3>
         </div>
-        
+
         <form className="p-5 space-y-4" onSubmit={(e) => e.preventDefault()}>
           <div className="space-y-1.5">
             <label className="text-sm font-bold text-gray-700">Name</label>

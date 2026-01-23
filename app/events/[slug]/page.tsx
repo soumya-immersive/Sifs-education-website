@@ -7,11 +7,55 @@ import EventFaq from "../../../components/events-inner/EventFaq";
 import UpcomingEvents from "../../../components/events-inner/UpcomingEvents";
 import Participatory from "../../../components/events-inner/Participatory";
 
-// Fetch event details function
+// Fetch event details function - tries both new and old APIs
 async function getEventDetails(slug: string) {
   try {
-    const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api"}/EventManagement/Website/events/${slug}`;
-    const response = await fetch(apiUrl, { cache: 'no-store' });
+    // Try new conference/event-details API first
+    const newApiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api"}/EducationAndInternship/Website/event/event-details/${slug}`;
+
+    try {
+      const newResponse = await fetch(newApiUrl, { cache: 'no-store' });
+      if (newResponse.ok) {
+        const result = await newResponse.json();
+        if (result.success && result.data?.event) {
+          const item = result.data.event;
+          const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '') || 'http://localhost:3000';
+
+          return {
+            id: item.id,
+            title: item.title.replace(/^"|"$/g, ''),
+            slug: item.slug,
+            description: item.event_outline || item.sub_title || "",
+            image: item.image_url || "",
+            category: "Forensic Science",
+            date: item.formatted_date || "Date TBA",
+            startDate: item.event_date,
+            endDate: item.event_date,
+            mode: item.mode_of_study || "Online",
+            location: item.mode_of_study || "Online",
+            price: item.int_price_level_1 && item.int_price_level_1 !== "00"
+              ? item.int_price_level_1
+              : item.price_level_1 && item.price_level_1 !== "00"
+                ? item.price_level_1
+                : "Free",
+            schedule: [],
+            faqs: [],
+            banner_title: item.title,
+            banner_subtitle: item.sub_title,
+            video_url: item.video_url,
+            video_id: item.video_id,
+            case_studies: item.case_studies,
+            call_for_assistance: item.call_for_assistance,
+          };
+        }
+      }
+    } catch (newApiError) {
+      console.log("New API failed, trying old API...");
+    }
+
+    // Fallback to old EventManagement API
+    const oldApiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api"}/EventManagement/Website/events/${slug}`;
+    const response = await fetch(oldApiUrl, { cache: 'no-store' });
 
     if (!response.ok) {
       return null;
@@ -23,7 +67,7 @@ async function getEventDetails(slug: string) {
       const item = result.data.event;
       const clean = (str: any) => (str ? str.toString().replace(/^"|"$/g, '') : "");
 
-      // Handle Image: Try 'image', then 'banner_image', then fallback
+      // Handle Image
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '') || 'http://localhost:3000';
       let imageUrl = item.image || item.banner_image || "";
       if (!imageUrl && result.data.gallery_images && result.data.gallery_images.length > 0) {
@@ -33,21 +77,19 @@ async function getEventDetails(slug: string) {
         imageUrl = `${baseUrl}/uploads/events/${imageUrl}`;
       }
 
-
       // Date Formatting helper
       const formatDate = (dateStr: string) => {
         const d = new Date(dateStr);
         return isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
       };
 
-      let formattedDate = item.formatted_start_date; // Default to API formatted
+      let formattedDate = item.formatted_start_date;
 
       const startDateVal = item.start_date ? new Date(item.start_date) : null;
       const endDateVal = item.end_date ? new Date(item.end_date) : null;
 
       if (startDateVal && !isNaN(startDateVal.getTime())) {
         if (endDateVal && !isNaN(endDateVal.getTime()) && startDateVal.getTime() !== endDateVal.getTime()) {
-          // Check if same month and year
           if (startDateVal.getMonth() === endDateVal.getMonth() && startDateVal.getFullYear() === endDateVal.getFullYear()) {
             formattedDate = `${startDateVal.getDate().toString().padStart(2, '0')} - ${formatDate(item.end_date)}`;
           } else {
@@ -60,7 +102,6 @@ async function getEventDetails(slug: string) {
         formattedDate = "Date TBA";
       }
 
-      // Extract schedules and FAQs if available
       const schedule: any[] = result.data.schedule || [];
       const faqs: any[] = result.data.faqs || [];
 
@@ -80,7 +121,11 @@ async function getEventDetails(slug: string) {
         schedule: schedule,
         faqs: faqs,
         banner_title: item.banner_title,
-        banner_subtitle: item.banner_subtitle
+        banner_subtitle: item.banner_subtitle,
+        video_url: item.video_url,
+        video_id: item.video_id,
+        case_studies: item.case_studies,
+        call_for_assistance: item.call_for_assistance,
       };
     }
     return null;

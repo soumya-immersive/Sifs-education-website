@@ -154,6 +154,21 @@ export default function Header() {
     // Normalize string
     const lowerUrl = url.toLowerCase();
 
+    // If URL contains sifs.in domain, extract the path and make it internal
+    if (lowerUrl.includes("sifs.in")) {
+      try {
+        const urlObj = new URL(url);
+        // Return just the pathname (e.g., /about, /contact, etc.)
+        return urlObj.pathname;
+      } catch (e) {
+        // If URL parsing fails, try to extract path manually
+        const match = url.match(/sifs\.in(\/[^?#]*)/i);
+        if (match && match[1]) {
+          return match[1];
+        }
+      }
+    }
+
     // Specific Redirections (API Slugs to Internal Routes)
     if (lowerUrl.includes("foundation-forensic-courses") || lowerUrl === "foundation-forensic-courses") {
       return "/courses/foundation-certificate";
@@ -166,22 +181,14 @@ export default function Header() {
     if (lowerUrl.includes("events/team")) {
       return "/faculty";
     }
-    if (lowerUrl.includes("our-presence") || lowerUrl.includes("sifs.in/page/our-presence")) {
+    if (lowerUrl.includes("our-presence")) {
       return "/our-presence";
     }
-
-    // If it points to the client domain, try to extract the relative path
-    // or return as is if we can't map it. 
-    // For now, we only strictly map the Team page as requested.
 
     // Fix specifically for Vision and Mission if casing is wrong or has typos
     if (lowerUrl.includes("vision-and-mission") || lowerUrl.includes("vision-and-mision")) {
       return "/vision-and-mission";
     }
-
-    // Optionally handle other common routes if standard matching applies
-    if (lowerUrl.includes("sifs.in/about")) return "/about";
-    if (lowerUrl.includes("sifs.in/contact")) return "/contact";
 
     return url;
   };
@@ -222,7 +229,7 @@ export default function Header() {
       const extractLink = (a: Element): NavItem => ({
         label: a.textContent?.trim() || "",
         path: sanitizePath(a.getAttribute("href") || "#"),
-        target: a.getAttribute("target") || undefined
+        // Don't extract target from API - we'll determine it based on whether link is external
       });
 
       // Strategy:
@@ -318,8 +325,8 @@ export default function Header() {
 
   const isExternalLink = (path: string) => path.startsWith("http");
 
-  // Helper to determine target attribute
-  const getTarget = (item: NavItem) => item.target || (isExternalLink(item.path || "") ? "_blank" : undefined);
+  // Helper to determine target attribute - only external links should open in new tab
+  const getTarget = (item: NavItem) => (isExternalLink(item.path || "") ? "_blank" : undefined);
 
   return (
     <header className="sticky top-0 z-40 bg-white shadow-md">

@@ -153,15 +153,28 @@ const Footer: React.FC = () => {
     if (!url) return "#";
     const lowerUrl = url.toLowerCase();
 
+    // If URL contains sifs.in domain, extract the path and make it internal
+    if (lowerUrl.includes("sifs.in")) {
+      try {
+        const urlObj = new URL(url);
+        // Return just the pathname (e.g., /about, /contact, etc.)
+        return urlObj.pathname;
+      } catch (e) {
+        // If URL parsing fails, try to extract path manually
+        const match = url.match(/sifs\.in(\/[^?#]*)/i);
+        if (match && match[1]) {
+          return match[1];
+        }
+      }
+    }
+
     // Fix specifically for Vision and Mission
     if (lowerUrl.includes("vision-and-mission") || lowerUrl.includes("vision-and-mision")) {
       return "/vision-and-mission";
     }
 
-    if (lowerUrl.includes("sifs.in/events/team")) return "/faculty";
-    if (lowerUrl.includes("our-presence") || lowerUrl.includes("sifs.in/page/our-presence")) return "/our-presence";
-    if (lowerUrl.includes("sifs.in/about")) return "/about";
-    if (lowerUrl.includes("sifs.in/contact")) return "/contact";
+    if (lowerUrl.includes("events/team")) return "/faculty";
+    if (lowerUrl.includes("our-presence")) return "/our-presence";
 
     return url;
   };

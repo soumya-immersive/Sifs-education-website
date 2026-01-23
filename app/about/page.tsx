@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Toaster, toast } from "react-hot-toast";
-import { Loader2, Save, Edit } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import AboutHero from "../../components/about/AboutHero";
 import MissionVision from "../../components/about/MissionVision";
@@ -14,10 +13,9 @@ import { API_BASE_URL } from "@/lib/config";
 import { useAboutPageData } from "@/hooks/useAboutPageData";
 
 export default function AboutPage() {
-  const { data, updateSection, editMode, setEditMode, saveData, isLoaded: hookLoaded } = useAboutPageData();
+  const { data, isLoaded: hookLoaded } = useAboutPageData();
   const [apiData, setApiData] = useState<any>(null);
   const [isApiLoaded, setIsApiLoaded] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const fetchAboutData = async () => {
@@ -30,7 +28,6 @@ export default function AboutPage() {
         }
       } catch (error) {
         console.error("Failed to fetch about page data:", error);
-        toast.error("Failed to load page updated content");
       } finally {
         setIsApiLoaded(true);
       }
@@ -61,70 +58,37 @@ export default function AboutPage() {
     }
   };
 
-  const handleSave = () => {
-    setIsSaving(true);
-    setTimeout(() => {
-      saveData();
-      setEditMode(false);
-      setIsSaving(false);
-      toast.success("Content saved locally");
-    }, 800);
-  };
-
   return (
     <main className="bg-[#F7F9FC] relative min-h-screen">
-      <Toaster position="top-right" />
-
-      {/* Edit Controls */}
-      <div className="fixed bottom-6 right-6 z-[1000] flex gap-2">
-        {!editMode ? (
-          <button
-            onClick={() => setEditMode(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-blue-700 transition-all font-medium"
-          >
-            <Edit size={18} /> Edit Page
-          </button>
-        ) : (
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-green-700 transition-all font-medium"
-          >
-            {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-            {isSaving ? "Saving..." : "Save Changes"}
-          </button>
-        )}
-      </div>
-
       <div className="">
         <AboutHero
           data={finalData.hero}
-          editMode={editMode}
-          updateData={(d) => updateSection("hero", d)}
+          editMode={false}
+          updateData={() => { }}
         />
 
         <MissionVision
           data={data.mission}
-          editMode={editMode}
-          updateData={(missionData) => updateSection("mission", missionData)}
+          editMode={false}
+          updateData={() => { }}
         />
 
         <InitiativesSection
           data={data.initiatives}
-          editMode={editMode}
-          updateData={(initData) => updateSection("initiatives", initData)}
+          editMode={false}
+          updateData={() => { }}
         />
 
         <ExpertTeam
           data={data.team}
-          editMode={editMode}
-          updateData={(teamData) => updateSection("team", teamData)}
+          editMode={false}
+          updateData={() => { }}
         />
 
         <TestimonialsSection
           data={data.testimonials}
-          editMode={editMode}
-          updateData={(testData) => updateSection("testimonials", testData)}
+          editMode={false}
+          updateData={() => { }}
         />
       </div>
     </main>
