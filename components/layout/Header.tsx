@@ -9,7 +9,6 @@ import { API_BASE_URL } from "../../lib/config";
 import { coursePrograms } from "../../data/coursePrograms";
 import { internshipPrograms } from "../../data/internshipPrograms";
 import { trainingPrograms } from "../../data/trainingPrograms";
-// import { bookCategories } from "../../data/bookCategories";
 
 /* -------------------------
    Navigation Configuration (Fallback)
@@ -105,36 +104,23 @@ export default function Header() {
 
         const json = await response.json();
 
-        console.log("API Response:", json); // Debugging
-        console.log("Data object keys:", json.data ? Object.keys(json.data) : "No data"); // Debugging
+        console.log("API Response:", json);
 
-        // header_text is inside data.be object
-        const headerText = json.data?.be?.header_text;
+        // Check both possible locations for header_text
+        const headerText = json.data?.be?.header_text || json.data?.bs?.header_text;
 
         if (json.success && headerText) {
-          console.log("Found header text length:", headerText.length);
-          console.log("Header text content:", headerText.substring(0, 200)); // Show first 200 chars
+          console.log("Found header text:", headerText.substring(0, 200));
           const parsedItems = parseHeaderHTML(headerText);
           console.log("Parsed Nav Items:", parsedItems);
 
           if (parsedItems.length > 0) {
             setNavItems(parsedItems);
           } else {
-            console.warn("No nav items parsed from header_text");
+            console.warn("No nav items parsed, using default");
           }
         } else {
-          console.warn("Header text not found in data.be. Checking data.bs...");
-          // Fallback to data.bs if data.be doesn't have header_text
-          const headerTextBs = json.data?.bs?.header_text;
-          if (headerTextBs) {
-            console.log("Found header text in bs, length:", headerTextBs.length);
-            const parsedItems = parseHeaderHTML(headerTextBs);
-            if (parsedItems.length > 0) {
-              setNavItems(parsedItems);
-            }
-          } else {
-            console.warn("Header text not found in data.be or data.bs");
-          }
+          console.warn("Header text not found, using default nav items");
         }
       } catch (error) {
         console.error("Failed to fetch header data:", error);
@@ -145,172 +131,214 @@ export default function Header() {
   }, [isMounted]);
 
   /* -------------------------
-     Helper to Sanitize API Paths
-     Redirects legacy/external links to local routes
+     HTML Decoding Function
+     Decodes &lt; &gt; &amp; etc. to actual HTML
+  ------------------------- */
+  const decodeHTML = (html: string): string => {
+    if (!html) return "";
+
+    const textArea = document.createElement('textarea');
+    textArea.innerHTML = html;
+    return textArea.value;
+  };
+
+  /* -------------------------
+     Sanitize Path Helper
   ------------------------- */
   const sanitizePath = (url: string): string => {
     if (!url) return "#";
 
-    // Normalize string
-    const lowerUrl = url.toLowerCase();
+    const trimmed = url.trim();
 
-    // If URL contains sifs.in domain, extract the path and make it internal
-    if (lowerUrl.includes("sifs.in")) {
-      try {
-        const urlObj = new URL(url);
-        // Return just the pathname (e.g., /about, /contact, etc.)
-        return urlObj.pathname;
-      } catch (e) {
-        // If URL parsing fails, try to extract path manually
-        const match = url.match(/sifs\.in(\/[^?#]*)/i);
-        if (match && match[1]) {
-          return match[1];
-        }
-      }
+    // If it's already a relative path starting with /, return as is
+    if (trimmed.startsWith("/")) {
+      return trimmed;
     }
 
-    // Specific Redirections (API Slugs to Internal Routes)
-    if (lowerUrl.includes("foundation-forensic-courses") || lowerUrl === "foundation-forensic-courses") {
-      return "/courses/foundation-certificate";
-    }
-    if (lowerUrl === "online-courses" || lowerUrl.includes("/online-courses")) {
-      return "/courses/associate-degree";
+    // If it's # or empty, return #
+    if (trimmed === "#" || trimmed === "") {
+      return "#";
     }
 
-    // Specific Redirections (Legacy/External)
-    if (lowerUrl.includes("events/team")) {
-      return "/faculty";
-    }
-    if (lowerUrl.includes("our-presence")) {
-      return "/our-presence";
+    // For external URLs, return as is (they'll be handled by target="_blank")
+    if (trimmed.startsWith("http")) {
+      return trimmed;
     }
 
-    // Fix specifically for Vision and Mission if casing is wrong or has typos
-    if (lowerUrl.includes("vision-and-mission") || lowerUrl.includes("vision-and-mision")) {
-      return "/vision-and-mission";
-    }
-
-    return url;
+    // Default fallback
+    return "#";
   };
 
+  /* -------------------------
+     Parse Header HTML
+     Handles HTML-encoded content and proper structure
+  ------------------------- */
   const parseHeaderHTML = (htmlString: string): NavItem[] => {
-    // Triple check we're in browser environment
     if (typeof window === "undefined") {
-      console.warn("parseHeaderHTML called on server-side, returning empty array");
-      return [];
-    }
-
-    if (typeof DOMParser === "undefined") {
-      console.error("DOMParser is not available");
       return [];
     }
 
     if (!htmlString || htmlString.trim() === "") {
-      console.warn("Empty HTML string provided to parseHeaderHTML");
-      return [];
+      return defaultNavItems;
     }
 
     try {
-      const parser = new DOMParser();
-      // Parse the snippet. Wrapping in body ensures we have a root.
-      const doc = parser.parseFromString(`<body>${htmlString}</body>`, "text/html");
+      // Step 1: Decode HTML entities
+      const decodedHTML = decodeHTML(htmlString);
+      console.log("Decoded HTML:", decodedHTML.substring(0, 200));
 
-      // Check if parsing was successful
-      if (!doc || !doc.body) {
-        console.error("Failed to parse HTML document");
-        return [];
+      // Step 2: Extract actual HTML from <pre> tag if present
+      let actualHTML = decodedHTML;
+      if (decodedHTML.includes('<pre') && decodedHTML.includes('</pre>')) {
+        const preMatch = decodedHTML.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+        if (preMatch && preMatch[1]) {
+          actualHTML = preMatch[1].trim();
+        }
       }
 
-      const body = doc.body;
+      console.log("Actual HTML to parse:", actualHTML.substring(0, 200));
+
+      // Step 3: Parse the HTML
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(actualHTML, "text/html");
 
       const items: NavItem[] = [];
 
-      // Helper to extract clean link data
-      const extractLink = (a: Element): NavItem => ({
-        label: a.textContent?.trim() || "",
-        path: sanitizePath(a.getAttribute("href") || "#"),
-        // Don't extract target from API - we'll determine it based on whether link is external
-      });
+      // Step 4: Process structure
+      // First, look for standalone Home link
+      const paragraphs = Array.from(doc.querySelectorAll('p'));
 
-      // Strategy:
-      // 1. First, get any standalone links in <p> tags BEFORE the <ul>
-      // 2. Process the <ul> with dropdown logic
-      // 3. Get any standalone links in <p> tags AFTER the <ul>
+      // Process each paragraph for standalone links
+      paragraphs.forEach((p, index) => {
+        const links = Array.from(p.querySelectorAll('a'));
+        links.forEach((link) => {
+          const href = link.getAttribute('href') || '#';
+          const text = link.textContent?.trim() || '';
 
-      const ul = body.querySelector("ul");
-
-      if (ul) {
-        // Get all direct children of body to maintain order
-        const bodyChildren = Array.from(body.children);
-
-        // Process elements before UL
-        for (const child of bodyChildren) {
-          if (child === ul) break;
-          if (child.tagName === "P") {
-            const link = child.querySelector("a");
-            if (link) {
-              items.push(extractLink(link));
+          if (text) {
+            // If it's the first paragraph with "Home", add it
+            if (index === 0 && text.toLowerCase() === 'home') {
+              items.push({
+                label: text,
+                path: sanitizePath(href)
+              });
             }
-          }
-        }
-
-        // Process the UL - Reconstruct Dropdowns
-        const anchors = Array.from(ul.querySelectorAll("a"));
-        let currentGroup: NavItem | null = null;
-
-        anchors.forEach((a) => {
-          const rawHref = a.getAttribute("href");
-          // Check for section headers (href="#" or specific javascript void)
-          const isHeader = rawHref === "#" || rawHref === "" || rawHref === "javascript:void(0)" || rawHref === "javascript:;";
-
-          if (isHeader) {
-            // This acts as a Section Header (Dropdown Parent)
-            currentGroup = {
-              label: a.textContent?.trim() || "",
-              path: "#",
-              children: []
-            };
-            items.push(currentGroup);
-          } else {
-            // This is a Link
-            const linkItem = extractLink(a);
-
-            if (currentGroup) {
-              // If we have an active header, add to it
-              currentGroup.children?.push(linkItem);
-            } else {
-              // Result of loose link before any header? Treat as top level.
-              items.push(linkItem);
+            // If it's the last paragraph with "Reach Us", add it
+            else if (index === paragraphs.length - 1 && text.toLowerCase().includes('reach')) {
+              items.push({
+                label: text,
+                path: sanitizePath(href)
+              });
             }
           }
         });
+      });
 
-        // Process elements after UL
-        let foundUl = false;
-        for (const child of bodyChildren) {
-          if (child === ul) {
-            foundUl = true;
-            continue;
-          }
-          if (foundUl && child.tagName === "P") {
-            const link = child.querySelector("a");
-            if (link) {
-              items.push(extractLink(link));
+      // Step 5: Process UL for dropdown menus
+      const ul = doc.querySelector('ul');
+      if (ul) {
+        const listItems = Array.from(ul.querySelectorAll('li'));
+
+        listItems.forEach((li) => {
+          const links = Array.from(li.querySelectorAll('a'));
+
+          if (links.length === 0) return;
+
+          // Find dropdown parent (link with href="#")
+          const parentLink = links.find(link => {
+            const href = link.getAttribute('href') || '';
+            return href === '#' || href === '' || href.includes('EducationAndInternship#');
+          });
+
+          if (parentLink && links.length > 1) {
+            // This is a dropdown with children
+            const parentText = parentLink.textContent?.trim() || '';
+            const children: NavItem[] = [];
+
+            // Add all other links as children
+            links.forEach(link => {
+              if (link === parentLink) return;
+
+              const href = link.getAttribute('href') || '#';
+              const text = link.textContent?.trim() || '';
+
+              if (text && href !== '#' && !href.includes('EducationAndInternship#')) {
+                children.push({
+                  label: text,
+                  path: sanitizePath(href)
+                });
+              }
+            });
+
+            if (parentText && children.length > 0) {
+              items.push({
+                label: parentText,
+                path: '#', // Dropdown parent doesn't navigate
+                children
+              });
+            }
+          } else if (links.length === 1) {
+            // Single link - could be dropdown parent or regular link
+            const link = links[0];
+            const href = link.getAttribute('href') || '#';
+            const text = link.textContent?.trim() || '';
+
+            if (text) {
+              if (href === '#' || href.includes('EducationAndInternship#')) {
+                // This might be a dropdown parent without inline children
+                // Check if next li elements belong to this dropdown
+                const nextItems: NavItem[] = [];
+                let nextLi = li.nextElementSibling;
+
+                while (nextLi && nextLi.tagName === 'LI') {
+                  const childLinks = Array.from(nextLi.querySelectorAll('a'));
+                  childLinks.forEach(childLink => {
+                    const childHref = childLink.getAttribute('href') || '#';
+                    const childText = childLink.textContent?.trim() || '';
+
+                    if (childText && childHref !== '#' && !childHref.includes('EducationAndInternship#')) {
+                      nextItems.push({
+                        label: childText,
+                        path: sanitizePath(childHref)
+                      });
+                    }
+                  });
+
+                  nextLi = nextLi.nextElementSibling;
+                }
+
+                if (nextItems.length > 0) {
+                  items.push({
+                    label: text,
+                    path: '#',
+                    children: nextItems
+                  });
+                } else {
+                  items.push({
+                    label: text,
+                    path: sanitizePath(href)
+                  });
+                }
+              } else {
+                // Regular link
+                items.push({
+                  label: text,
+                  path: sanitizePath(href)
+                });
+              }
             }
           }
-        }
-      } else {
-        // Fallback: If no UL structure found at all (e.g. just flat text or divs)
-        // We just grab all links found in the body.
-        const allLinks = body.querySelectorAll("a");
-        allLinks.forEach(a => items.push(extractLink(a)));
+        });
       }
 
-      console.log(`Successfully parsed ${items.length} navigation items`);
-      return items;
-    } catch (e) {
-      console.error("Error parsing header HTML:", e);
-      return [];
+      console.log("Final parsed items:", items);
+
+      // If no items were parsed, return defaults
+      return items.length > 0 ? items : defaultNavItems;
+
+    } catch (error) {
+      console.error("Error parsing header HTML:", error);
+      return defaultNavItems;
     }
   };
 
@@ -323,9 +351,8 @@ export default function Header() {
     }));
   };
 
-  const isExternalLink = (path: string) => path.startsWith("http");
+  const isExternalLink = (path: string) => path && path.startsWith("http");
 
-  // Helper to determine target attribute - only external links should open in new tab
   const getTarget = (item: NavItem) => (isExternalLink(item.path || "") ? "_blank" : undefined);
 
   return (
