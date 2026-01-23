@@ -28,6 +28,8 @@ interface PaginationData {
     total_pages: number;
     has_previous: boolean;
     has_next: boolean;
+    showing_from?: number;
+    showing_to?: number;
 }
 
 export default function ConferencePage() {
