@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowLeft, Calendar, MapPin, Users } from "lucide-react";
 import { API_BASE_URL } from "@/lib/config";
+import Script from "next/script";
 
 interface EventData {
     id: number;
@@ -27,7 +28,7 @@ export default function EventRegistrationPage({ params }: { params: Promise<{ sl
         organization: "",
         email: "",
         mobile: "",
-        country: "India",
+        country: "IND",
         address: "",
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,11 +58,13 @@ export default function EventRegistrationPage({ params }: { params: Promise<{ sl
                         const item = newResult.data.event;
 
                         // Extract price
-                        let priceValue = "1,180.00";
-                        if (item.int_price_level_1 && item.int_price_level_1 !== "00") {
+                        let priceValue = "FREE";
+                        if (item.int_price_level_1 && item.int_price_level_1 !== "00" && item.int_price_level_1 !== "0") {
                             priceValue = item.int_price_level_1.toString().replace(/[₹\s]/g, '');
-                        } else if (item.price_level_1 && item.price_level_1 !== "00") {
+                        } else if (item.price_level_1 && item.price_level_1 !== "00" && item.price_level_1 !== "0") {
                             priceValue = item.price_level_1.toString().replace(/[₹\s]/g, '');
+                        } else {
+                            priceValue = "FREE";
                         }
 
                         setEvent({
@@ -98,13 +101,15 @@ export default function EventRegistrationPage({ params }: { params: Promise<{ sl
                 }
 
                 // Extract price - check multiple possible fields
-                let priceValue = "1,180.00";
-                if (item.int_price_level_1) {
+                let priceValue = "FREE";
+                if (item.int_price_level_1 && item.int_price_level_1 !== "00" && item.int_price_level_1 !== "0") {
                     priceValue = item.int_price_level_1.toString().replace(/[₹\s]/g, '');
-                } else if (item.price) {
+                } else if (item.price && item.price !== "0" && item.price !== "00") {
                     priceValue = item.price.toString().replace(/[₹\s]/g, '');
-                } else if (item.registration_fee) {
+                } else if (item.registration_fee && item.registration_fee !== "0" && item.registration_fee !== "00") {
                     priceValue = item.registration_fee.toString().replace(/[₹\s]/g, '');
+                } else {
+                    priceValue = "FREE";
                 }
 
                 setEvent({
@@ -137,17 +142,177 @@ export default function EventRegistrationPage({ params }: { params: Promise<{ sl
         setIsSubmitting(true);
 
         try {
-            // Add your API call here for event registration
-            console.log("Registration Data:", { ...formData, eventId: event?.id });
+            if (!event) {
+                alert("Event details missing.");
+                return;
+            }
 
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            // 1. Register User
+            const registerUrl = `${API_BASE_URL}/EventManagement/Website/register/${slug}/${event.id}`;
+            const registerResponse = await fetch(registerUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: formData.name,
+                    organisation: formData.organization, // Backend expects 'organisation'
+                    email: formData.email,
+                    mobile: formData.mobile, // Backend expects 'mobile'
+                    message: "Event Registration", // Backend requirement
+                    country: formData.country,
+                }),
+            });
 
-            alert("Registration Successful!");
-            router.push(`/events/${slug}`);
-        } catch (error) {
-            console.error("Registration error:", error);
-            alert("Registration failed. Please try again.");
+            let registerResult: any = null;
+            try {
+                registerResult = await registerResponse.json();
+            } catch (e) {
+                // If JSON parsing fails, but status was ok, proceed (unlikely) or verify error
+                if (!registerResponse.ok) throw new Error("Registration failed with status " + registerResponse.status);
+            }
+
+            // Special handling for Free Packages which might return 400 but are actually successful
+            if (!registerResponse.ok) {
+                // Check if it's the "Free package" pseudo-error
+                if (registerResult?.message?.includes("free package") || registerResult?.data?.redirect_to === "payment_success") {
+                    console.log("Free event registration detected, treating as success.");
+                    // Redirect directly to success
+                    // Need registration_id if available, or just dummy
+                    const freeRegId = registerResult.data?.applicant_id || registerResult.data?.id || "free-reg";
+                    router.push(`/payment/thank-you?payment_id=free&registration_no=${freeRegId}&type=event&amount=0&product_name=${encodeURIComponent(event.title)}`);
+                    return;
+                }
+
+                throw new Error(registerResult?.message || "Registration failed");
+            }
+
+            if (!registerResult.success) {
+                // Double check for free package in case it returns success=false
+                if (registerResult?.message?.includes("free package") || registerResult?.data?.redirect_to === "payment_success") {
+                    const freeRegId = registerResult.data?.applicant_id || registerResult.data?.id || "free-reg";
+                    router.push(`/payment/thank-you?payment_id=free&registration_no=${freeRegId}&type=event&amount=0&product_name=${encodeURIComponent(event.title)}`);
+                    return;
+                }
+                throw new Error(registerResult.message || "Registration failed");
+            }
+
+            // Check for Free Payment in Success Case
+            if (registerResult.data?.redirect_to === "payment_success" || registerResult.data?.payment_amount === 0) {
+                console.log("Free event registration (amount 0), redirecting to success.");
+                const freeRegId = registerResult.data?.applicant_id || registerResult.data?.id;
+                router.push(`/payment/thank-you?payment_id=free&registration_no=${freeRegId}&type=event&amount=0&product_name=${encodeURIComponent(event.title)}`);
+                return;
+            }
+
+            // check what the ID field is in the response. Assuming it's in `data.request_id` or similar based on typical flows
+            // User provided example URL with ID 121859.
+            // Let's assume the response structure sends back an ID. 
+            // If the user's PHP code doesn't show the response, I'll assume standard `id` or `registration_id`.
+            // User example: `.../227/121859`. 121859 looks like the registration ID.
+
+            console.log("Registration Result:", registerResult);
+
+            // Fallback: try different property names for the ID - based on user feedback it is applicant_id
+            const registrationId = registerResult.data?.applicant_id || registerResult.data?.id;
+
+            if (!registrationId) {
+                console.error("Registration Result Data:", registerResult.data);
+                throw new Error("Could not retrieve registration ID (applicant_id missing)");
+            }
+
+            // 2. Get Payment Gateway Options
+            // Use the URL provided by the backend if available, otherwise construct it
+            const gatewayUrl = registerResult.data?.redirect_urls?.payment_gateway ||
+                `${API_BASE_URL}/EventManagement/Website/payment/gateway/${slug}/${event.id}/${registrationId}`;
+
+            const gatewayResponse = await fetch(gatewayUrl);
+
+            if (!gatewayResponse.ok) {
+                throw new Error("Failed to initialize payment gateway");
+            }
+
+            const gatewayResult = await gatewayResponse.json();
+
+            // The PHP blade template used variables directly.
+            // We assume the API returns a JSON object similar to the options object in the PHP script.
+            // or returns the raw data needed to build it.
+            // User's PHP options: key, amount, currency, name, description, prefill (contact, email), theme.
+            // Start construction of options:
+
+            if (!gatewayResult.success && !gatewayResult.key) { // Check for success flag or direct key presence
+                // Sometimes APIs just return the data directly
+                // We will handle generic response checking
+            }
+
+            const razorpayData = gatewayResult.data || gatewayResult;
+
+            if (!(window as any).Razorpay) {
+                throw new Error("Razorpay SDK not loaded");
+            }
+
+            const options = {
+                key: razorpayData.key || razorpayData.razorpay_key || process.env.NEXT_PUBLIC_RAZORPAY_KEY,
+                amount: razorpayData.amount, // Should be in paise
+                currency: razorpayData.currency || "INR",
+                name: razorpayData.name || event.title,
+                description: razorpayData.description || "Event Registration",
+                image: razorpayData.image || "https://sifs.in/images/sifs-logo.png",
+                order_id: razorpayData.order_id, // If backend creates an order
+                handler: async function (response: any) {
+                    try {
+                        // 3. Payment Success
+                        // Use URL from registration response if available
+                        const successUrl = registerResult.data?.redirect_urls?.payment_success ||
+                            `${API_BASE_URL}/EventManagement/Website/payment/success/${slug}/${event.id}/${registrationId}`;
+
+                        const verifyResponse = await fetch(successUrl, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature,
+                                product_id: event.id,
+                                totalAmount: razorpayData.amount ? razorpayData.amount / 100 : 0
+                            }),
+                        });
+
+                        const verifyResult = await verifyResponse.json();
+
+                        if (verifyResponse.ok) {
+                            // Redirect to Thank You
+                            router.push(`/payment/thank-you?payment_id=${response.razorpay_payment_id}&registration_no=${registrationId}&type=event&amount=${razorpayData.amount ? razorpayData.amount / 100 : 0}&product_name=${encodeURIComponent(event.title)}`);
+                        } else {
+                            alert("Payment successful but server verification failed: " + (verifyResult.message || "Unknown error"));
+                        }
+
+                    } catch (err) {
+                        console.error("Success API Error:", err);
+                        alert("An error occurred while verifying payment.");
+                    }
+                },
+                prefill: {
+                    name: formData.name,
+                    email: formData.email,
+                    contact: formData.mobile,
+                },
+                theme: {
+                    color: "#528FF0",
+                },
+            };
+
+            const rzp = new (window as any).Razorpay(options);
+            rzp.on("payment.failed", function (response: any) {
+                alert("Payment Failed: " + response.error.description);
+            });
+            rzp.open();
+
+        } catch (error: any) {
+            console.error("Registration/Payment Error:", error);
+            alert(error.message || "Something went wrong. Please try again.");
         } finally {
             setIsSubmitting(false);
         }
@@ -179,6 +344,7 @@ export default function EventRegistrationPage({ params }: { params: Promise<{ sl
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+            <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
             {/* Header Banner */}
             <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16 overflow-hidden">
                 <div className="absolute inset-0 opacity-10">
@@ -261,7 +427,9 @@ export default function EventRegistrationPage({ params }: { params: Promise<{ sl
                                         </div>
                                         <div>
                                             <p className="font-semibold text-gray-900">Registration Fee</p>
-                                            <p className="text-gray-600">₹ {event.price}</p>
+                                            <p className={`text-gray-600 ${event.price === "FREE" ? "text-green-600 font-bold" : ""}`}>
+                                                {event.price === "FREE" ? "FREE" : `₹ ${event.price}`}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -376,11 +544,11 @@ export default function EventRegistrationPage({ params }: { params: Promise<{ sl
                                         onChange={handleInputChange}
                                         className="w-full px-4 py-3 rounded-lg bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 text-gray-900"
                                     >
-                                        <option value="India">India</option>
+                                        <option value="IND">India</option>
                                         <option value="USA">USA</option>
-                                        <option value="UK">UK</option>
-                                        <option value="Canada">Canada</option>
-                                        <option value="Australia">Australia</option>
+                                        <option value="GBR">UK</option>
+                                        <option value="CAN">Canada</option>
+                                        <option value="AUS">Australia</option>
                                         <option value="Other">Other</option>
                                     </select>
                                 </div>

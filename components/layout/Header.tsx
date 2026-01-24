@@ -443,13 +443,16 @@ export default function Header() {
 
         {/* Right Section */}
         <div className="flex items-center space-x-4">
-          <button
+          <a
+            href="https://sifs-student-panel.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
             className="hidden lg:block bg-gradient-to-r from-[#3E58EE] to-[#B565E7]
                        hover:from-[#354ED8] hover:to-[#A24EDC]
                        text-white font-medium py-2 px-6 rounded-lg shadow-lg transition"
           >
             Sign Up
-          </button>
+          </a>
 
           {/* Mobile Menu Button */}
           <button
@@ -536,12 +539,15 @@ export default function Header() {
           )}
 
           {/* Mobile CTA */}
-          <button
-            className="w-full mt-3 bg-indigo-600 hover:bg-indigo-700
-                       text-white font-medium py-2 px-6 rounded-lg shadow-lg transition"
+          <a
+            href="https://sifs-student-panel.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full mt-3 bg-indigo-600 hover:bg-indigo-700
+                       text-white font-medium py-2 px-6 rounded-lg shadow-lg transition text-center"
           >
             Sign Up
-          </button>
+          </a>
         </nav>
       )}
     </header>

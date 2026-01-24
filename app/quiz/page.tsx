@@ -1,14 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageBanner from "../../components/common/PageBanner";
 import { motion, easeOut } from "framer-motion";
 import { Calendar, User, ChevronDown, ChevronRight, ChevronsLeft, ChevronLeft, ChevronsRight } from "lucide-react";
 import Image from "next/image";
+import { useQuizData } from "@/hooks/useQuizData";
+import { QuizFormData } from "@/types/quiz";
+import { API_BASE_URL } from "@/lib/config";
 
 export default function QuizZonePage() {
-    const [activeTab, setActiveTab] = useState("2020");
-    const [openQuiz, setOpenQuiz] = useState<number | null>(1);
+    const currentYear = new Date().getFullYear();
+    const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+    const [openQuiz, setOpenQuiz] = useState<number | null>(null);
+    const [formData, setFormData] = useState<QuizFormData>({
+        name: "",
+        email: "",
+        organisation_name: "",
+        mobile: "",
+        quiz: 0,
+        event_id: 0,
+    });
+    const [formMessage, setFormMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const { data, loading, error } = useQuizData(selectedYear);
+
+    // Update form data when active quiz changes
+    useEffect(() => {
+        if (data?.activeQuiz) {
+            setFormData(prev => ({
+                ...prev,
+                quiz: data.activeQuiz!.id,
+                event_id: data.activeQuiz!.event_id,
+            }));
+        }
+    }, [data?.activeQuiz]);
 
     // Animation Variants
     const fadeUp = {
@@ -25,6 +52,87 @@ export default function QuizZonePage() {
         visible: { transition: { staggerChildren: 0.1 } },
     };
 
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setFormMessage(null);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/EventManagement/Website/quiz/store`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                setFormMessage({ type: 'success', text: result.message || 'Quiz registration successful!' });
+                // Reset form
+                setFormData({
+                    name: "",
+                    email: "",
+                    organisation_name: "",
+                    mobile: "",
+                    quiz: data?.activeQuiz?.id || 0,
+                    event_id: data?.activeQuiz?.event_id || 0,
+                });
+
+                // Redirect to quiz attempt page if URL is provided
+                if (result.data?.quiz_url) {
+                    setTimeout(() => {
+                        window.location.href = result.data.quiz_url;
+                    }, 1500);
+                }
+            } else {
+                setFormMessage({ type: 'error', text: result.message || 'Failed to register for quiz' });
+            }
+        } catch (err) {
+            setFormMessage({ type: 'error', text: 'An error occurred. Please try again.' });
+            console.error('Quiz registration error:', err);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Strip HTML tags from description for display
+    const stripHtml = (html: string) => {
+        const tmp = document.createElement("DIV");
+        tmp.innerHTML = html;
+        return tmp.textContent || tmp.innerText || "";
+    };
+
+    if (loading) {
+        return (
+            <div className="w-full bg-[#FBFCFF] min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3E58EE] mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading quiz data...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="w-full bg-[#FBFCFF] min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-600">Error: {error}</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <motion.div
             className="w-full bg-[#FBFCFF] pb-20"
@@ -37,191 +145,77 @@ export default function QuizZonePage() {
                 <PageBanner
                     title="Quiz Zone"
                     subtitle={
-                        <>Reference giving information on its origins, as well as a <br /> random Lipsum generator.</>
+                        <>Explore our forensic quizzes and test your knowledge</>
                     }
                     bgImage="/quiz-gradient-bg.png"
                 />
             </motion.div>
 
             <div className="max-w-7xl mx-auto px-4 py-12">
-                
-                {/* HERO SECTION: WELCOME TO QUIZ */}
-                <motion.div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20" variants={fadeUp}>
-                    <div className="relative">
-                        <img src="/quiz.png" alt="Student" className="w-full object-cover" />
-                        {/* Decorative elements could be SVGs or absolute images here */}
-                    </div>
 
-                    <div className="space-y-6">
-                        <span className="inline-block mb-4 rounded-full border border-[#067CB6] px-8 py-2 text-sm font-semibold text-black bg-[#E7ECEF]">
-                            Quiz 169
-                        </span>
-                        <h2 className="text-3xl font-bold text-gray-900 mt-4">
-                            Welcome{" "}
-                            <span className="relative inline-block">
-                                <span className="relative z-10">to</span>
-                                <Image
-                                src="/yellow-underline.png"
-                                alt=""
-                                width={80}
-                                height={14}
-                                className="absolute left-0 -bottom-1 z-0"
-                                />
-                            </span>{" "}
-                            the Quiz!
-                        </h2>
-
-                        
-                        <div className="text-gray-600 text-sm space-y-4 leading-relaxed">
-                            <p className="italic font-medium">"Achieving Better Understanding and Higher Knowledge is the Best Reward in Life"</p>
-                            <p>In addition, SIFS India always believes to bring the act of learning into your behavior. With the same objective, we are announcing our new series of Forensic Quizzes with some interesting rewards.</p>
-                            
-                            <h4 className="font-bold text-gray-900 pt-2">What You Have to Do?</h4>
-                            <p>B. Claim your eCertificate of Achievement and post on Social Media Platforms (Facebook, LinkedIn, and Instagram) with proper hashtags...</p>
-
-                            <h4 className="font-bold text-gray-900 pt-2">Rewards:</h4>
-                            <p>All 100% scorers (First Attempt) who will post their certificate on LinkedIn, Instagram, and Facebook... will get Meritorious eCertificate of Excellence!</p>
+                {/* HERO SECTION: ACTIVE QUIZ */}
+                {data?.activeQuiz && (
+                    <motion.div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20" variants={fadeUp}>
+                        <div className="relative">
+                            <img src="/quiz.png" alt="Quiz" className="w-full object-cover" />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 pt-4 border-t text-sm">
-                            <div className="flex items-center gap-2 text-gray-700">
-                                <Calendar size={18} className="text-[#3E58EE]" />
-                                <div><p className="font-bold">Start Date:</p><p>07th December 2025</p></div>
-                            </div>
-                            <div className="flex items-center gap-2 text-gray-700">
-                                <Calendar size={18} className="text-[#3E58EE]" />
-                                <div><p className="font-bold">End Date:</p><p>12th December 2025</p></div>
-                            </div>
-                            <div className="flex items-center gap-2 text-gray-700 col-span-2">
-                                <User size={18} className="text-[#3E58EE]" />
-                                <div><p className="font-bold">Quiz Crafted by:</p><p>Ayush Goyal</p></div>
-                            </div>
-                        </div>
+                        <div className="space-y-6">
+                            <span className="inline-block mb-4 rounded-full border border-[#067CB6] px-8 py-2 text-sm font-semibold text-black bg-[#E7ECEF]">
+                                Quiz {data.activeQuiz.id}
+                            </span>
+                            <h2 className="text-3xl font-bold text-gray-900 mt-4">
+                                Welcome{" "}
+                                <span className="relative inline-block">
+                                    <span className="relative z-10">to</span>
+                                    <Image
+                                        src="/yellow-underline.png"
+                                        alt=""
+                                        width={80}
+                                        height={14}
+                                        className="absolute left-0 -bottom-1 z-0"
+                                    />
+                                </span>{" "}
+                                the Quiz!
+                            </h2>
 
-                        
-                    </div>
-                </motion.div>
+                            <h3 className="text-xl font-semibold text-gray-800">
+                                {data.activeQuiz.title}
+                            </h3>
 
-                <motion.div className="grid grid-cols-1 lg:grid-cols-1 gap-12 items-center mb-20 px-12" variants={fadeUp}>
-                    <div className="bg-[#d7dde9] border border-[#4559ED] p-2 rounded-lg text-center text-[14px] text-[#6B7385]">
-                        <b>Note:</b> You have to send your Post Screenshot at sifs.forensicquiz@gmail.com to win the competition.
-                    </div>
-                </motion.div>
+                            <div
+                                className="text-gray-600 text-sm space-y-4 leading-relaxed prose prose-sm max-w-none"
+                                dangerouslySetInnerHTML={{ __html: data.activeQuiz.description }}
+                            />
 
-                {/* MAIN CONTENT GRID */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    
-                    {/* LEFT: QUIZ HUB */}
-                    <div className="lg:col-span-2">
-                        <motion.div variants={fadeUp}>
-                            <p className="text-[#3E58EE] text-sm font-medium">Explore our all of the quizzes!</p>
-                            <h3 className="text-2xl font-medium text-black mb-12">
-  Foren{" "}
-  <span className="relative inline-block">
-    <span className="relative z-10">sic Quiz</span>
-    <Image
-      src="/yellow-underline.png"
-      alt=""
-      width={100}
-      height={14}
-      className="absolute left-0 -bottom-1 z-0"
-    />
-  </span>{" "}
-  Hub
-</h3>
-
-                            
-                            {/* Year Tabs */}
-                            <div className="flex gap-8 border-b border-gray-200 mb-8 overflow-x-auto">
-                                {["2020", "2021", "2022", "2023", "2024", "2025"].map((year) => (
-                                    <button 
-                                        key={year}
-                                        onClick={() => setActiveTab(year)}
-                                        className={`pb-2 text-sm font-semibold transition-all ${activeTab === year ? "text-gray-900 border-b-2 border-gray-900" : "text-gray-400"}`}
-                                    >
-                                        {year}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <h4 className="text-lg font-bold text-gray-900 mb-4">{activeTab} Quiz's</h4>
-
-                            {/* Accordion List */}
-                            <div className="space-y-4">
-                                {[1, 2, 3, 4, 5].map((idx) => (
-                                    <div key={idx} className="border rounded-lg overflow-hidden bg-white">
-                                        <button 
-                                            onClick={() => setOpenQuiz(openQuiz === idx ? null : idx)}
-                                            className={`w-full flex items-center justify-between p-4 text-sm font-medium text-left transition-all duration-300 ${
-                                                openQuiz === idx 
-                                                ? "bg-gradient-to-r from-[#D08522] to-[#FF9F20] text-white shadow-lg hover:shadow-xl hover:from-[#D08522]/90 hover:to-[#FF9F20]/90" 
-                                                : "bg-[#EBEBEB] text-[#777777] hover:bg-gray-200"
-                                            }`}
-                                            >
-                                            <span><b>Quiz</b> {idx}: History of Indian Forensics | 2nd to 4th July 2020</span>
-                                            {openQuiz === idx ? <ChevronDown size={18}/> : <ChevronRight size={18}/>}
-                                        </button>
-
-                                        {openQuiz === idx && (
-                                            <div className="p-6 text-[14px] text-[#6B7385] space-y-3 leading-relaxed border-t font-regular">
-                                                <p className="italic font-medium">"Achieving Better Understanding and Higher Knowledge is the Best Reward in Life"</p>
-                                                <p>In addition, SIFS India always believes to bring the act of learning into your behavior...</p>
-                                                <div className="pt-2">
-                                                    <p className="font-bold text-gray-900">What You Have to Do?</p>
-                                                    <p>A. Participate & successfully complete the quiz!</p>
-                                                    <p>B. Claim your eCertificate of Achievement and post on Social Media...</p>
-                                                </div>
-                                                <button className="text-[#3E58EE] font-bold text-xs mt-4">Check on Download Certificate and search your certificate by entering registered Email ID.</button>
-                                            </div>
-                                        )}
+                            <div className="grid grid-cols-2 gap-4 pt-4 border-t text-sm">
+                                <div className="flex items-center gap-2 text-gray-700">
+                                    <Calendar size={18} className="text-[#3E58EE]" />
+                                    <div>
+                                        <p className="font-bold">Start Date:</p>
+                                        <p>{data.activeQuiz.event.start_date}</p>
                                     </div>
-                                ))}
-                            </div>
-
-                            {/* PAGINATION */}
-                            <div className="flex justify-center items-center gap-2 mt-12">
-                                <button className="p-2 border rounded-md text-gray-400 hover:bg-gray-50"><ChevronsLeft size={16}/></button>
-                                <button className="p-2 border rounded-md text-gray-400 hover:bg-gray-50"><ChevronLeft size={16}/></button>
-                                <button className="w-8 h-8 flex items-center justify-center rounded-md bg-[#3E58EE] text-white text-sm">1</button>
-                                <button className="w-8 h-8 flex items-center justify-center rounded-md border text-gray-600 text-sm">2</button>
-                                <button className="w-8 h-8 flex items-center justify-center rounded-md border text-gray-600 text-sm">3</button>
-                                <span className="text-gray-400">...</span>
-                                <button className="w-8 h-8 flex items-center justify-center rounded-md border text-gray-600 text-sm">10</button>
-                                <button className="p-2 border rounded-md text-gray-400 hover:bg-gray-50"><ChevronRight size={16}/></button>
-                                <button className="p-2 border rounded-md text-gray-400 hover:bg-gray-50"><ChevronsRight size={16}/></button>
-                            </div>
-                        </motion.div>
-                    </div>
-
-                    {/* RIGHT: APPLICANT FORM */}
-                    <motion.div variants={fadeUp}>
-                        <div className="bg-white rounded-2xl border sticky top-6">
-                            <h3 className="text-lg font-bold text-black p-4 border-b border-[#D9D9D9]">Applicant Details</h3>
-                            <div className="p-6 space-y-4">
-                                <div>
-                                    <label className="text-[14px] font-mrdium text-black mb-0 block">Name as printed on certificate</label>
-                                    <input type="text" className="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" />
                                 </div>
-                                <div>
-                                    <label className="text-[14px] font-mrdium text-black mb-0 block">E-mail</label>
-                                    <input type="email" className="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" />
+                                <div className="flex items-center gap-2 text-gray-700">
+                                    <Calendar size={18} className="text-[#3E58EE]" />
+                                    <div>
+                                        <p className="font-bold">End Date:</p>
+                                        <p>{data.activeQuiz.event.end_date}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="text-[14px] font-mrdium text-black mb-0 block">Organization/Institution name</label>
-                                    <input type="text" className="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" />
-                                </div>
-                                <div>
-                                    <label className="text-[14px] font-mrdium text-black mb-0 block">Mobile number</label>
-                                    <input type="text" className="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-blue-500" />
-                                </div>
-                                <button className="w-1/2 mt-4 bg-gradient-to-r from-[#3E58EE] to-[#B565E7] text-white py-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2">
-                                    Attempt Quiz Now →
-                                </button>
                             </div>
                         </div>
                     </motion.div>
+                )}
 
-                </div>
+                {data?.activeQuiz && (
+                    <motion.div className="grid grid-cols-1 lg:grid-cols-1 gap-12 items-center mb-20 px-12" variants={fadeUp}>
+                        <div className="bg-[#d7dde9] border border-[#4559ED] p-2 rounded-lg text-center text-[14px] text-[#6B7385]">
+                            <b>Note:</b> You have to send your Post Screenshot at sifs.forensicquiz@gmail.com to win the competition.
+                        </div>
+                    </motion.div>
+                )}
+
             </div>
         </motion.div>
     );

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import PageBanner from "../../components/common/PageBanner";
 import { motion, easeOut } from "framer-motion";
+import { API_BASE_URL } from "@/lib/config";
+import { Loader2 } from "lucide-react";
 
 export default function ContactPage() {
     const [form, setForm] = useState({
@@ -13,9 +15,61 @@ export default function ContactPage() {
         address: "",
         message: "",
     });
+    const [loading, setLoading] = useState(false);
+    const [status, setStatus] = useState<{ type: 'success' | 'error' | '', message: string }>({ type: '', message: '' });
 
     const handleChange = (e: any) => {
         setForm({ ...form, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async () => {
+        // Basic validation
+        if (!form.first || !form.email || !form.mobile || !form.message) {
+            setStatus({ type: 'error', message: 'Please fill in all required fields.' });
+            return;
+        }
+
+        setLoading(true);
+        setStatus({ type: '', message: '' });
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/sendmail`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: form.first,
+                    email: form.email,
+                    mobile: form.mobile,
+                    address: form.address,
+                    details: form.message, // Mapping message to details as per requirement
+                    // Subject is not in the example payload, but might be useful if API supports it, 
+                    // otherwise just sending standard fields.
+                }),
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                setStatus({ type: 'success', message: result.message || 'Contact query sent successfully!' });
+                setForm({
+                    first: "",
+                    email: "",
+                    mobile: "",
+                    subject: "",
+                    address: "",
+                    message: "",
+                });
+            } else {
+                setStatus({ type: 'error', message: result.message || 'Failed to send message.' });
+            }
+        } catch (error) {
+            console.error(error);
+            setStatus({ type: 'error', message: 'Something went wrong. Please try again.' });
+        } finally {
+            setLoading(false);
+        }
     };
 
     // ✅ Fade + Slide-up animation (TypeScript safe)
@@ -128,8 +182,19 @@ export default function ContactPage() {
                                 className="w-full border rounded-lg p-3 text-sm mt-4 h-28 text-gray-800 placeholder-gray-400"
                             />
 
-                            <button className="mt-6 mb-6 bg-gradient-to-r from-[#3E58EE] to-[#B565E7] hover:from-[#354ED8] hover:to-[#A24EDC] text-white px-6 py-3 rounded-lg text-sm flex items-center gap-2">
-                                Send Message →
+                            {status.message && (
+                                <p className={`mt-4 text-sm ${status.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
+                                    {status.message}
+                                </p>
+                            )}
+
+                            <button
+                                onClick={handleSubmit}
+                                disabled={loading}
+                                className="mt-6 mb-6 bg-gradient-to-r from-[#3E58EE] to-[#B565E7] hover:from-[#354ED8] hover:to-[#A24EDC] text-white px-6 py-3 rounded-lg text-sm flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                                {loading ? 'Sending...' : 'Send Message →'}
                             </button>
                         </div>
                     </motion.div>

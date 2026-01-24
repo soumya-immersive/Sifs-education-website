@@ -58,8 +58,8 @@ const ActiveTabTitle: React.FC<ActiveTabTitleProps> = ({ title, isActive, onClic
     <button
       onClick={onClick}
       className={`relative pb-3 text-base md:text-lg font-medium transition duration-200 ease-in-out outline-none cursor-pointer ${isActive
-          ? 'text-black font-bold border-b-2 border-transparent'
-          : 'text-black font-medium hover:text-indigo-600'
+        ? 'text-black font-bold border-b-2 border-transparent'
+        : 'text-black font-medium hover:text-indigo-600'
         }`}
     >
       {title}
@@ -165,7 +165,7 @@ const OnlineCoursesSection: React.FC = () => {
     const fetchInitialData = async () => {
       try {
         // Fetch section data (title & subtitle)
-        const frontResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
+        const frontResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`, { cache: 'no-store' });
         const frontData = await frontResponse.json();
         if (frontData?.data?.bs) {
           setSectionData({
@@ -175,7 +175,7 @@ const OnlineCoursesSection: React.FC = () => {
         }
 
         // Fetch categories
-        const categoriesResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/courses/categories`);
+        const categoriesResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/courses/categories`, { cache: 'no-store' });
         const categoriesData = await categoriesResponse.json();
         if (categoriesData?.success && categoriesData?.data?.categories) {
           const fetchedCategories = categoriesData.data.categories;
@@ -205,9 +205,8 @@ const OnlineCoursesSection: React.FC = () => {
         const apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front/courses/category/${activeCategory.id}`;
 
         console.log('Fetching courses for category:', activeCategory.name, '| ID:', activeCategory.id);
-        console.log('API URL:', apiUrl);
 
-        const response = await fetch(apiUrl);
+        const response = await fetch(apiUrl, { cache: 'no-store' });
 
         if (!response.ok) {
           console.error(`Failed to fetch courses: ${response.status} ${response.statusText}`);
@@ -216,7 +215,6 @@ const OnlineCoursesSection: React.FC = () => {
         }
 
         const data = await response.json();
-        console.log('API Response:', data);
 
         // API response structure: { success, data: { data: [...courses] } }
         const coursesArray = data?.data?.data;
@@ -233,7 +231,6 @@ const OnlineCoursesSection: React.FC = () => {
           }));
           setCourses(transformedCourses);
         } else {
-          console.warn('No courses found or invalid response structure:', data);
           setCourses([]);
         }
       } catch (error) {
@@ -320,9 +317,9 @@ const OnlineCoursesSection: React.FC = () => {
           className="flex justify-center flex-wrap gap-x-12 gap-y-3 mb-12 border-b border-gray-100"
           variants={itemSlideUpVariants}
         >
-          {categories.map((category) => (
+          {categories.map((category, index) => (
             <ActiveTabTitle
-              key={category.id}
+              key={`${category.id}-${index}`}
               title={category.name}
               isActive={activeCategory?.id === category.id}
               onClick={() => setActiveCategory(category)}
@@ -358,7 +355,7 @@ const OnlineCoursesSection: React.FC = () => {
                   }}
                 >
                   {courses.map((course, index) => (
-                    <SwiperSlide key={course.id} className="h-auto pb-4">
+                    <SwiperSlide key={`${course.id}-${index}`} className="h-auto pb-4">
                       <CourseCard course={course} index={index} />
                     </SwiperSlide>
                   ))}
