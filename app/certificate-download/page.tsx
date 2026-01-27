@@ -55,12 +55,20 @@ export default function CertificateDownloadPage() {
                 const certificateInfo = result.data.certificate;
                 const downloadUrl = result.data.download_url;
 
+                // Use proxy to avoid CORS issues with html2canvas
+                const originalImage = "https://www.sifs.in/events/assets/front/img/certificates/1592828674.jpg";
+                const proxyImage = `/api/image-proxy?url=${encodeURIComponent(originalImage)}`;
+
                 setCertificateData({
                     name: certificateInfo.name || "",
                     certificate_number: certificateInfo.certificate_number || verifyInput.trim(),
-                    // Use a local template image since API doesn't provide a displayable image
-                    certificate_image: "/certificate-bg.png",
-                    orientation: "horizontal", // Default orientation
+                    // User requested this specific background image
+                    certificate_image: proxyImage,
+                    // API response doesn't currently include orientation, defaulting to horizontal.
+                    // If the specific image 1592828674.jpg is vertical, this should be changed to 'vertical'.
+                    orientation: (certificateInfo.orientation === "vertical" || certificateInfo.orientation === "horizontal")
+                        ? certificateInfo.orientation
+                        : "horizontal",
                     event_id: certificateInfo.event_id,
                     download_link: downloadUrl // Store specific download link
                 });
@@ -77,11 +85,8 @@ export default function CertificateDownloadPage() {
     };
 
     const handleDownloadCertificate = async () => {
-        // If API provided a direct download link, use it
-        if (certificateData?.download_link) {
-            window.open(certificateData.download_link, "_blank");
-            return;
-        }
+        // ALWAYS use html2canvas to ensure the overlaid data matches the preview.
+        // We ignore the backend download_link intentionally as per user request.
 
         if (!certificateRef.current) return;
 
@@ -247,17 +252,21 @@ export default function CertificateDownloadPage() {
                             <div className="inline-block relative shadow-2xl bg-white">
                                 <div
                                     ref={certificateRef}
-                                    className="relative bg-white"
+                                    className="relative"
                                     style={{
-                                        width: certificateData.orientation === "vertical" ? "794px" : "1123px", // A4 sizes in px (approx)
+                                        // Fixed pixel dimensions are required for html2canvas to capture consistent positions.
+                                        // Using responsive units (%) or height:auto causes displacement during the capture process.
+                                        width: certificateData.orientation === "vertical" ? "794px" : "1123px",
                                         height: certificateData.orientation === "vertical" ? "1123px" : "794px",
-                                        maxWidth: "100%",
-                                        margin: "0 auto"
+                                        margin: "0 auto",
+                                        backgroundColor: "#ffffff"
                                     }}
                                 >
                                     {/* Certificate Image */}
                                     {certificateData.certificate_image ? (
                                         <div className="relative w-full h-full">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img
                                                 src={certificateData.certificate_image}
                                                 alt="Certificate"
@@ -265,38 +274,60 @@ export default function CertificateDownloadPage() {
                                                 crossOrigin="anonymous"
                                             />
 
-                                            {/* Overlays based on PHP styles */}
-                                            {certificateData.orientation === "vertical" ? (
-                                                <>
-                                                    {/* Vertical Name */}
-                                                    <div className="absolute w-full text-center" style={{ top: "520px", left: 0, padding: "0 20px" }}>
-                                                        <h2 className="text-4xl font-bold text-[#1f2937] font-serif tracking-wide">{certificateData.name}</h2>
-                                                    </div>
-                                                    {/* Vertical Number */}
-                                                    <div className="absolute w-full text-left" style={{ top: "670px", paddingLeft: "485px" }}>
-                                                        <p className="text-sm font-bold text-[#374151]">{certificateData.certificate_number}</p>
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    {/* Horizontal Name */}
-                                                    <div className="absolute w-full text-center" style={{ top: "260px", left: 0 }}>
-                                                        <h2
-                                                            className="text-5xl font-bold text-[#1e1e2f] font-sans tracking-wide inline-block px-4 py-1"
-                                                            style={{
-                                                                textShadow: "0px 1px 1px rgba(0,0,0,0.1)",
-                                                                fontFamily: "'Times New Roman', Times, serif"
-                                                            }}
-                                                        >
-                                                            {certificateData.name}
-                                                        </h2>
-                                                    </div>
-                                                    {/* Horizontal Number */}
-                                                    <div className="absolute w-full text-left" style={{ top: "710px", paddingLeft: "470px" }}>
-                                                        <p className="text-xl font-bold text-[#d14d56] tracking-wider" style={{ fontFamily: "Arial, sans-serif" }}>{certificateData.certificate_number}</p>
-                                                    </div>
-                                                </>
-                                            )}
+                                            {/* Overlays based on PHP styles: using absolute overlay wrapper */}
+                                            <div
+                                                className="absolute inset-0 z-[99]"
+                                                style={{
+                                                    width: "100%",
+                                                    height: "100%",
+                                                    padding: "0px",
+                                                    top: "0px",
+                                                    left: "0px",
+                                                    right: "0px",
+                                                    bottom: "0px"
+                                                }}
+                                            >
+                                                {certificateData.orientation === "vertical" ? (
+                                                    <>
+                                                        {/* Vertical Name */}
+                                                        <div className="absolute w-full text-center" style={{ top: "400px", left: 0, padding: "0 20px" }}>
+                                                            <h2 className="text-4xl font-bold font-serif tracking-wide" style={{ color: "#1f2937" }}>{certificateData.name}</h2>
+                                                        </div>
+                                                        {/* Vertical Number */}
+                                                        <div className="absolute w-full text-left" style={{ top: "670px", paddingLeft: "485px" }}>
+                                                            <p className="text-sm font-bold" style={{ color: "#374151" }}>{certificateData.certificate_number}</p>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        {/* Horizontal Name - Fixed Pixel Position */}
+                                                        <div className="absolute w-full text-center" style={{ top: "200px", right: 0, left: 0 }}>
+                                                            <h2
+                                                                className="text-4xl font-bold font-sans tracking-wide inline-block "
+                                                                style={{
+                                                                    color: "#ffffff",
+                                                                    textShadow: "0px 2px 4px rgba(0,0,0,0.6)",
+                                                                    fontFamily: "'Times New Roman', Times, serif"
+                                                                }}
+                                                            >
+                                                                {certificateData.name}
+                                                            </h2>
+                                                        </div>
+                                                        {/* Horizontal Number - Fixed Pixel Position */}
+                                                        <div className="absolute w-full text-center" style={{ top: "680px", left: 0 }}>
+                                                            <p
+                                                                className="text-2xl font-bold tracking-wider inline-block"
+                                                                style={{
+                                                                    fontFamily: "Arial, sans-serif",
+                                                                    color: "#1f2937"
+                                                                }}
+                                                            >
+                                                                {certificateData.certificate_number}
+                                                            </p>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
                                     ) : (
                                         <div className="w-full h-full bg-gray-100 flex items-center justify-center border-2 border-dashed border-gray-300">
@@ -310,8 +341,8 @@ export default function CertificateDownloadPage() {
                             </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        {/* Action Buttons - Added padding bottom and z-index to prevent footer overlap */}
+                        <div className="relative z-20 flex flex-col sm:flex-row gap-4 justify-center pb-48">
                             <button
                                 onClick={handleDownloadCertificate}
                                 disabled={downloadLoading}
