@@ -14,7 +14,7 @@ export const useSliderData = () => {
                 const apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front`;
                 console.log('🚀 Fetching from:', apiUrl);
 
-                const response = await fetch(apiUrl);
+                const response = await fetch(apiUrl, { cache: 'no-store' });
                 console.log('📡 Response status:', response.status, response.statusText);
 
                 if (!response.ok) {

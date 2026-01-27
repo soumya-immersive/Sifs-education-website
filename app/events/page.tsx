@@ -5,6 +5,7 @@ import ArchiveProgram from "../../components/events/ArchiveProgram";
 import ExpertTeam from "../../components/common/ExpertTeam";
 import Participatory from "../../components/events/Participatory";
 import ForensicInsightsSection from '../../components/events/ForensicInsightsSection';
+import DownloadCertificate from "../../components/events/DownloadCertificate";
 
 // API fetch function
 async function getEventsPageData() {
@@ -127,6 +128,7 @@ export default async function EventsPage() {
     <main>
       <EventsHero sliders={data?.sliders || []} />
       <UpcomingEvents events={data?.upcomingEvents || []} />
+      <DownloadCertificate />
       <JourneyStats statistics={data?.statistics || []} />
       <ArchiveProgram archiveEvents={data?.archiveEvents || []} />
       <ExpertTeam organizers={data?.organizers || []} />

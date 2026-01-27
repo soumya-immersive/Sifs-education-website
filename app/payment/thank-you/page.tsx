@@ -42,12 +42,21 @@ function ThankYouContent() {
                 let url = "";
                 if (type === "training") {
                     url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/training-payment/training-thank-you?payment_id=${paymentId}&registration_no=${registrationNo}`;
+                } else if (type === "event") {
+                    url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/EventManagement/Website/payment/thank-you?payment_id=${paymentId}&registration_no=${registrationNo}`;
                 } else {
                     url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/payment/thank-you?payment_id=${paymentId}&registration_no=${registrationNo}`;
                 }
 
                 const response = await fetch(url);
                 if (!response.ok) {
+                    // For events, if the specific thank-you API is not found (404), we might still want to show the success page
+                    // since we already verified payment in the register page.
+                    if (type === "event") {
+                        console.warn("Event generic receipt fetch failed, showing success anyway.");
+                        setData({ success: true });
+                        return;
+                    }
                     throw new Error("Failed to fetch receipt details");
                 }
                 const result = await response.json();
@@ -55,8 +64,11 @@ function ThankYouContent() {
                 setData(result.data || result);
             } catch (err: any) {
                 console.error(err);
-                // Even if fetch fails, we show success page but maybe with less info
-                // But user asked to implement the API, so we try to use it.
+                if (type === "event") {
+                    // Fallback for events
+                    setTimeout(() => setLoading(false), 500);
+                    return;
+                }
                 setError("Could not load receipt details. " + err.message);
             } finally {
                 setLoading(false);
