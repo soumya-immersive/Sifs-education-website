@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
 import Image from "next/image";
-import { API_BASE_URL } from "@/lib/config";
+import { API_BASE_URL, BASE_URL } from "@/lib/config";
 import PageBanner from "../../components/common/PageBanner";
 import type { Testimonial, TestimonialsResponse, Pagination } from "@/types/testimonial";
 
@@ -135,7 +135,7 @@ export default function AllTestimonialsPage() {
 
                                                         // Check if it was trying to load local backend first
                                                         if (item.image && !target.src.includes('localhost')) {
-                                                            target.src = `http://localhost:3000/uploads/Education-And-Internship-Admin-Testimonial/${item.image}`;
+                                                            target.src = `${BASE_URL}/uploads/Education-And-Internship-Admin-Testimonial/${item.image}`;
                                                         } else {
                                                             target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(item.name) + '&background=random&color=fff&size=200';
                                                         }

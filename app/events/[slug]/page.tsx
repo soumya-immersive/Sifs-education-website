@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { API_BASE_URL, BASE_URL } from "@/lib/config";
 import EventHero from "../../../components/events-inner/EventHero";
 import EventContent from "../../../components/events-inner/EventContent";
 import EventSchedule from "../../../components/events-inner/EventSchedule";
@@ -11,7 +12,7 @@ import Participatory from "../../../components/events-inner/Participatory";
 async function getEventDetails(slug: string) {
   try {
     // Try new conference/event-details API first
-    const newApiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api"}/EducationAndInternship/Website/event/event-details/${slug}`;
+    const newApiUrl = `${API_BASE_URL}/EducationAndInternship/Website/event/event-details/${slug}`;
 
     try {
       const newResponse = await fetch(newApiUrl, { cache: 'no-store' });
@@ -19,7 +20,7 @@ async function getEventDetails(slug: string) {
         const result = await newResponse.json();
         if (result.success && result.data?.event) {
           const item = result.data.event;
-          const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '') || 'http://localhost:3000';
+          const baseUrl = BASE_URL;
 
           return {
             id: item.id,
@@ -54,7 +55,7 @@ async function getEventDetails(slug: string) {
     }
 
     // Fallback to old EventManagement API
-    const oldApiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api"}/EventManagement/Website/events/${slug}`;
+    const oldApiUrl = `${API_BASE_URL}/EventManagement/Website/events/${slug}`;
     const response = await fetch(oldApiUrl, { cache: 'no-store' });
 
     if (!response.ok) {
@@ -68,7 +69,7 @@ async function getEventDetails(slug: string) {
       const clean = (str: any) => (str ? str.toString().replace(/^"|"$/g, '') : "");
 
       // Handle Image
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '') || 'http://localhost:3000';
+      const baseUrl = BASE_URL;
       let imageUrl = item.image || item.banner_image || "";
       if (!imageUrl && result.data.gallery_images && result.data.gallery_images.length > 0) {
         imageUrl = result.data.gallery_images[0].image_url || `${baseUrl}/uploads/events/${result.data.gallery_images[0].image}`;
@@ -139,7 +140,7 @@ async function getEventDetails(slug: string) {
 // Fetch upcoming events
 async function getUpcomingEvents() {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api';
+    const apiUrl = API_BASE_URL;
     const response = await fetch(`${apiUrl}/EventManagement/Website`, {
       cache: 'no-store',
     });

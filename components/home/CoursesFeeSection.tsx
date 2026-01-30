@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, Variants, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 import { useFeeCategoriesData } from "@/hooks/useFeeCategoriesData";
 import { FeeCategory } from "@/types/fee";
 
@@ -145,12 +146,12 @@ export default function CoursePricing() {
           <motion.div
             key={activeCategory?.id}
             className={`grid gap-8 mt-14 ${selectedCategoryFees.length === 0
+              ? "flex justify-center"
+              : selectedCategoryFees.length === 1
                 ? "flex justify-center"
-                : selectedCategoryFees.length === 1
-                  ? "flex justify-center"
-                  : selectedCategoryFees.length === 2
-                    ? "grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto"
-                    : "grid-cols-1 sm:grid-cols-3"
+                : selectedCategoryFees.length === 2
+                  ? "grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto"
+                  : "grid-cols-1 sm:grid-cols-3"
               }`}
             variants={cardsGridVariants}
             initial="hidden"
@@ -205,7 +206,7 @@ export default function CoursePricing() {
                             className={`mt-2 text-2xl font-extrabold ${isActive ? "text-white" : "text-gray-900"
                               }`}
                           >
-                            ₹ {fee.price}
+                            {fee.price}
                           </h3>
                         </div>
 
@@ -230,16 +231,21 @@ export default function CoursePricing() {
                       </div>
                     </article>
 
-                    <button
-                      onClick={() => setActiveLevel(fee.id)}
-                      className={`absolute left-1/2 -translate-x-1/2 -bottom-5 px-6 py-2 rounded-lg text-sm font-semibold shadow-md z-10 transition-all cursor-pointer
+                    <Link href={fee.redirect_url || "#"}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveLevel(fee.id);
+                        }}
+                        className={`absolute left-1/2 -translate-x-1/2 -bottom-5 px-6 py-2 rounded-lg text-sm font-semibold shadow-md z-10 transition-all cursor-pointer
                         ${isActive
-                          ? "bg-white text-purple-600"
-                          : "bg-purple-600 text-white hover:bg-purple-700"
-                        }`}
-                    >
-                      Visit List →
-                    </button>
+                            ? "bg-white text-purple-600"
+                            : "bg-purple-600 text-white hover:bg-purple-700"
+                          }`}
+                      >
+                        Visit List →
+                      </button>
+                    </Link>
                   </motion.div>
                 );
               })

@@ -17,7 +17,10 @@ export interface FeeItem {
     language_id: number;
     fee_category_id: number;
     title: string;
+    sub_title: string;
     price: string;
+    icon: string;
+    redirect_url: string;
     serial_number: number;
     status: number;
     created_at: string;

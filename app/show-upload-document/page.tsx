@@ -3,6 +3,7 @@
 import { Upload, FileText, CheckCircle2, AlertCircle, Loader2, User, Mail, Phone, BookOpen, Calendar, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/config";
 
 interface RegistrationData {
     registration: {
@@ -138,7 +139,7 @@ export default function ShowUploadDocumentPage() {
             if (documents.nda6) formData.append("nda6", documents.nda6);
 
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/registration/upload-document`,
+                `${API_BASE_URL}/EducationAndInternship/Website/registration/upload-document`,
                 {
                     method: "POST",
                     body: formData,

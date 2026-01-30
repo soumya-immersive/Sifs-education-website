@@ -3,6 +3,36 @@ import Topbar from '../components/layout/Topbar';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { ReactNode } from 'react'; // Add this import
+import { Metadata } from 'next';
+import { API_BASE_URL, BASE_URL } from '../lib/config';
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`, {
+      cache: 'no-store',
+    });
+    const json = await response.json();
+
+    if (json.success && json.data?.bs?.favicon) {
+      const faviconPath = `${BASE_URL}/uploads/Education-And-Internship-Admin-Logo/${json.data.bs.favicon}`;
+      return {
+        icons: {
+          icon: faviconPath,
+          shortcut: faviconPath,
+          apple: faviconPath,
+        },
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching favicon:", error);
+  }
+
+  return {
+    icons: {
+      icon: "/favicon.ico",
+    },
+  };
+}
 
 export default function RootLayout({
   children,

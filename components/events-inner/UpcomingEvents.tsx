@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import { useEffect, useState } from "react";
+import { BASE_URL } from "@/lib/config";
 
 type Event = {
   id: number;
@@ -180,7 +181,7 @@ export default function UpcomingEvents({ events }: UpcomingEventsProps) {
               ]
               : ["00", "00", "00", "00"];
 
-            const imageUrl = event.image_url || ((event.image && !event.image.startsWith('http')) ? `http://localhost:3000/uploads/events/${event.image}` : event.image) || "/events/1.png";
+            const imageUrl = event.image_url || ((event.image && !event.image.startsWith('http')) ? `${BASE_URL}/uploads/events/${event.image}` : event.image) || "/events/1.png";
             const dateDisplay = event.formatted_date || (event.start_date ? new Date(event.start_date).toLocaleDateString() : "TBA");
 
             return (
