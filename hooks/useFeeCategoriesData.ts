@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FeeCategory, FeeItem, FeeCategoriesResponse, FeeCategoryDetailResponse } from '@/types/fee';
+import { FeeCategory, FeeItem, FeeCategoriesResponse, FeeCategoryDetailResponse, HomepageResponse } from '@/types/fee';
 import { API_BASE_URL } from '@/lib/config';
 
 export const useFeeCategoriesData = () => {
     const [feeCategories, setFeeCategories] = useState<FeeCategory[]>([]);
     const [selectedCategoryFees, setSelectedCategoryFees] = useState<FeeItem[]>([]);
+    const [sectionTitle, setSectionTitle] = useState('');
+    const [sectionSubtitle, setSectionSubtitle] = useState('');
     const [loading, setLoading] = useState(true);
     const [feesLoading, setFeesLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -41,7 +43,23 @@ export const useFeeCategoriesData = () => {
             }
         };
 
+        const fetchHomepageData = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
+                if (response.ok) {
+                    const data: HomepageResponse = await response.json();
+                    if (data.success && data.data?.be) {
+                        setSectionTitle(data.data.be.pricing_section_title);
+                        setSectionSubtitle(data.data.be.pricing_section_subtitle);
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching homepage data:', err);
+            }
+        };
+
         fetchFeeCategories();
+        fetchHomepageData();
     }, []);
 
     // Fetch fees for a specific category by slug
@@ -81,6 +99,8 @@ export const useFeeCategoriesData = () => {
         loading,
         feesLoading,
         error,
-        fetchCategoryFees
+        fetchCategoryFees,
+        sectionTitle,
+        sectionSubtitle
     };
 };

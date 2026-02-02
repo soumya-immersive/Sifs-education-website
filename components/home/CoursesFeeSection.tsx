@@ -44,7 +44,7 @@ const cardVariants: Variants = {
 };
 
 export default function CoursePricing() {
-  const { feeCategories, selectedCategoryFees, loading, feesLoading, fetchCategoryFees } = useFeeCategoriesData();
+  const { feeCategories, selectedCategoryFees, loading, feesLoading, fetchCategoryFees, sectionTitle, sectionSubtitle } = useFeeCategoriesData();
   const [activeCategory, setActiveCategory] = useState<FeeCategory | null>(null);
   // Track active ID instead of index to maintain highlight state across tabs
   const [activeLevel, setActiveLevel] = useState<number | null>(null);
@@ -88,6 +88,47 @@ export default function CoursePricing() {
     );
   }
 
+  const renderTitle = () => {
+    if (!sectionTitle) {
+      return (
+        <>
+          Courses &{" "}
+          <span className="relative inline-block">
+            <span className="relative z-10">Training Fee</span>
+            <Image
+              src="/yellow-underline.png"
+              alt=""
+              width={180}
+              height={16}
+              className="absolute left-0 -bottom-2 z-0"
+            />
+          </span>
+        </>
+      );
+    }
+
+    const parts = sectionTitle.split('&');
+    if (parts.length === 2) {
+      return (
+        <>
+          {parts[0]}&{" "}
+          <span className="relative inline-block">
+            <span className="relative z-10">{parts[1]}</span>
+            <Image
+              src="/yellow-underline.png"
+              alt=""
+              width={180}
+              height={16}
+              className="absolute left-0 -bottom-2 z-0"
+            />
+          </span>
+        </>
+      );
+    }
+
+    return sectionTitle;
+  };
+
   return (
     <section className="py-20 bg-gradient-to-b from-white to-[#fbfcff] relative bg-[url('/fee-structure/bg.png')] bg-cover bg-center bg-no-repeat">
       <motion.div
@@ -100,20 +141,10 @@ export default function CoursePricing() {
         {/* Header */}
         <motion.div variants={itemSlideUpVariants}>
           <h2 className="text-2xl font-semibold text-black">
-            Courses &{" "}
-            <span className="relative inline-block">
-              <span className="relative z-10">Training Fee</span>
-              <Image
-                src="/yellow-underline.png"
-                alt=""
-                width={180}
-                height={16}
-                className="absolute left-0 -bottom-2 z-0"
-              />
-            </span>
+            {renderTitle()}
           </h2>
           <p className="text-gray-500 text-sm mt-2 max-w-2xl mx-auto">
-            Invest in Your Knowledge: Discover the Right Courses and Training Fees That Fit You
+            {sectionSubtitle || "Invest in Your Knowledge: Discover the Right Courses and Training Fees That Fit You"}
           </p>
         </motion.div>
 
