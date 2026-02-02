@@ -56,3 +56,29 @@ export interface FeeCategoryDetailResponse {
         fees: FeeItem[];
     };
 }
+
+export interface BannerSettings {
+    id: number;
+    language_id: number;
+    pricing_section_title: string;
+    pricing_section_subtitle: string;
+}
+
+export interface HomepageResponse {
+    success: boolean;
+    message: string;
+    statusCode: number;
+    timestamp: string;
+    data: {
+        currentLang: {
+            id: number;
+            name: string;
+            code: string;
+            is_default: number;
+            rtl: number;
+            created_at: string;
+            updated_at: string;
+        };
+        be: BannerSettings;
+    };
+}

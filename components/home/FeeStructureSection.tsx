@@ -237,7 +237,7 @@ const ApplyForensicLearning = () => {
             </header>
 
             {/* Play Button Section */}
-            <div className="flex items-center space-x-4">
+            {/* <div className="flex items-center space-x-4">
               <div className="w-18 h-18 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center cursor-pointer border border-white/30 hover:bg-white/30 transition-colors shrink-0 relative overflow-hidden">
                 <Image
                   src="/video-play.png"
@@ -253,7 +253,7 @@ const ApplyForensicLearning = () => {
                   In The World
                 </h3>
               </div>
-            </div>
+            </div> */}
 
             {/* Achievements Section */}
             <div className="pt-4">

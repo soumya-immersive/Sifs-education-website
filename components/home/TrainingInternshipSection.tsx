@@ -32,6 +32,11 @@ interface Category {
   training_count: number;
 }
 
+interface SectionData {
+  course_section_title: string;
+  course_section_subtitle: string;
+}
+
 // --- Framer Motion Variants ---
 // Adding explicit 'Variants' type to ensure compatibility
 const sectionContainerVariants: Variants = {
@@ -41,14 +46,14 @@ const sectionContainerVariants: Variants = {
 
 const itemSlideUpVariants: Variants = {
   hidden: { y: 30, opacity: 0 },
-  visible: { 
-    y: 0, 
-    opacity: 1, 
-    transition: { 
-        duration: 0.6, 
-        // Use 'as const' to tell TypeScript these are exactly 4 numbers (a tuple)
-        ease: [0.25, 0.1, 0.25, 1] as const 
-    } 
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.6,
+      // Use 'as const' to tell TypeScript these are exactly 4 numbers (a tuple)
+      ease: [0.25, 0.1, 0.25, 1] as const
+    }
   },
 };
 
@@ -56,9 +61,8 @@ const itemSlideUpVariants: Variants = {
 const TrainingTabTitle: React.FC<{ title: string; isActive: boolean; onClick: () => void }> = ({ title, isActive, onClick }) => (
   <button
     onClick={onClick}
-    className={`relative pb-3 text-sm md:text-base font-medium transition duration-200 cursor-pointer outline-none ${
-      isActive ? "text-purple-600 font-bold" : "text-gray-500 hover:text-purple-600"
-    }`}
+    className={`relative pb-3 text-sm md:text-base font-medium transition duration-200 cursor-pointer outline-none ${isActive ? "text-purple-600 font-bold" : "text-gray-500 hover:text-purple-600"
+      }`}
   >
     {title}
     {isActive && (
@@ -70,10 +74,10 @@ const TrainingTabTitle: React.FC<{ title: string; isActive: boolean; onClick: ()
 const TrainingCard: React.FC<{ training: TrainingItem; isFirst: boolean }> = ({ training, isFirst }) => (
   <div className="rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm h-full flex flex-col group hover:shadow-md transition-shadow">
     <div className="relative h-52 overflow-hidden">
-      <img 
-        src={training.image_url || "/training/1.png"} 
-        alt={training.title} 
-        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+      <img
+        src={training.image_url || "/training/1.png"}
+        alt={training.title}
+        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
       />
     </div>
     <div className="p-5 flex flex-col flex-grow text-left">
@@ -88,9 +92,8 @@ const TrainingCard: React.FC<{ training: TrainingItem; isFirst: boolean }> = ({ 
       </p>
       <div className="mt-auto">
         <hr className="border-gray-100 mb-4" />
-        <button className={`flex items-center justify-center w-full py-2.5 rounded-lg transition-all font-semibold text-sm cursor-pointer ${
-          isFirst ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-800"
-        }`}>
+        <button className={`flex items-center justify-center w-full py-2.5 rounded-lg transition-all font-semibold text-sm cursor-pointer ${isFirst ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-800"
+          }`}>
           Enroll Now <ArrowRight className="ml-2 w-4 h-4" />
         </button>
       </div>
@@ -102,37 +105,48 @@ const TrainingCard: React.FC<{ training: TrainingItem; isFirst: boolean }> = ({ 
 const TrainingInternshipSection: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>("");
+  const [sectionData, setSectionData] = useState<SectionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const swiperRef = useRef<any>(null);
 
-  // Fetch categories and trainings from API
+  // Fetch categories and section data from API
   useEffect(() => {
-    const fetchTrainingCategories = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/training-categories`);
-        const data = await response.json();
-        console.log('Training Categories API Response:', data);
+        const [categoriesRes, sectionRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/EducationAndInternship/Website/training-categories`),
+          fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`)
+        ]);
 
-        if (data.success && data.data?.categories) {
+        const categoriesData = await categoriesRes.json();
+        const sectionDataResult = await sectionRes.json();
+        console.log('API Responses:', { categoriesData, sectionDataResult });
+
+        if (categoriesData.success && categoriesData.data?.categories) {
           // Filter categories that have trainings or show all
-          const allCategories = data.data.categories;
+          const allCategories = categoriesData.data.categories;
           setCategories(allCategories);
-          
+
           // Set first category with trainings as active, or first category if none have trainings
           const firstWithTrainings = allCategories.find((cat: Category) => cat.training_count > 0);
           setActiveCategory(firstWithTrainings?.name || allCategories[0]?.name || "");
         }
+
+        if (sectionDataResult.success && sectionDataResult.data?.bs) {
+          setSectionData(sectionDataResult.data.bs);
+        }
+
       } catch (err) {
-        console.error("Error fetching training categories:", err);
-        setError("Failed to load training categories");
+        console.error("Error fetching data:", err);
+        setError("Failed to load content");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTrainingCategories();
+    fetchData();
   }, []);
 
   // Get trainings for active category
@@ -174,12 +188,41 @@ const TrainingInternshipSection: React.FC = () => {
         viewport={{ once: true, amount: 0.2 }}
       >
         <motion.div className="mb-12" variants={itemSlideUpVariants}>
-          <h1 className="text-2xl md:text-3xl font-bold text-black pt-6">
-            Professional <span className="relative inline-block">
-              <span className="relative z-10">Forensic Training</span>
-              <Image src="/yellow-underline.png" alt="" width={260} height={18} className="absolute left-0 -bottom-1 z-0" />
-            </span> <br className="hidden md:block" /> & Internship
+          <h1 className="text-2xl md:text-3xl font-bold text-black pt-6 mb-4">
+            {sectionData?.course_section_title ? (
+              sectionData.course_section_title.includes("Forensic Training") ? (
+                <>
+                  {sectionData.course_section_title.split("Forensic Training")[0]}
+                  <span className="relative inline-block">
+                    <span className="relative z-10">Forensic Training</span>
+                    <Image
+                      src="/yellow-underline.png"
+                      alt=""
+                      width={260}
+                      height={18}
+                      className="absolute left-0 -bottom-1 z-0"
+                    />
+                  </span>{" "}
+                  <br className="hidden md:block" />
+                  {sectionData.course_section_title.split("Forensic Training")[1]}
+                </>
+              ) : (
+                sectionData.course_section_title
+              )
+            ) : (
+              <>
+                Professional <span className="relative inline-block">
+                  <span className="relative z-10">Forensic Training</span>
+                  <Image src="/yellow-underline.png" alt="" width={260} height={18} className="absolute left-0 -bottom-1 z-0" />
+                </span> <br className="hidden md:block" /> & Internship
+              </>
+            )}
           </h1>
+          {sectionData?.course_section_subtitle && (
+            <p className="text-gray-600 max-w-3xl mx-auto text-sm md:text-base leading-relaxed mb-8">
+              {sectionData.course_section_subtitle}
+            </p>
+          )}
         </motion.div>
 
         <motion.div className="flex justify-center flex-wrap gap-x-8 gap-y-4 mb-12 border-b border-gray-100" variants={itemSlideUpVariants}>
