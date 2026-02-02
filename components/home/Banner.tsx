@@ -154,7 +154,7 @@ export default function Banner() {
   console.log('🖼️ Image URL:', imageUrl);
 
   return (
-    <div className="relative overflow-hidden pt-16 pb-32">
+    <div className="relative overflow-hidden pt-16 pb-6">
       {/* SOFT BACKGROUND */}
       <div className="absolute inset-0 bg-gradient-to-br from-white via-purple-50/40 to-blue-50/20" />
       <div
@@ -247,13 +247,14 @@ export default function Banner() {
               initial="hidden"
               animate="visible"
               variants={imageVariant}
-              className="relative w-[420px] h-[550px] md:w-[490px] md:h-[620px] rotate-45 overflow-hidden rounded-3xl"
+              className="relative w-[420px] h-[550px] md:w-[490px] md:h-[620px] rotate-45"
             >
               <Image
                 src={imageUrl}
                 alt={currentSlide.title}
-                fill
-                className="object-cover -rotate-45 scale-[1.35]"
+                width={600}
+                height={800}
+                className="object-cover -rotate-45 scale-[1.23] w-full h-auto"
                 unoptimized={imageUrl.startsWith('http')}
               />
             </motion.div>

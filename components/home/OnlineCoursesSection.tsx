@@ -7,7 +7,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
 import { motion, easeOut, AnimatePresence } from 'framer-motion';
-import { API_BASE_URL } from '@/lib/config';
+import { API_BASE_URL, BASE_URL } from '@/lib/config';
 
 // ----------------------
 //     Types
@@ -102,7 +102,7 @@ const CourseCard: React.FC<{ course: Course; index: number }> = ({ course, index
 
         <div className="p-4 flex flex-col flex-grow">
           <p className="text-sm font-normal text-[#008DD2] mb-1">{course.id}</p>
-          <h3 className="text-xl font-bold text-gray-900 h-10 line-clamp-2">{course.title}</h3>
+          <h3 className="text-xl font-bold text-gray-900 line-clamp-2">{course.title}</h3>
           <p className="text-sm font-normal text-[#6B7385] mt-2 mb-6 h-16 line-clamp-3">
             {course.description}
           </p>
@@ -110,7 +110,7 @@ const CourseCard: React.FC<{ course: Course; index: number }> = ({ course, index
           <hr className="mt-auto" />
 
           <a
-            href={`/courses/${course.slug}`}
+            href={`/course-details/${course.slug}`}
             className={`flex items-center justify-center w-full py-3 rounded-lg font-normal transition duration-300 ease-in-out mt-3 cursor-pointer group ${buttonClasses}`}
           >
             Enroll Now
@@ -225,7 +225,7 @@ const OnlineCoursesSection: React.FC = () => {
             title: course.title,
             description: course.sub_title || '',
             type: activeCategory.name,
-            image: course.image_url || '/online-courses/1.png',
+            image: course.image ? `${BASE_URL}/uploads/${course.image}` : '/online-courses/1.png',
             primary: index === 0,
             slug: course.slug,
           }));
@@ -309,6 +309,11 @@ const OnlineCoursesSection: React.FC = () => {
             <h2 className="text-xl md:text-2xl lg:text-4xl font-semibold text-gray-900">
               {titleParts.line2.split(' ').slice(2).join(' ')}
             </h2>
+          )}
+          {sectionData.category_section_subtitle && (
+            <p className="mt-4 text-base text-gray-600 max-w-3xl mx-auto">
+              {sectionData.category_section_subtitle}
+            </p>
           )}
         </motion.div>
 

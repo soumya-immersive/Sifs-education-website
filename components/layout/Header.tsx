@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Menu, X, ChevronDown, ChevronRight } from "lucide-react";
-import { API_BASE_URL } from "../../lib/config";
+import { API_BASE_URL, BASE_URL } from "../../lib/config";
 
 import { coursePrograms } from "../../data/coursePrograms";
 import { internshipPrograms } from "../../data/internshipPrograms";
@@ -29,7 +29,7 @@ const defaultNavItems = [
     label: "Courses",
     children: coursePrograms.map((program) => ({
       label: program.label,
-      path: `/courses/${program.slug}`,
+      path: `/${program.slug}`,
     })),
   },
   {
@@ -77,6 +77,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<Record<string, boolean>>({});
   const [navItems, setNavItems] = useState<NavItem[]>(defaultNavItems);
+  const [logo, setLogo] = useState<string>("/logo/logo.png");
   const [isMounted, setIsMounted] = useState(false);
 
   // Ensure component is mounted (client-side only)
@@ -106,21 +107,29 @@ export default function Header() {
 
         console.log("API Response:", json);
 
-        // Check both possible locations for header_text
-        const headerText = json.data?.be?.header_text || json.data?.bs?.header_text;
-
-        if (json.success && headerText) {
-          console.log("Found header text:", headerText.substring(0, 200));
-          const parsedItems = parseHeaderHTML(headerText);
-          console.log("Parsed Nav Items:", parsedItems);
-
-          if (parsedItems.length > 0) {
-            setNavItems(parsedItems);
-          } else {
-            console.warn("No nav items parsed, using default");
+        if (json.success) {
+          // Set Logo if available
+          if (json.data?.bs?.logo) {
+            const logoPath = `${BASE_URL}/uploads/Education-And-Internship-Admin-Logo/${json.data.bs.logo}`;
+            setLogo(logoPath);
           }
-        } else {
-          console.warn("Header text not found, using default nav items");
+
+          // Check both possible locations for header_text
+          const headerText = json.data?.be?.header_text || json.data?.bs?.header_text;
+
+          if (headerText) {
+            console.log("Found header text:", headerText.substring(0, 200));
+            const parsedItems = parseHeaderHTML(headerText);
+            console.log("Parsed Nav Items:", parsedItems);
+
+            if (parsedItems.length > 0) {
+              setNavItems(parsedItems);
+            } else {
+              console.warn("No nav items parsed, using default");
+            }
+          } else {
+            console.warn("Header text not found, using default nav items");
+          }
         }
       } catch (error) {
         console.error("Failed to fetch header data:", error);
@@ -361,12 +370,12 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center">
           <Image
-            src="/logo/logo.png"
+            src={logo}
             alt="SIFS Logo"
-            width={100}
+            width={150}
             height={100}
             priority
-            className="w-auto h-auto"
+            className="h-auto w-auto max-h-16 object-contain"
           />
         </Link>
 

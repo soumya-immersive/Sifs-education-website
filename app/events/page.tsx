@@ -1,3 +1,4 @@
+import { API_BASE_URL, BASE_URL } from "@/lib/config";
 import EventsHero from "../../components/events/EventsHero";
 import UpcomingEvents from "../../components/events/UpcomingEvents";
 import JourneyStats from "../../components/events/JourneyStats";
@@ -10,7 +11,7 @@ import DownloadCertificate from "../../components/events/DownloadCertificate";
 // API fetch function
 async function getEventsPageData() {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api';
+    const apiUrl = API_BASE_URL;
 
     console.log('🔍 Fetching events page data...');
 
@@ -88,7 +89,7 @@ async function getEventsPageData() {
         // Transform blog data to include full image URL
         blogs = blogsResult.data.data.map((blog: any) => ({
           ...blog,
-          main_image_url: `${process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '') || 'http://localhost:3000'}/uploads/blogs/${blog.main_image}`,
+          main_image_url: `${BASE_URL}/uploads/blogs/${blog.main_image}`,
           fromatted_publish_date: blog.publish_date ? new Date(blog.publish_date).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',

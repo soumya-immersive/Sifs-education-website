@@ -67,9 +67,9 @@ export default function CourseCard({ course }: Props) {
           {course.overview}
         </p>
 
-        <motion.div variants={buttonVariants} whileHover="hover">
+        <motion.div variants={buttonVariants} whileHover="hovr">
           <Link
-            href={`/courses/${course.programSlug}/${course.slug}`}
+            href={`/course-details/${course.slug}`}
             className="
               inline-block bg-gradient-to-r
               from-purple-500 to-indigo-600

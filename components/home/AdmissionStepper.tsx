@@ -9,23 +9,41 @@ import Image from "next/image";
 interface Step {
   number: number;
   title: string;
-  description?: string;
-  active: boolean;
+  active?: boolean;
 }
 
 // Data for the 6 steps in the admission process
 const admissionSteps: Step[] = [
-  { number: 1, title: "VISIT WEBSITE", active: false },
+  {
+    number: 1,
+    title: "VISIT WEBSITE",
+    active: false,
+  },
   {
     number: 2,
     title: "SELECT COURSES",
-    description: "Learn about curriculum and the respective fee structure.",
     active: true,
   },
-  { number: 3, title: "FILL APPLICATION FORM", active: false },
-  { number: 4, title: "UPLOAD DOCUMENT", active: false },
-  { number: 5, title: "MAKE PAYMENT", active: false },
-  { number: 6, title: "START STUDYING", active: false },
+  {
+    number: 3,
+    title: "FILL APPLICATION FORM",
+    active: false,
+  },
+  {
+    number: 4,
+    title: "UPLOAD DOCUMENT",
+    active: false,
+  },
+  {
+    number: 5,
+    title: "MAKE PAYMENT",
+    active: false,
+  },
+  {
+    number: 6,
+    title: "START STUDYING",
+    active: false,
+  },
 ];
 
 // --- Framer Motion Variants (TS SAFE) ---
@@ -69,121 +87,112 @@ const stepItemVariants = {
   },
 };
 
-// Helper Component for the vertical line on mobile
-const VerticalLine: React.FC = () => (
-  <div className="absolute left-[24px] top-0 h-full w-0.5 bg-gray-300 sm:hidden"></div>
-);
-
 // Helper Component for a single Step
 interface StepItemProps {
   step: Step;
   isLast: boolean;
+  isFirst: boolean;
 }
 
-const StepItem: React.FC<StepItemProps> = ({ step, isLast }) => {
-  const blueColor = "text-blue-600";
-  const lightGrayBg = "text-gray-200";
-
-  const statusCircleClasses =
-    "w-4 h-4 bg-blue-500 border-2 border-blue-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full z-20";
-
-  const innerDotClasses = step.active
-    ? "w-2 h-2 bg-white rounded-full"
-    : "hidden";
-
+const StepItem: React.FC<StepItemProps> = ({ step, isLast, isFirst }) => {
   return (
     <motion.div
-      className="flex flex-row w-full text-left sm:flex-col sm:items-center sm:flex-1 sm:text-center relative py-4 sm:min-w-0"
+      className="flex flex-row lg:flex-col lg:items-center lg:flex-1 relative group min-h-[80px] lg:min-h-0"
       variants={stepItemVariants}
     >
-      {!isLast && <VerticalLine />}
+      {/* 
+        CONTAINER 1: Circle & Lines 
+        Mobile: Fixed column on the left
+        Desktop: Full width horizontal bar with centered node
+      */}
+      <div className="flex-none w-16 lg:w-full flex flex-col lg:flex-row items-center lg:justify-center relative mr-4 lg:mr-0 mb-0 lg:mb-6">
 
-      <div className="flex items-center w-full relative h-10 sm:h-10 sm:justify-center">
-        {step.number !== 1 && (
-          <div className="hidden sm:flex-1 h-0.5 bg-gray-300 sm:block"></div>
+        {/* Vertical Line (Mobile Only) */}
+        {!isLast && (
+          <div
+            className={`absolute w-0.5 bg-gray-300 lg:hidden -z-10 left-1/2 -translate-x-1/2 bottom-0 ${isFirst ? 'top-8' : 'top-0'}`}
+          />
         )}
 
-        <div className="relative flex-shrink-0 w-12 h-10 flex items-center justify-center z-30">
+        {/* Horizontal Line Left (Desktop Only) */}
+        <div className={`hidden lg:block flex-1 h-0.5 ${isFirst ? 'bg-transparent' : 'bg-gray-300'}`}></div>
+
+        {/* NODE CENTER */}
+        <div className="relative flex-shrink-0 w-16 h-16 flex items-center justify-center z-20">
+
+          {/* Large Watermark Number - BEHIND */}
           <span
-            className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl sm:text-5xl font-extrabold ${lightGrayBg} z-10`}
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-5xl font-bold text-gray-200 select-none z-0"
           >
             {String(step.number).padStart(2, "0")}
           </span>
 
-          <div className={statusCircleClasses}>
-            <div className="flex items-center justify-center w-full h-full">
-              <span className={innerDotClasses}></span>
-            </div>
-          </div>
+          {/* Small Dot - FOREGROUND */}
+          {step.active ? (
+            // Active (Step 2): Hollow Ring (White bg, Blue Border)
+            <div className="relative z-10 w-4 h-4 bg-white border-[3px] border-blue-500 rounded-full"></div>
+          ) : (
+            // Inactive: Solid Blue Dot (added ring-white to separate from background if needed)
+            <div className="relative z-10 w-4 h-4 bg-blue-500 rounded-full ring-4 ring-transparent"></div>
+          )}
         </div>
 
-        {!isLast && (
-          <div className="hidden sm:flex-1 h-0.5 bg-gray-300 sm:block"></div>
-        )}
+        {/* Horizontal Line Right (Desktop Only) */}
+        <div className={`hidden lg:block flex-1 h-0.5 ${isLast ? 'bg-transparent' : 'bg-gray-300'}`}></div>
       </div>
 
-      <div className="mt-0 ml-6 sm:ml-0 sm:mt-6 sm:text-center flex-1">
-        {step.description && (
-          <p className="text-xs font-semibold text-gray-700 mb-1 uppercase">
+      {/* 
+        CONTAINER 2: Text Content
+        Mobile: Centered vertically with circle using h-16 wrapper
+        Desktop: Centered text below circle
+      */}
+      <div className="flex-1 pb-8 lg:pb-0 lg:px-2 lg:text-center">
+        <div className="h-16 flex items-center lg:h-auto lg:block lg:justify-center">
+          <h3 className={`text-sm sm:text-base font-bold uppercase leading-tight ${step.active ? "text-blue-600" : "text-gray-900"}`}>
             {step.title}
-          </p>
-        )}
-
-        <p
-          className={`text-sm sm:text-base font-semibold uppercase ${
-            step.active ? blueColor : "text-gray-900"
-          }`}
-        >
-          {step.title}
-        </p>
-
-        {step.description && (
-          <p className="mt-1 text-xs text-gray-600 max-w-none sm:max-w-[140px] sm:mx-auto">
-            {step.description}
-          </p>
-        )}
+          </h3>
+        </div>
       </div>
     </motion.div>
   );
 };
 
-// Main Admission Stepper Component
+// Main AdmissionStepper Component
 const AdmissionStepper: React.FC = () => {
   return (
-    <div className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 bg-white">
+    <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white overflow-hidden">
       <motion.div
         className="max-w-7xl mx-auto"
         initial="hidden"
         whileInView="visible"
         variants={sectionContainerVariants}
-        viewport={{ once: true, amount: 0.3 }}
+        viewport={{ once: true, amount: 0.2 }}
       >
         <motion.div
-          className="text-center mb-12 sm:mb-16"
+          className="text-center mb-10"
           variants={headerItemVariants}
         >
           <h2 className="text-2xl font-semibold text-black">
             Process of{" "}
             <span className="relative inline-block">
               <span className="relative z-10">Admission</span>
-
-              {/* Yellow underline image */}
+              {/* Decorative underline */}
               <Image
                 src="/yellow-underline.png"
-                alt=""
-                width={200}
-                height={16}
-                className="absolute left-0 -bottom-2 z-0"
+                alt="underline"
+                width={180}
+                height={12}
+                className="absolute left-0 -bottom-1 w-full h-auto -z-0 opacity-80"
               />
             </span>
           </h2>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 temt-2 text-sm text-gray-500">
             Education made easy! customized just for you.
           </p>
         </motion.div>
 
         <motion.div
-          className="flex flex-col justify-start sm:flex-row sm:justify-between items-start pb-4"
+          className="flex flex-col lg:flex-row justify-between items-stretch lg:items-start"
           variants={stepperContainerVariants}
         >
           {admissionSteps.map((step, index) => (
@@ -191,11 +200,12 @@ const AdmissionStepper: React.FC = () => {
               key={step.number}
               step={step}
               isLast={index === admissionSteps.length - 1}
+              isFirst={index === 0}
             />
           ))}
         </motion.div>
       </motion.div>
-    </div>
+    </section>
   );
 };
 

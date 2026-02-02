@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import ConferenceDetailClient from "./ConferenceDetailClient";
+import { API_BASE_URL } from "@/lib/config";
 
 interface EventData {
     id: number;
@@ -39,7 +40,7 @@ interface ApiResponse {
 // Fetch conference event details
 async function getConferenceDetails(slug: string): Promise<EventData | null> {
     try {
-        const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api"}/EducationAndInternship/Website/event/event-details/${slug}`;
+        const apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/event/event-details/${slug}`;
         const response = await fetch(apiUrl, {
             cache: 'no-store',
             headers: {
@@ -70,7 +71,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const { slug } = await params;
 
     try {
-        const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000/api"}/EducationAndInternship/Website/event/event-details/${slug}`;
+        const apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/event/event-details/${slug}`;
         const response = await fetch(apiUrl, { cache: 'no-store' });
         const result: ApiResponse = await response.json();
 

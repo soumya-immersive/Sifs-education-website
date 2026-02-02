@@ -143,13 +143,13 @@ export default function AboutUs() {
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-12 px-4 lg:flex-row lg:items-start lg:gap-16">
         {/* Left: Image + Badge */}
         <motion.div
-          className="relative w-full max-w-md"
+          className="relative w-full max-w-md contents"
           initial="hidden"
           whileInView="visible"
           variants={imageContainerVariants}
           viewport={{ once: true, amount: 0.3 }}
         >
-          <div className="overflow-hidden rounded-[120px]">
+          <div className="overflow-hidden rounded-[30px]">
             <Image
               src={hero.image}
               alt="Students learning online"
@@ -160,12 +160,12 @@ export default function AboutUs() {
           </div>
 
           {/* Experience Badge */}
-          <div className="absolute left-20 bottom-21 flex items-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-500 px-6 py-4 text-white shadow-xl">
+          {/* <div className="absolute left-20 bottom-21 flex items-center rounded-full bg-gradient-to-r from-indigo-600 to-purple-500 px-6 py-4 text-white shadow-xl">
             <div className="text-3xl font-bold leading-none">{hero.badgeNumber}</div>
             <div className="border-l border-[#5D1FBF] ml-3 pl-3 text-xs font-medium leading-tight uppercase tracking-wide">
               <div dangerouslySetInnerHTML={{ __html: hero.badgeText }} />
             </div>
-          </div>
+          </div> */}
         </motion.div>
 
         {/* Right: Text Content */}

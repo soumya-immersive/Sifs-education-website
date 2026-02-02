@@ -30,6 +30,12 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
       {
+        protocol: "http",
+        hostname: "sifs.manageprojects.in",
+        port: "",
+        pathname: "/**",
+      },
+      {
         protocol: "https",
         hostname: "**",
       },
@@ -37,8 +43,8 @@ const nextConfig: NextConfig = {
     unoptimized: process.env.NODE_ENV === 'development',
   },
   async rewrites() {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api';
-    const uploadsBaseUrl = process.env.NEXT_PUBLIC_UPLOADS_BASE_URL || 'http://localhost:3000/uploads';
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://sifs.manageprojects.in/api';
+    const uploadsBaseUrl = process.env.NEXT_PUBLIC_UPLOADS_BASE_URL || 'https://sifs.manageprojects.in/uploads';
 
     return [
       {

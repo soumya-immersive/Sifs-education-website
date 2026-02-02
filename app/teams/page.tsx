@@ -7,7 +7,7 @@ import {
   Edit, Save, Loader2, Plus, Trash2, Eye
 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
-import { API_BASE_URL } from "@/lib/config";
+import { API_BASE_URL, BASE_URL } from "@/lib/config";
 
 import PageBanner from "../../components/common/PageBanner";
 import EditableText from "../../components/editable/EditableText";
@@ -55,7 +55,7 @@ export default function TeamMembersPage() {
             if (imageUrl) {
               imageUrl = imageUrl.replace(/\\/g, "/");
               if (!imageUrl.startsWith("http")) {
-                imageUrl = `http://localhost:3000/uploads/${imageUrl}`;
+                imageUrl = `${BASE_URL}/uploads/${imageUrl}`;
               }
             }
 
@@ -170,7 +170,7 @@ export default function TeamMembersPage() {
         if (imageUrl) {
           imageUrl = imageUrl.replace(/\\/g, "/");
           if (!imageUrl.startsWith("http")) {
-            imageUrl = `http://localhost:3000/uploads/${imageUrl}`;
+            imageUrl = `${BASE_URL}/uploads/${imageUrl}`;
           }
         }
 

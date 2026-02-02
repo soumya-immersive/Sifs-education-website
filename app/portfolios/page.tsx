@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
-import { API_BASE_URL } from "@/lib/config";
+import { API_BASE_URL, BASE_URL } from "@/lib/config";
 import PageBanner from "../../components/common/PageBanner";
 
 // Types
@@ -142,7 +142,7 @@ export default function PortfoliosPage() {
                                         {/* Logo Image */}
                                         <div className="w-full aspect-square relative mb-4 flex items-center justify-center p-2 bg-[#f9f9f9] rounded-md overflow-hidden">
                                             <img
-                                                src={item.featured_image.startsWith('http') ? item.featured_image : `http://localhost:3000/uploads/${item.featured_image}`}
+                                                src={item.featured_image.startsWith('http') ? item.featured_image : `${BASE_URL}/uploads/${item.featured_image}`}
                                                 alt={item.title}
                                                 className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-300"
                                                 onError={(e) => {
