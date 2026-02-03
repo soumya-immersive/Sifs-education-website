@@ -75,81 +75,50 @@ export default function AboutHero({ data, editMode, updateData }: AboutHeroProps
       <div className="max-w-7xl mx-auto px-6 text-center">
 
         {/* Heading */}
-        <motion.div variants={fadeUp} className="text-3xl md:text-4xl font-semibold text-gray-900">
+        {/* <motion.div variants={fadeUp} className="text-3xl md:text-4xl font-semibold text-gray-900">
           <EditableText
             html={content.heading}
             editMode={editMode}
             onChange={(h) => updateAndSave({ ...content, heading: h })}
             className="mx-auto max-w-3xl text-center text-gray-900"
           />
-        </motion.div>
+        </motion.div> */}
 
-        <motion.div variants={fadeUp} className="text-sm text-gray-500 mt-3">
+        {/* <motion.div variants={fadeUp} className="text-sm text-gray-500 mt-3">
           <EditableText
             html={content.subtitle}
             editMode={editMode}
             onChange={(h) => updateAndSave({ ...content, subtitle: h })}
             className="mx-auto max-w-2xl text-center text-gray-500"
           />
-        </motion.div>
+        </motion.div> */}
 
         {/* Content Section */}
-        <div className="mt-16 grid lg:grid-cols-2 gap-12 items-center text-left">
+        <div className="flex flex-col gap-12 items-center text-left">
           {/* LEFT – Image */}
-          <motion.div variants={fadeLeft} className="relative">
+
+          <motion.div variants={fadeLeft} className="relative w-full max-w-5xl">
             <div className="rounded-2xl overflow-hidden">
               <EditableImage
                 src={content.image}
                 editMode={editMode}
                 onChange={(src) => updateAndSave({ ...content, image: src })}
+                className="h-[300px]"
               />
             </div>
 
-            {/* Experience Badge - Only show if content exists */}
-            {content.badgeNumber && (
-              <motion.div
-                variants={scaleFade}
-                className="
-                  absolute
-                  bottom-2
-                  left-1/2 -translate-x-1/2
-                  lg:left-68 lg:right-20 lg:translate-x-0
-                  bg-[#3f3e3e]
-                  rounded-xl shadow-lg
-                  px-6 py-4 md:px-8 md:py-6
-                  flex items-center gap-4
-                "
-              >
-                <div className="text-3xl md:text-4xl text-white font-normal">
-                  <EditableText
-                    html={content.badgeNumber}
-                    editMode={editMode}
-                    onChange={(h) => updateAndSave({ ...content, badgeNumber: h })}
-                    className="text-white"
-                  />
-                </div>
-                <div className="text-xs text-white border-l pl-4 leading-tight">
-                  <EditableText
-                    html={content.badgeText}
-                    editMode={editMode}
-                    onChange={(h) => updateAndSave({ ...content, badgeText: h })}
-                    className="text-white"
-                  />
-                </div>
-              </motion.div>
-            )}
           </motion.div>
 
           {/* RIGHT – Text */}
-          <motion.div variants={container}>
-            <motion.span variants={fadeUp} className="inline-block px-8 py-2 rounded-full border border-[#067CB6] text-sm font-semibold text-black bg-[#E7ECEF]">
+          <motion.div variants={container} className="w-full max-w-4xl">
+            {/* <motion.span variants={fadeUp} className="inline-block px-8 py-2 rounded-full border border-[#067CB6] text-sm font-semibold text-black bg-[#E7ECEF]">
               <EditableText
                 html={content.tag}
                 editMode={editMode}
                 onChange={(h) => updateAndSave({ ...content, tag: h })}
                 className="inline-block"
               />
-            </motion.span>
+            </motion.span> */}
 
             <motion.div variants={fadeUp} className="text-2xl font-semibold mb-4 mt-4 text-black">
               <EditableText

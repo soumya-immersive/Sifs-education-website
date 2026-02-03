@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import AboutHero from "../../components/about/AboutHero";
-import MissionVision from "../../components/about/MissionVision";
+
 import InitiativesSection from "../../components/about/InitiativesSection";
 import ExpertTeam from "../../components/about/ExpertTeam";
 import TestimonialsSection from '../../components/common/TestimonialsSection';
@@ -67,11 +67,7 @@ export default function AboutPage() {
           updateData={() => { }}
         />
 
-        <MissionVision
-          data={data.mission}
-          editMode={false}
-          updateData={() => { }}
-        />
+
 
         <InitiativesSection
           data={data.initiatives}

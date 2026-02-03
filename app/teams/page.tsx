@@ -55,7 +55,7 @@ export default function TeamMembersPage() {
             if (imageUrl) {
               imageUrl = imageUrl.replace(/\\/g, "/");
               if (!imageUrl.startsWith("http")) {
-                imageUrl = `${BASE_URL}/uploads/${imageUrl}`;
+                imageUrl = `${BASE_URL}/uploads/Education-And-Internship-Admin-Member/${imageUrl}`;
               }
             }
 
@@ -170,7 +170,7 @@ export default function TeamMembersPage() {
         if (imageUrl) {
           imageUrl = imageUrl.replace(/\\/g, "/");
           if (!imageUrl.startsWith("http")) {
-            imageUrl = `${BASE_URL}/uploads/${imageUrl}`;
+            imageUrl = `${BASE_URL}/uploads/Education-And-Internship-Admin-Member/${imageUrl}`;
           }
         }
 
