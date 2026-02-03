@@ -98,7 +98,7 @@ export default function AboutHero({ data, editMode, updateData }: AboutHeroProps
           {/* LEFT – Image */}
 
           <motion.div variants={fadeLeft} className="relative w-full max-w-5xl">
-            <div className="rounded-2xl overflow-hidden">
+            <div className="rounded-2xl overflow-hidden shadow-2xl border border-gray-100">
               <EditableImage
                 src={content.image}
                 editMode={editMode}

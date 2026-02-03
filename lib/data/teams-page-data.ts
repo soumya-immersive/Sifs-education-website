@@ -8,13 +8,8 @@ export const TEAMS_PAGE_INITIAL_DATA = {
   },
   filters: [
     "All",
-    "International Advisory Board",
-    "National Advisory Board",
-    "Speaker",
-    "Scientific Committee",
-    "Supportive Body",
-    "Core Team",
-    "Volunteer",
+    "Instructors",
+    "Adjunct Faculty",
   ],
   team: [] as TeamMember[]
 };

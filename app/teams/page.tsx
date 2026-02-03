@@ -27,8 +27,8 @@ const fadeUp = {
 };
 
 const categoryMap: Record<string, string> = {
-  "3": "Forensic Experts",
-  "4": "Advisory Board",
+  "3": "Instructors",
+  "4": "Adjunct Faculty",
 };
 
 const ITEMS_PER_VIEW = 8;

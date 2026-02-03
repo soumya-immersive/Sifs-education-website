@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useState, useEffect } from "react";
 import { CheckCircle2, ChevronLeft, ShieldCheck, CreditCard, User, Mail, Phone, MapPin, School, Calendar, Globe, Wand2 } from "lucide-react";
 import Link from 'next/link';
+import { API_BASE_URL } from "@/lib/config";
 
 interface Country {
     id: number;
@@ -73,21 +74,22 @@ function RegistrationForm() {
     useEffect(() => {
         const fetchCountries = async () => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/front`);
+                // Use the Website/front endpoint which returns { "countries": [...] } directly as per user logs
+                const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
                 if (response.ok) {
                     const result = await response.json();
-                    console.log("Front API Response:", result); // Debug log
 
-                    // Handle different possible response structures
+                    // Log to debug exact structure
+                    console.log("Front API Response:", result);
+
                     if (result.countries && Array.isArray(result.countries)) {
                         setCountries(result.countries);
                     } else if (result.data && result.data.countries && Array.isArray(result.data.countries)) {
                         setCountries(result.data.countries);
-                    } else if (result.data && result.data.be && result.data.be.countries && Array.isArray(result.data.be.countries)) {
-                        // Common pattern in this project (data.be.countries)
-                        setCountries(result.data.be.countries);
+                    } else if (result.success && Array.isArray(result.data)) {
+                        setCountries(result.data);
                     } else {
-                        console.warn("Could not find countries array in API response", result);
+                        console.warn("Unexpected API structure:", result);
                     }
                 } else {
                     console.error("API response not ok:", response.status);
@@ -118,7 +120,7 @@ function RegistrationForm() {
                 level: displayLevel
             };
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/front/apply-coupon`, {
+            const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/apply-coupon`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
@@ -182,7 +184,7 @@ function RegistrationForm() {
         };
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/courses/register-for-course-process`, {
+            const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/courses/register-for-course-process`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

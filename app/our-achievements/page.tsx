@@ -4,16 +4,23 @@ import { useState, useEffect } from "react";
 import { Edit, Save, Loader2 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 
-import AchievementsHero from "../../components/achievements/AchievementsHero";
-import AchievementsIntro from "../../components/achievements/AchievementsIntro";
+import AboutHero from "../../components/about/AboutHero";
+import { AboutHeroData } from "@/types/about-page";
+
+// Mapped components
 import ParticipationTimeline from "../../components/achievements/ParticipationTimeline";
 import AchievementYearCard from "../../components/achievements/AchievementYearCard";
-import OurPresence from "../../components/achievements/OurPresence";
-import AcademicCollaborations from "../../components/achievements/AcademicCollaborations";
-import ClientsPortfolio from "../../components/achievements/ClientsPortfolio";
-import TestimonialsSection from '../../components/common/TestimonialsSection';
+import GlobalInfluence from "../../components/home/GlobalInfluence";
+import TestimonialsSection from '../../components/home/TestimonialsSection';
 import { useAchievementsPageData } from "@/hooks/useAchievementsPageData";
 import { API_BASE_URL } from "@/lib/config";
+
+// Unused components for now
+// import AchievementsHero from "../../components/achievements/AchievementsHero";
+// import AchievementsIntro from "../../components/achievements/AchievementsIntro";
+// import OurPresence from "../../components/achievements/OurPresence";
+// import AcademicCollaborations from "../../components/achievements/AcademicCollaborations";
+// import ClientsPortfolio from "../../components/achievements/ClientsPortfolio";
 
 export default function AchievementsPage() {
     const { data, updateSection, editMode, setEditMode, saveData, isLoaded: hookLoaded } = useAchievementsPageData();
@@ -54,22 +61,44 @@ export default function AchievementsPage() {
         ...data,
         hero: {
             ...data.hero,
-            // User requested to remove static data image
             image: ""
         },
         intro: {
             ...data.intro,
             heading: apiData?.title || data.intro.heading,
             badgeText: apiData?.subtitle || data.intro.badgeText,
-            // Map API featured image to Intro Main Image and remove static fallback
             mainImage: apiData?.featured_image_url || "",
-            // If API has body, use it as the single paragraph (HTML supported). 
-            // Otherwise fall back to local paragraphs.
             paragraphs: apiData?.body ? [apiData.body] : data.intro.paragraphs,
-            // If using API body, likely we don't want the static list appended unless specified. 
-            // For now, we'll keep the list from local data.
             list: data.intro.list
-        }
+        },
+        participationTimeline: data.participationTimeline,
+        achievementYears: data.achievementYears,
+        presence: data.presence,
+        universityCollaborations: data.universityCollaborations,
+        clients: data.clients,
+        testimonials: data.testimonials
+    };
+
+    // Map Achievements data to AboutHero format
+    const mappedHeroData: AboutHeroData = {
+        heading: "Our Achievements",
+        subtitle: finalData.intro.badgeText,
+        image: finalData.intro.mainImage,
+        tag: finalData.intro.badgeText,
+        badgeNumber: "",
+        badgeText: "",
+        h2: finalData.intro.heading,
+        paragraphs: finalData.intro.paragraphs
+    };
+
+    const handleHeroUpdate = (newData: AboutHeroData) => {
+        updateSection("intro", {
+            ...finalData.intro,
+            mainImage: newData.image,
+            heading: newData.h2,
+            paragraphs: newData.paragraphs,
+            badgeText: newData.subtitle // mapping subtitle back to badgeText/subtitle
+        });
     };
 
     const handleEditClick = () => {
@@ -92,41 +121,17 @@ export default function AchievementsPage() {
     };
 
     return (
-        <section className="bg-white relative min-h-screen">
+        <section className="bg-[#F7F9FC] relative min-h-screen">
             <Toaster position="top-right" />
 
-            {/* Global Edit Control - Fixed at bottom right like About Page */}
-            <div className="fixed bottom-6 right-6 z-[1000] flex gap-2">
-                {!editMode ? (
-                    <button
-                        onClick={handleEditClick}
-                        disabled={isEditLoading}
-                        className={`flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-blue-700 transition-all font-medium ${isEditLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                    >
-                        {isEditLoading ? (
-                            <Loader2 size={18} className="animate-spin" />
-                        ) : (
-                            <Edit size={18} />
-                        )}
-                        {isEditLoading ? 'Loading...' : 'Edit Page'}
-                    </button>
-                ) : (
-                    <button
-                        onClick={handleSave}
-                        disabled={isSaving}
-                        className={`flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-green-700 transition-all font-medium animate-in fade-in zoom-in ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
-                    >
-                        {isSaving ? (
-                            <Loader2 size={18} className="animate-spin" />
-                        ) : (
-                            <Save size={18} />
-                        )}
-                        {isSaving ? 'Saving...' : 'Save Changes'}
-                    </button>
-                )}
-            </div>
 
-            <AchievementsHero
+            <AboutHero
+                data={mappedHeroData}
+                editMode={editMode}
+                updateData={handleHeroUpdate}
+            />
+
+            {/* <AchievementsHero
                 data={finalData.hero}
                 editMode={editMode}
                 updateData={(d) => updateSection("hero", d)}
@@ -135,7 +140,8 @@ export default function AchievementsPage() {
                 data={finalData.intro}
                 editMode={editMode}
                 updateData={(d) => updateSection("intro", d)}
-            />
+            /> */}
+
             <section className="max-w-7xl mx-auto py-20 px-6">
                 <div className="grid lg:grid-cols-2 gap-12">
                     <ParticipationTimeline
@@ -150,26 +156,21 @@ export default function AchievementsPage() {
                     />
                 </div>
             </section>
-            <OurPresence
+
+            {/* <OurPresence
                 data={finalData.presence}
                 editMode={editMode}
                 updateData={(d) => updateSection("presence", d)}
-            />
-            <AcademicCollaborations
+            /> */}
+
+            {/* <AcademicCollaborations
                 data={finalData.universityCollaborations}
                 editMode={editMode}
                 updateData={(d) => updateSection("universityCollaborations", d)}
-            />
-            <ClientsPortfolio
-                data={finalData.clients}
-                editMode={editMode}
-                updateData={(d) => updateSection("clients", d)}
-            />
-            <TestimonialsSection
-                data={finalData.testimonials}
-                editMode={editMode}
-                updateData={(d) => updateSection("testimonials", d)}
-            />
+            /> */}
+
+            <GlobalInfluence />
+            <TestimonialsSection />
         </section>
     );
 }

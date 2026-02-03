@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence, easeOut } from "framer-motion";
 import { Facebook, Twitter, Linkedin, Instagram, Edit, Save, Loader2, Plus, Trash2 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
@@ -10,6 +10,7 @@ import EditableText from "../../components/editable/EditableText";
 import EditableImage from "../../components/editable/EditableImage";
 import { useFacultyPageData } from "@/hooks/useFacultyPageData";
 import { FacultyMember } from "../../types/faculty";
+import { API_BASE_URL, BASE_URL } from "@/lib/config";
 
 /* ---------------- ANIMATIONS ---------------- */
 const fadeUp = {
@@ -21,8 +22,13 @@ const fadeUp = {
   },
 };
 
+const categoryMap: Record<string, string> = {
+  "3": "Instructors",
+  "4": "Adjunct Faculty",
+};
+
 /* ---------------- FILTERS ---------------- */
-const defaultFilters = ["All", "Adjunct Faculty", "Instructors"];
+const defaultFilters = ["All", "Instructors", "Adjunct Faculty"];
 
 const ITEMS_PER_VIEW = 8;
 
@@ -36,6 +42,69 @@ export default function FacultiesPage() {
 
   // Initialize filters if missing (backward compatibility)
   const filters = data.filters || defaultFilters;
+
+  // Fetch API Data
+  useEffect(() => {
+    const fetchFaculty = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/team`);
+        const result = await response.json();
+
+        if (result.success && result.data && Array.isArray(result.data.members)) {
+          const mappedMembers: FacultyMember[] = result.data.members.map((item: any) => {
+            // Image handling
+            let imageUrl = item.image || "";
+            if (imageUrl) {
+              imageUrl = imageUrl.replace(/\\/g, "/");
+              if (!imageUrl.startsWith("http")) {
+                imageUrl = `${BASE_URL}/uploads/Education-And-Internship-Admin-Member/${imageUrl}`;
+              }
+            }
+
+            // Category Mapping
+            const catId = (item.team_category_id || "").toString().trim();
+            const categoryName = categoryMap[catId] || "Other";
+
+            // Helper to clean strings
+            const clean = (str: any) => (str ? str.toString().replace(/^\"|\"$/g, '') : "");
+
+            return {
+              id: item.id.toString(),
+              name: clean(item.name) || "Unknown",
+              role: clean(item.rank),
+              category: categoryName,
+              image: imageUrl,
+              description: clean(item.about), // Note: FacultyMember might need description added if not present
+              slug: item.slug,
+              socials: {
+                facebook: clean(item.facebook) || "#",
+                twitter: clean(item.twitter) || "#",
+                instagram: clean(item.instagram) || "#",
+                linkedin: clean(item.linkedin) || "#"
+              }
+            };
+          });
+
+          // Update Faculty Data
+          updateSection("faculty", mappedMembers);
+
+          // Update Filters dynamically based on categories found
+          const uniqueCategories = Array.from(new Set(mappedMembers.map(m => m.category))).sort();
+          if (uniqueCategories.length > 0) {
+            updateSection("filters", ["All", ...uniqueCategories]);
+          }
+        } else {
+          console.error("Invalid API structure:", result);
+          toast.error("Invalid API response format");
+        }
+      } catch (error) {
+        console.error("Failed to fetch faculty data:", error);
+        toast.error("Failed to load faculty data from API");
+      }
+    };
+
+    fetchFaculty();
+  }, [updateSection]);
 
   /* ---------- FILTER DATA ---------- */
   const filteredFaculty: FacultyMember[] = useMemo(() => {
