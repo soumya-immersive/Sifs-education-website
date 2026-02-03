@@ -36,7 +36,7 @@ const defaultNavItems = [
     label: "Internship",
     children: internshipPrograms.map((program) => ({
       label: program.label,
-      path: `/internships/${program.slug}`,
+      path: `/${program.slug}`,
     })),
   },
   {
@@ -62,7 +62,7 @@ const defaultNavItems = [
       { label: "Visual Gallery", path: "/video" },
     ],
   },
-  { label: "Books", path: "/courses/associate-degree" },
+  { label: "Books", path: "/associate-degree" },
   { label: "Reach Us", path: "/contact" },
 ];
 

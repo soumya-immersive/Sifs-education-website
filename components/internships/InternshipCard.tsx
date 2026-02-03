@@ -71,13 +71,7 @@ export default function InternshipCard({ internship }: Props) {
 
         <motion.div variants={buttonVariants} whileHover="hover">
           <Link
-            href={
-              internship.programSlug === "lab-based-internship"
-                ? `/lab-based-internship/${internship.slug}`
-                : internship.programSlug === "online-forensic-internship"
-                  ? `/online-forensic-internship/${internship.slug}`
-                  : `/internships/${internship.programSlug}/${internship.slug}`
-            }
+            href={`/training-details/${internship.slug}`}
             className="
               inline-block bg-gradient-to-r
               from-purple-500 to-indigo-600
