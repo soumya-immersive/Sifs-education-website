@@ -74,7 +74,7 @@ export default function MissionVision({ data, editMode, updateData }: MissionVis
         whileInView="visible"
         viewport={{ once: true }}
       >
-        {/* MAIN IMAGE */}
+        {/* MAIN IMAGE - COMMENTED OUT
         <motion.div
           variants={fadeUp}
           className="rounded-2xl overflow-hidden shadow-lg mb-14"
@@ -85,7 +85,8 @@ export default function MissionVision({ data, editMode, updateData }: MissionVis
             onChange={(src) => updateData({ ...data, mainImage: src })}
             className="w-full"
           />
-        </motion.div>
+        </motion.div> 
+        */}
 
         {/* INFO CARDS */}
         <motion.div

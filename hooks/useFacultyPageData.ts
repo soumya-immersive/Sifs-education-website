@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FACULTY_PAGE_INITIAL_DATA } from "@/lib/data/faculty-page-data";
+import { FacultyMember } from "@/types/faculty";
 
 const STORAGE_KEY = "facultyPageContent:v1";
 
@@ -16,7 +17,7 @@ export function useFacultyPageData() {
         setData(JSON.parse(raw));
       } else {
         // First run: persist initial data
-         localStorage.setItem(STORAGE_KEY, JSON.stringify(FACULTY_PAGE_INITIAL_DATA));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(FACULTY_PAGE_INITIAL_DATA));
       }
     } catch (e) {
       console.error("Failed to load faculty data", e);
@@ -25,15 +26,17 @@ export function useFacultyPageData() {
     }
   }, []);
 
-  const updateSection = (sectionKey: keyof typeof FACULTY_PAGE_INITIAL_DATA, newData: any) => {
-    const updated = { ...data, [sectionKey]: newData };
-    setData(updated);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    } catch (e) {
-      console.error("Failed to save updates", e);
-    }
-  };
+  const updateSection = useCallback((sectionKey: keyof typeof FACULTY_PAGE_INITIAL_DATA, newData: any) => {
+    setData((prevData) => {
+      const updated = { ...prevData, [sectionKey]: newData };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      } catch (e) {
+        console.error("Failed to save updates", e);
+      }
+      return updated;
+    });
+  }, []);
 
   const saveData = () => {
     try {
@@ -45,8 +48,8 @@ export function useFacultyPageData() {
   };
 
   const resetToDefault = () => {
-      setData(FACULTY_PAGE_INITIAL_DATA);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(FACULTY_PAGE_INITIAL_DATA));
+    setData(FACULTY_PAGE_INITIAL_DATA);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(FACULTY_PAGE_INITIAL_DATA));
   }
 
   return {

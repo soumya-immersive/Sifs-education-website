@@ -14,6 +14,12 @@ interface ExpertTeamProps {
   updateData: (newData: TeamData) => void;
 }
 
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/autoplay";
+import { Pagination, Autoplay } from "swiper/modules";
+
 export default function ExpertTeam({ data, editMode, updateData }: ExpertTeamProps) {
 
   const addExpert = () => {
@@ -109,94 +115,124 @@ export default function ExpertTeam({ data, editMode, updateData }: ExpertTeamPro
           </Link>
         </div>
 
-        {/* TEAM GRID */}
-        <div className="grid md:grid-cols-4 gap-6">
-          {data.experts.map((item, i) => (
-            <motion.div
-              key={i}
-              whileHover="hover"
-              initial="rest"
-              animate="rest"
-              className="relative rounded-xl overflow-hidden shadow-md group text-center"
-            >
-              {editMode && (
-                <button
-                  onClick={() => removeExpert(i)}
-                  className="absolute top-2 right-2 z-20 bg-red-100 text-red-600 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-200"
-                  title="Remove Member"
+        {/* TEAM SLIDER */}
+        <div className="relative">
+          <Swiper
+            modules={[Pagination, Autoplay]}
+            spaceBetween={24}
+            slidesPerView={1}
+            autoplay={{
+              delay: 3000,
+              disableOnInteraction: false,
+              pauseOnMouseEnter: true,
+            }}
+            pagination={{
+              clickable: true,
+              dynamicBullets: true,
+            }}
+            breakpoints={{
+              640: {
+                slidesPerView: 2,
+              },
+              768: {
+                slidesPerView: 3,
+              },
+              1024: {
+                slidesPerView: 4,
+              },
+            }}
+            loop={data.experts.length > 4}
+            className="pb-12"
+          >
+            {data.experts.map((item, i) => (
+              <SwiperSlide key={i} className="h-auto">
+                <motion.div
+                  whileHover="hover"
+                  initial="rest"
+                  animate="rest"
+                  className="relative rounded-xl overflow-hidden shadow-md group text-center h-[360px]"
                 >
-                  <Trash2 size={16} />
-                </button>
-              )}
+                  {editMode && (
+                    <button
+                      onClick={() => removeExpert(i)}
+                      className="absolute top-2 right-2 z-20 bg-red-100 text-red-600 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-200"
+                      title="Remove Member"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
 
-              {/* IMAGE */}
-              <EditableImage
-                src={item.image}
-                editMode={editMode}
-                onChange={(src) => {
-                  const newExperts = [...data.experts];
-                  newExperts[i].image = src;
-                  updateData({ ...data, experts: newExperts });
-                }}
-                className="w-full h-[360px] object-cover"
-              />
+                  {/* IMAGE */}
+                  <EditableImage
+                    src={item.image}
+                    editMode={editMode}
+                    onChange={(src) => {
+                      const newExperts = [...data.experts];
+                      newExperts[i].image = src;
+                      updateData({ ...data, experts: newExperts });
+                    }}
+                    className="w-full h-full object-cover"
+                  />
 
-              {/* OVERLAY */}
-              <div
-                className="absolute inset-0
+                  {/* OVERLAY */}
+                  <div
+                    className="absolute inset-0
                 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"
-              />
-
-              {/* TEXT ABOVE OVERLAY */}
-              <motion.div
-                variants={{
-                  rest: { scale: 1 },
-                  hover: {
-                    scale: 1.12,
-                    transition: { duration: 0.35, ease: "easeOut" },
-                  },
-                }}
-                className="absolute bottom-0 left-0 right-0 p-4 text-white z-10"
-              >
-                <div className="font-semibold leading-tight">
-                  <EditableText
-                    html={item.name}
-                    editMode={editMode}
-                    onChange={(val) => {
-                      const newExperts = [...data.experts];
-                      newExperts[i].name = val;
-                      updateData({ ...data, experts: newExperts });
-                    }}
-                    className="text-white"
                   />
-                </div>
-                <div className="text-xs opacity-90 text-[#D08522]">
-                  <EditableText
-                    html={item.role}
-                    editMode={editMode}
-                    onChange={(val) => {
-                      const newExperts = [...data.experts];
-                      newExperts[i].role = val;
-                      updateData({ ...data, experts: newExperts });
-                    }}
-                    className="text-[#D08522]"
-                  />
-                </div>
-              </motion.div>
-            </motion.div>
-          ))}
 
-          {editMode && (
-            <button
-              onClick={addExpert}
-              className="flex flex-col items-center justify-center h-[360px] border-2 border-dashed border-gray-300 rounded-xl text-gray-400 hover:text-blue-500 hover:border-blue-400 hover:bg-blue-50 transition"
-            >
-              <Plus size={32} />
-              <span className="mt-2 font-medium">Add Member</span>
-            </button>
-          )}
+                  {/* TEXT ABOVE OVERLAY */}
+                  <motion.div
+                    variants={{
+                      rest: { scale: 1 },
+                      hover: {
+                        scale: 1.12,
+                        transition: { duration: 0.35, ease: "easeOut" },
+                      },
+                    }}
+                    className="absolute bottom-0 left-0 right-0 p-4 text-white z-10"
+                  >
+                    <div className="font-semibold leading-tight">
+                      <EditableText
+                        html={item.name}
+                        editMode={editMode}
+                        onChange={(val) => {
+                          const newExperts = [...data.experts];
+                          newExperts[i].name = val;
+                          updateData({ ...data, experts: newExperts });
+                        }}
+                        className="text-white"
+                      />
+                    </div>
+                    <div className="text-xs opacity-90 text-[#D08522]">
+                      <EditableText
+                        html={item.role}
+                        editMode={editMode}
+                        onChange={(val) => {
+                          const newExperts = [...data.experts];
+                          newExperts[i].role = val;
+                          updateData({ ...data, experts: newExperts });
+                        }}
+                        className="text-[#D08522]"
+                      />
+                    </div>
+                  </motion.div>
+                </motion.div>
+              </SwiperSlide>
+            ))}
+
+            {editMode && (
+              <SwiperSlide>
+                <button
+                  onClick={addExpert}
+                  className="flex flex-col items-center justify-center w-full h-[360px] border-2 border-dashed border-gray-300 rounded-xl text-gray-400 hover:text-blue-500 hover:border-blue-400 hover:bg-blue-50 transition"
+                >
+                  <Plus size={32} />
+                  <span className="mt-2 font-medium">Add Member</span>
+                </button>
+              </SwiperSlide>
+            )}
+          </Swiper>
         </div>
-
       </div>
     </section>
   );

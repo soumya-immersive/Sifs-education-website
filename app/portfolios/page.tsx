@@ -62,7 +62,7 @@ export default function PortfoliosPage() {
             setLoading(true);
             try {
                 // Fetching with limit 36 to match per_page in example
-                const res = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/portfolios?page=${currentPage}&limit=36`);
+                const res = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/portfolios`);
                 const json: ApiResponse = await res.json();
 
                 if (json.success && json.data) {
@@ -142,7 +142,7 @@ export default function PortfoliosPage() {
                                         {/* Logo Image */}
                                         <div className="w-full aspect-square relative mb-4 flex items-center justify-center p-2 bg-[#f9f9f9] rounded-md overflow-hidden">
                                             <img
-                                                src={item.featured_image.startsWith('http') ? item.featured_image : `${BASE_URL}/uploads/${item.featured_image}`}
+                                                src={item.featured_image.startsWith('http') ? item.featured_image : `${BASE_URL}/uploads/Education-And-Internship-Admin-Portfolio/${item.featured_image}`}
                                                 alt={item.title}
                                                 className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-300"
                                                 onError={(e) => {

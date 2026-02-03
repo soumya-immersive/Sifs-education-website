@@ -4,6 +4,8 @@ export type FacultyMember = {
   role: string;
   category: string;
   image: string;
+  description?: string;
+  slug?: string;
   socials?: {
     facebook?: string;
     twitter?: string;
