@@ -20,13 +20,21 @@ const nextConfig = {
                 protocol: 'http',
                 hostname: 'sifs.manageprojects.in',
             },
+            {
+                protocol: 'https',
+                hostname: 'forensicinstitute.in',
+            },
+            {
+                protocol: 'http',
+                hostname: 'forensicinstitute.in',
+            },
         ],
     },
 
     async rewrites() {
         const apiBaseUrl =
             process.env.NEXT_PUBLIC_API_BASE_URL ??
-            'https://sifs.manageprojects.in/api';
+            'https://forensicinstitute.in/api';
 
         return [
             {
