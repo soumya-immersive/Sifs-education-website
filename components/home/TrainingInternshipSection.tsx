@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useMemo, useEffect } from "react";
+import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
@@ -92,10 +93,10 @@ const TrainingCard: React.FC<{ training: TrainingItem; isFirst: boolean }> = ({ 
       </p>
       <div className="mt-auto">
         <hr className="border-gray-100 mb-4" />
-        <button className={`flex items-center justify-center w-full py-2.5 rounded-lg transition-all font-semibold text-sm cursor-pointer ${isFirst ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-800"
+        <Link href={`/training-details/${training.slug}`} className={`flex items-center justify-center w-full py-2.5 rounded-lg transition-all font-semibold text-sm cursor-pointer ${isFirst ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-800"
           }`}>
           Enroll Now <ArrowRight className="ml-2 w-4 h-4" />
-        </button>
+        </Link>
       </div>
     </div>
   </div>

@@ -73,7 +73,7 @@ export default function TrainingCard({ training }: Props) {
 
         <motion.div variants={buttonVariants} whileHover="hover">
           <Link
-            href={`/training/${training.programSlug}/${training.slug}`}
+            href={`/training-details/${training.slug}`}
             className="
               inline-block bg-gradient-to-r
               from-purple-500 to-indigo-600

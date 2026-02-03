@@ -11,7 +11,7 @@ import {
     User,
     ChevronLeft
 } from "lucide-react";
-import { API_BASE_URL } from "@/lib/config";
+import { API_BASE_URL, BASE_URL } from "@/lib/config";
 import type { BlogPost, BlogsResponse, BlogPagination } from "@/types/blog";
 
 export default function BlogPage() {
@@ -22,7 +22,7 @@ export default function BlogPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
 
-    const IMAGE_BASE_URL = "/uploads/blogs";
+    const BASE_URL = "/uploads/blogs";
 
     // Debounce Search
     useEffect(() => {
@@ -158,7 +158,7 @@ export default function BlogPage() {
                                             {/* Image Container */}
                                             <div className="relative h-56 w-full bg-gray-200 overflow-hidden">
                                                 <img
-                                                    src={`${IMAGE_BASE_URL}/${post.main_image}`}
+                                                    src={`${BASE_URL}/${post.main_image}`}
                                                     alt={post.title}
                                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                     onError={(e) => {
@@ -322,7 +322,7 @@ export default function BlogPage() {
                                     >
                                         <div className="w-20 h-20 rounded-xl bg-gray-200 flex-shrink-0 overflow-hidden shadow-sm">
                                             <img
-                                                src={`${IMAGE_BASE_URL}/${post.main_image}`}
+                                                src={`${BASE_URL}/${post.main_image}`}
                                                 alt="post"
                                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                                 onError={(e) => {

@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
+
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { API_BASE_URL } from "@/lib/config";
+import { API_BASE_URL, BASE_URL } from "@/lib/config";
 
 // --- 1. TYPE DEFINITIONS ---
 interface CardProps {
@@ -91,21 +91,22 @@ const ForensicInsights: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch section data (title & subtitle)
-        const frontResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
-        const frontData = await frontResponse.json();
-        if (frontData?.data?.bs) {
-          setSectionData({
-            blog_section_title: frontData.data.bs.blog_section_title || "Forensic Insights",
-            blog_section_subtitle: frontData.data.bs.blog_section_subtitle || "Decoding Crime Mysteries: Expand Your Knowledge and Explore the Latest Advancements",
-          });
-        }
+        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
+        const data = await response.json();
 
-        // Fetch blogs
-        const blogsResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/blogs?search=`);
-        const blogsData = await blogsResponse.json();
-        if (blogsData?.success && blogsData?.data?.data) {
-          setBlogs(blogsData.data.data.slice(0, 3)); // Get first 3 blogs
+        if (data?.success && data?.data) {
+          // Update section data
+          if (data.data.bs) {
+            setSectionData({
+              blog_section_title: data.data.bs.blog_section_title || "Forensic Insights",
+              blog_section_subtitle: data.data.bs.blog_section_subtitle || "Decoding Crime Mysteries: Expand Your Knowledge and Explore the Latest Advancements",
+            });
+          }
+
+          // Update blogs
+          if (data.data.blogs) {
+            setBlogs(data.data.blogs.slice(0, 3)); // Get first 3 blogs
+          }
         }
       } catch (error) {
         console.error("Error fetching forensic insights data:", error);
@@ -128,6 +129,7 @@ const ForensicInsights: React.FC = () => {
 
   // Helper function to strip HTML tags and truncate
   const stripHtmlAndTruncate = (html: string, maxLength: number = 100) => {
+    if (!html) return "";
     const text = html.replace(/<[^>]*>/g, "");
     return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
   };
@@ -142,40 +144,42 @@ const ForensicInsights: React.FC = () => {
     slug,
   }) => (
     <motion.div
-      className="bg-white rounded-xl overflow-hidden border border-[6B7385] transition-transform duration-300 hover:scale-[1.02] cursor-pointer"
+      className="bg-white rounded-xl overflow-hidden border border-[#E5E7EB] transition-transform duration-300 hover:scale-[1.02] cursor-pointer shadow-sm hover:shadow-md h-full flex flex-col"
       variants={cardVariants}
       onClick={() => router.push(`/blog/${slug}`)}
     >
       {/* Image */}
-      <div className="relative h-56 w-full">
-        <Image
+      <div className="relative h-56 w-full shrink-0">
+        <img
           src={imageSrc}
           alt={title}
-          fill
-          className="object-cover"
+          className="w-full h-full object-cover"
         />
 
-        <div className="absolute inset-0 bg-green-500 opacity-20 mix-blend-multiply"></div>
+        <div className="absolute inset-0 bg-black/10 transition-colors hover:bg-black/0"></div>
       </div>
 
       {/* Card Content */}
-      <div className="p-6">
-        <span className="bg-[#EAF8FF] border border-[#00467A] text-black text-xs font-normal px-3 py-1.5 rounded-xs shadow-md">
-          Tutorial
-        </span>
+      <div className="p-6 flex flex-col grow">
+        <div className="mb-3">
+          <span className="bg-[#eff6ff] border border-[#bfdbfe] text-[#1e40af] text-xs font-medium px-2.5 py-0.5 rounded">
+            Tutorial
+          </span>
+        </div>
 
-        <h3 className="text-gray-900 text-xl font-bold mb-3 mt-3 leading-snug">
+
+        <h3 className="text-gray-900 text-xl font-bold mb-3 leading-snug line-clamp-2">
           {title}
         </h3>
 
-        <p className="text-gray-500 text-sm mb-3 line-clamp-2">
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2 grow">
           {description}
         </p>
 
-        <hr />
+        <hr className="mb-4 border-gray-100" />
 
         {/* Footer info */}
-        <div className="flex items-center justify-between text-sm text-gray-500 mt-3">
+        <div className="flex items-center justify-between text-sm text-gray-500 mt-auto">
           <div className="flex items-center space-x-2">
             <svg
               className="w-4 h-4"
@@ -219,9 +223,9 @@ const ForensicInsights: React.FC = () => {
     title: blog.title,
     description: stripHtmlAndTruncate(blog.content),
     date: formatDate(blog.publish_date),
-    author: blog.author,
+    author: blog.author || "SIFS India",
     imageSrc: blog.main_image
-      ? `${API_BASE_URL}/EducationAndInternship/uploads/blogs/${blog.main_image}`
+      ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Blog-Main/${blog.main_image}`
       : "/forensic-insights1.png",
     slug: blog.slug,
   }));

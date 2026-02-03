@@ -3,24 +3,18 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { X, Loader2 } from "lucide-react";
-import { API_BASE_URL } from "../../lib/config";
+import { API_BASE_URL, BASE_URL } from "../../lib/config";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 const ITEMS_PER_LOAD = 6;
 
-const categories = [
-    "All",
-    "International Workshop",
-    "Police Training",
-    "Learner Training",
-    "Forensic Events",
-    "Corporate Training",
-    "Conferences",
-    "Media Presence",
-    "Others"
-];
-
 export default function ImageGalleryPage() {
     const [events, setEvents] = useState<any[]>([]);
+    const [categories, setCategories] = useState<string[]>(["All"]);
     const [loading, setLoading] = useState(true);
     const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
     const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -62,6 +56,14 @@ export default function ImageGalleryPage() {
 
             const result = await response.json();
 
+            // Set Categories from API if available
+            if (result.data?.categories) {
+                const fetchedCategories = ["All", ...result.data.categories.map((c: any) => c.name)];
+                if (JSON.stringify(fetchedCategories) !== JSON.stringify(categories)) {
+                    setCategories(fetchedCategories);
+                }
+            }
+
             let allEvents = result.data?.data || [];
 
             // Map the new API response to component fields
@@ -74,8 +76,10 @@ export default function ImageGalleryPage() {
                 formatted_date: new Date(item.created_at).toLocaleDateString('en-US', {
                     year: 'numeric', month: 'long', day: 'numeric'
                 }),
-                // Use first image from images array if available, otherwise use gallery_image
-                image_url: item.images?.[0]?.image || item.gallery_image,
+                // Use gallery_image with specific path if available, otherwise fallback to first image in images array
+                image_url: item.gallery_image
+                    ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Gallery-Featured/${item.gallery_image}`
+                    : (item.images?.[0]?.image || null),
                 sub_title: item.detail,
                 event_outline: item.detail,
                 case_studies: "",
@@ -93,10 +97,13 @@ export default function ImageGalleryPage() {
 
             console.log("✅ Total Events from API:", result.data?.data?.length || 0);
             console.log("🔍 Filtered Events:", allEvents.length);
-            console.log("📊 First filtered event:", allEvents[0]?.title || "No events");
+            if (allEvents.length > 0) {
+                console.log("🖼️ Sample Image URL:", allEvents[0].image_url);
+            }
 
             setEvents(allEvents);
-            setTotalPages(1); // Client-side filtering, so single page
+            // Use API pagination if available, otherwise default to 1
+            setTotalPages(result.data?.pagination?.total_pages || 1);
         } catch (error) {
             console.error("❌ Error fetching events:", error);
         } finally {
@@ -309,36 +316,55 @@ export default function ImageGalleryPage() {
                         </button>
 
                         {/* Modal Image */}
-                        <div className="relative h-64 sm:h-80 w-full">
-                            <Image
-                                src={selectedItem.image_url || "/gallery1.png"}
-                                alt={selectedItem.title}
-                                fill
-                                className="object-cover"
-                            />
+                        {/* Modal Image Slider */}
+                        <div className="relative h-64 sm:h-80 w-full bg-gray-100">
+                            {selectedItem.images && selectedItem.images.length > 0 ? (
+                                <Swiper
+                                    modules={[Navigation, Pagination, Autoplay]}
+                                    spaceBetween={0}
+                                    slidesPerView={1}
+                                    navigation
+                                    pagination={{ clickable: true }}
+                                    autoplay={{ delay: 3000, disableOnInteraction: false }}
+                                    loop={true}
+                                    className="h-full w-full"
+                                >
+                                    {selectedItem.images.map((imgObj: any, index: number) => {
+                                        // Extract just the filename in case the API returns a full URL or just options
+                                        const filename = imgObj.image?.split('/').pop();
+                                        const imageUrl = filename
+                                            ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Gallery-Image/${filename}`
+                                            : "/gallery1.png";
+
+                                        return (
+                                            <SwiperSlide key={imgObj.id || index}>
+                                                <div className="relative h-full w-full">
+                                                    <Image
+                                                        src={imageUrl}
+                                                        alt={`Slide ${index + 1}`}
+                                                        fill
+                                                        className="object-contain" // Use contain to see whole image without cropping
+                                                        unoptimized // Add unoptimized to bypass next/image strict domain issues if needed for quick fix
+                                                    />
+                                                </div>
+                                            </SwiperSlide>
+                                        )
+                                    })}
+                                </Swiper>
+                            ) : (
+                                <div className="relative h-full w-full">
+                                    <Image
+                                        src={selectedItem.image_url}
+                                        alt={selectedItem.title}
+                                        fill
+                                        className="object-contain"
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {/* Modal Content */}
                         <div className="p-6 sm:p-10">
-                            <span className="text-indigo-600 font-bold text-xs uppercase tracking-widest">
-                                {selectedItem.mode_of_study} • {selectedItem.formatted_date}
-                            </span>
-                            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-2">
-                                {selectedItem.title}
-                            </h2>
-                            <div className="w-16 h-1 bg-gradient-to-r from-[#3E58EE] to-[#B565E7] my-4 rounded-full"></div>
-
-                            {selectedItem.sub_title && (
-                                <p className="text-gray-700 font-medium mb-4">
-                                    {selectedItem.sub_title}
-                                </p>
-                            )}
-
-                            <div
-                                className="text-gray-600 leading-relaxed text-sm sm:text-base prose prose-sm max-w-none"
-                                dangerouslySetInnerHTML={{ __html: selectedItem.event_outline || selectedItem.case_studies || "" }}
-                            />
-
                             <button
                                 onClick={() => setSelectedItem(null)}
                                 className="mt-8 w-full sm:w-auto px-10 py-3 bg-gray-900 text-white rounded-lg font-semibold hover:bg-black transition-all shadow-lg"
