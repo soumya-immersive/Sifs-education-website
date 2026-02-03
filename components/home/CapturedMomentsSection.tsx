@@ -8,7 +8,7 @@ import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
 import { motion, Variants } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { API_BASE_URL } from '../../lib/config';
+import { API_BASE_URL, BASE_URL } from '../../lib/config';
 
 // --- Interfaces ---
 interface GalleryImage {
@@ -27,6 +27,7 @@ interface GalleryItem {
   category_name: string;
   images: GalleryImage[];
   image_count: number;
+  status: number;
 }
 
 interface SectionData {
@@ -83,10 +84,10 @@ const MomentCard: React.FC<MomentCardProps> = ({ moment }) => {
     router.push('/image-gallery');
   };
 
-  // Get the first image from images array or use gallery_image as fallback
-  const imageUrl = moment.images && moment.images.length > 0
-    ? moment.images[0].image
-    : `${API_BASE_URL.replace('/api', '')}/uploads/Education-And-Internship-Admin-Gallery-Image/${moment.gallery_image}`;
+  // Prioritize gallery_image as the main image
+  const imageUrl = moment.gallery_image
+    ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Gallery-Featured/${moment.gallery_image}`
+    : (moment.images && moment.images.length > 0 ? moment.images[0].image : '');
 
   return (
     <div
@@ -110,10 +111,6 @@ const MomentCard: React.FC<MomentCardProps> = ({ moment }) => {
               className="w-full h-full object-cover aspect-[4/3] transition-transform duration-500 group-hover:scale-110"
             />
           </div>
-
-          <span className="absolute top-4 right-4 text-xs font-bold text-gray-400">
-            [Logo]
-          </span>
         </div>
       </div>
 
@@ -144,10 +141,10 @@ const CapturedMomentsSection: React.FC = () => {
         const sectionRes = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
         if (sectionRes.ok) {
           const sectionJson = await sectionRes.json();
-          if (sectionJson.bs) {
+          if (sectionJson.success && sectionJson.data?.be) {
             setSectionData({
-              gallery_title: sectionJson.bs.gallery_title || 'Image Gallery',
-              gallery_subtitle: sectionJson.bs.gallery_subtitle || 'Forensic Science Events Photo Highlights',
+              gallery_title: sectionJson.data.be.gallery_section_title,
+              gallery_subtitle: sectionJson.data.be.gallery_section_subtitle,
             });
           }
         }
@@ -158,7 +155,7 @@ const CapturedMomentsSection: React.FC = () => {
           const galleryJson = await galleryRes.json();
           if (galleryJson.success && galleryJson.data?.data) {
             // Filter only active galleries (status === 1)
-            const activeGalleries = galleryJson.data.data.filter((item: GalleryItem & { status: string | number }) => item.status == 1);
+            const activeGalleries = galleryJson.data.data.filter((item: GalleryItem) => item.status == 1);
             setGalleryItems(activeGalleries);
           }
         }

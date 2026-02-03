@@ -16,6 +16,10 @@ const nextConfig = {
                 protocol: 'https',
                 hostname: 'sifs.manageprojects.in',
             },
+            {
+                protocol: 'http',
+                hostname: 'sifs.manageprojects.in',
+            },
         ],
     },
 

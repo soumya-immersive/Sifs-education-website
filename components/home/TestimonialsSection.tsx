@@ -2,13 +2,13 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/autoplay";
 import { Pagination, Autoplay } from "swiper/modules";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { API_BASE_URL } from "../../lib/config";
 
 // --- Interfaces ---
@@ -63,6 +63,7 @@ const TestimonialsSection: React.FC = () => {
     testimonial_subtitle: "Real Success Stories. Hear What Our Course Attendees Have to Say!",
   });
   const [loading, setLoading] = useState(true);
+  const [selectedTestimonial, setSelectedTestimonial] = useState<Testimonial | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -101,6 +102,12 @@ const TestimonialsSection: React.FC = () => {
   const generateQuote = (comment: string): string => {
     const words = comment.split(' ').slice(0, 5).join(' ');
     return `"${words}..."`;
+  };
+
+  // Helper to truncate text
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
   };
 
   if (loading) {
@@ -170,14 +177,14 @@ const TestimonialsSection: React.FC = () => {
             slidesPerView={1}
             breakpoints={{
               768: { slidesPerView: 2 },
-              1024: { slidesPerView: 4 },
+              1024: { slidesPerView: 3 },
             }}
             className="pb-12"
           >
             {testimonials.map((testimonial) => (
               <SwiperSlide key={testimonial.id}>
                 <div className="bg-white rounded-lg shadow-lg overflow-hidden h-full relative">
-                  <div className="absolute top-4 right-4">
+                  <div className="absolute top-4 right-4 z-10">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center">
                       <svg
                         className="w-6 h-6 text-gray-300"
@@ -189,13 +196,16 @@ const TestimonialsSection: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="p-5 pt-12">
+                  <div
+                    className="p-5 pt-12 cursor-pointer h-full"
+                    onClick={() => setSelectedTestimonial(testimonial)}
+                  >
                     <h3 className="text-md font-bold text-gray-900 mb-4 min-h-12">
                       {generateQuote(testimonial.comment)}
                     </h3>
 
                     <p className="text-gray-700 text-sm mb-6">
-                      {testimonial.comment}
+                      {truncateText(testimonial.comment, 130)}
                     </p>
 
                     <div className="flex items-center gap-2 bg-blue-50 rounded-lg p-2">
@@ -204,6 +214,10 @@ const TestimonialsSection: React.FC = () => {
                           src={testimonial.image_url}
                           alt={testimonial.name}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=random&color=fff&size=128`;
+                          }}
                         />
                       </div>
 
@@ -246,6 +260,66 @@ const TestimonialsSection: React.FC = () => {
           ></div>
         </motion.div>
       </motion.div>
+
+      {/* Detail Modal */}
+      <AnimatePresence>
+        {selectedTestimonial && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setSelectedTestimonial(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl max-w-2xl w-full p-8 relative shadow-2xl overflow-hidden"
+            >
+              <button
+                onClick={() => setSelectedTestimonial(null)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Close modal"
+              >
+                <X size={24} />
+              </button>
+
+              <div className="flex flex-col md:flex-row gap-8 items-start">
+                <div className="flex-shrink-0 mx-auto md:mx-0">
+                  <div className="w-32 h-32 rounded-full border-4 border-blue-50 shadow-lg overflow-hidden">
+                    <img
+                      src={selectedTestimonial.image_url}
+                      alt={selectedTestimonial.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedTestimonial.name)}&background=random&color=fff&size=200`;
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-2xl font-bold text-[#002147] mb-1">{selectedTestimonial.name}</h3>
+                  <div className="text-[#ff4aa5] font-medium text-sm uppercase tracking-wide mb-4">
+                    {selectedTestimonial.rank}
+                  </div>
+
+                  <div className="relative">
+                    <span className="absolute -top-4 -left-2 text-6xl text-blue-100 font-serif leading-none">“</span>
+                    <p className="text-gray-600 leading-relaxed text-lg relative z-10 px-4 md:px-0">
+                      {selectedTestimonial.comment}
+                    </p>
+                    <span className="absolute -bottom-8 -right-2 text-6xl text-blue-100 font-serif leading-none rotate-180">“</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Pagination Styles */}
       <style jsx global>{`

@@ -125,10 +125,9 @@ export default function GalleryPage() {
                 setVisibleCount(ITEMS_PER_LOAD); // Reset count on filter change
               }}
               className={`px-4 py-2 cursor-pointer text-sm font-medium rounded-full whitespace-nowrap transition-all
-                ${
-                  activeCategory === cat
-                    ? "bg-indigo-600 text-white shadow-md"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                ${activeCategory === cat
+                  ? "bg-indigo-600 text-white shadow-md"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }
               `}
             >
@@ -210,16 +209,16 @@ export default function GalleryPage() {
 
       {/* 🔹 MODAL POPUP */}
       {selectedItem && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setSelectedItem(null)} // Close on clicking backdrop
         >
-          <div 
+          <div
             className="bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl relative animate-in zoom-in duration-300"
             onClick={(e) => e.stopPropagation()} // Prevent close when clicking modal content
           >
             {/* Close Button */}
-            <button 
+            <button
               onClick={() => setSelectedItem(null)}
               className="absolute top-4 right-4 z-10 bg-black/20 hover:bg-black/40 text-white p-2 rounded-full backdrop-blur-md transition-all"
             >
@@ -248,8 +247,8 @@ export default function GalleryPage() {
               <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
                 {selectedItem.description}
               </p>
-              
-              <button 
+
+              <button
                 onClick={() => setSelectedItem(null)}
                 className="mt-8 w-full sm:w-auto px-10 py-3 bg-gray-900 text-white rounded-lg font-semibold hover:bg-black transition-all shadow-lg"
               >

@@ -3,11 +3,11 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { ChevronDown, Loader2 } from "lucide-react";
+import { ChevronDown, Loader2, BookOpen, Users, Globe, FileVideo, Folder, Award } from "lucide-react";
 import { coursePrograms } from "../../data/coursePrograms";
 import { internshipPrograms } from "../../data/internshipPrograms";
 import { trainingPrograms } from "../../data/trainingPrograms";
-import { API_BASE_URL } from "../../lib/config";
+import { API_BASE_URL, BASE_URL } from "../../lib/config";
 
 // ----------------------
 // Types
@@ -16,10 +16,11 @@ interface AchievementCardProps {
   value: string;
   label: string;
   bgColor: string;
+  icon?: React.ReactNode;
 }
 
 // Helper component for the achievement cards (UPDATED LOGIC)
-const AchievementCard: React.FC<AchievementCardProps> = ({ value, label, bgColor }) => {
+const AchievementCard: React.FC<AchievementCardProps> = ({ value, label, bgColor, icon }) => {
   // Determine text color: black for light backgrounds, white for dark/colored backgrounds
   const textColor = bgColor.includes("bg-white") ? "text-black" : "text-white";
 
@@ -30,12 +31,33 @@ const AchievementCard: React.FC<AchievementCardProps> = ({ value, label, bgColor
 
   return (
     <div
-      className={`p-4 rounded-lg text-center shadow-lg h-28 flex flex-col justify-center ${bgColor}`}
+      className={`p-4 rounded-lg text-center shadow-lg min-h-28 flex flex-col justify-center items-center ${bgColor}`}
     >
+      {icon && <div className={`mb-2 ${textColor}`}>{icon}</div>}
       <div className={`text-3xl font-bold mb-1 ${textColor}`}>{value}</div>
       <div className={`text-sm ${labelColor}`}>{label}</div>
     </div>
   );
+};
+
+const getIcon = (iconClass: string) => {
+  const lowerClass = iconClass.toLowerCase();
+
+  // New mappings based on updated API response
+  if (lowerClass.includes("filevideo")) return <FileVideo className="w-6 h-6" />;
+  if (lowerClass.includes("folder")) return <Folder className="w-6 h-6" />;
+  if (lowerClass.includes("certificate")) return <Award className="w-6 h-6" />;
+
+  // Handle variations like FaBookReader, book-reader
+  if (lowerClass.includes("bookreader") || lowerClass.includes("book-reader")) return <BookOpen className="w-6 h-6" />;
+
+  // Handle variations like FaChalkboardTeacher, chalkboard-teacher
+  if (lowerClass.includes("chalkboardteacher") || lowerClass.includes("chalkboard-teacher") || lowerClass.includes("users")) return <Users className="w-6 h-6" />;
+
+  // Handle variations like FaGlobe
+  if (lowerClass.includes("globe")) return <Globe className="w-6 h-6" />;
+
+  return null;
 };
 
 const ApplyForensicLearning = () => {
@@ -60,36 +82,42 @@ const ApplyForensicLearning = () => {
   const [courseOptions, setCourseOptions] = useState<{ id?: string | number; title: string }[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(false);
 
-  // Stats state for achievements section
-  const [statsData, setStatsData] = useState({
-    courses_and_trainings: 155,
-    students: 75000,
-    global_presence: 110,
+  // Dynamic Section Data
+  const [sectionData, setSectionData] = useState({
+    title: "",
+    subtitle: "",
+    bgImage: "",
   });
+  const [statistics, setStatistics] = useState<any[]>([]);
 
-  // Fetch stats/counts on mount
+  // Fetch Section Data and Statistics
   useEffect(() => {
-    const fetchCounts = async () => {
+    const fetchData = async () => {
       try {
-        const countsResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/counts`);
-        const countsData = await countsResponse.json();
-        console.log('Counts API Response:', countsData);
+        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
+        const data = await response.json();
 
-        const totals = countsData?.data?.totals;
-        if (totals) {
-          console.log('Stats from API:', totals);
-          setStatsData({
-            courses_and_trainings: totals.courses_and_trainings ?? 155,
-            students: totals.students ?? 75000,
-            global_presence: totals.global_presence ?? 110,
+        if (response.ok && data.success && data.data) {
+          const { bs, statistics } = data.data;
+
+          setSectionData({
+            title: bs.landing_form_section_title,
+            subtitle: bs.landing_form_section_subtitle,
+            bgImage: bs.landing_form_bg
+              ? `${BASE_URL}/uploads/Education-And-Internship-Admin-ApplicationFormSection/${bs.landing_form_bg}`
+              : "/apply-bg.png",
           });
+
+          if (statistics && Array.isArray(statistics)) {
+            setStatistics(statistics);
+          }
         }
       } catch (error) {
-        console.error("Error fetching counts:", error);
+        console.error("Error fetching homepage data:", error);
       }
     };
 
-    fetchCounts();
+    fetchData();
   }, []);
 
   // Effect: Update Sub Type options when Learning Type changes
@@ -212,7 +240,7 @@ const ApplyForensicLearning = () => {
     <div
       className="relative p-4 md:p-8 flex items-center justify-center bg-gray-900 relative"
       style={{
-        backgroundImage: "url(/apply-bg.png)",
+        backgroundImage: `url(${sectionData.bgImage})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
@@ -228,32 +256,14 @@ const ApplyForensicLearning = () => {
             {/* Header Section */}
             <header className="text-left mb-6">
               <h1 className="text-4xl font-normal mb-2 leading-tight">
-                Apply For Forensic Learning
+                {sectionData.title}
               </h1>
               <p className="text-md font-normal">
-                Learn more about forensic courses, training & internship{" "}
+                {sectionData.subtitle}
+                {" "}
                 <span className="text-purple-400">▽</span>
               </p>
             </header>
-
-            {/* Play Button Section */}
-            {/* <div className="flex items-center space-x-4">
-              <div className="w-18 h-18 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center cursor-pointer border border-white/30 hover:bg-white/30 transition-colors shrink-0 relative overflow-hidden">
-                <Image
-                  src="/video-play.png"
-                  alt="Play Video"
-                  fill
-                  className="p-1 object-contain"
-                />
-              </div>
-
-              <div className="ml-3">
-                <h3 className="text-lg font-normal">
-                  Learn Something new & Build Your Career <br /> From Anywhere
-                  In The World
-                </h3>
-              </div>
-            </div> */}
 
             {/* Achievements Section */}
             <div className="pt-4">
@@ -265,21 +275,39 @@ const ApplyForensicLearning = () => {
 
               {/* Achievements Grid */}
               <div className="grid grid-cols-3 gap-6 absolute -bottom-18">
-                <AchievementCard
-                  value={`${statsData.courses_and_trainings}+`}
-                  label="Courses & Training"
-                  bgColor="bg-white"
-                />
-                <AchievementCard
-                  value={statsData.students >= 1000 ? `${Math.floor(statsData.students / 1000)}K+` : `${statsData.students}+`}
-                  label="Total Students"
-                  bgColor="bg-purple-600"
-                />
-                <AchievementCard
-                  value={`${statsData.global_presence}+`}
-                  label="Global Presence"
-                  bgColor="bg-white"
-                />
+                {statistics.length > 0 ? (
+                  statistics.map((stat, index) => (
+                    <AchievementCard
+                      key={stat.id || index}
+                      value={`${stat.quantity}+`}
+                      label={stat.title}
+                      bgColor={index === 1 ? "bg-purple-600" : "bg-white"}
+                      icon={getIcon(stat.icon)}
+                    />
+                  ))
+                ) : (
+                  // Fallback if no stats loaded yet
+                  <>
+                    <AchievementCard
+                      value="155+"
+                      label="Courses & Training"
+                      bgColor="bg-white"
+                      icon={<BookOpen className="w-6 h-6" />}
+                    />
+                    <AchievementCard
+                      value="75K+"
+                      label="Total Students"
+                      bgColor="bg-purple-600"
+                      icon={<Users className="w-6 h-6" />}
+                    />
+                    <AchievementCard
+                      value="110+"
+                      label="Global Presence"
+                      bgColor="bg-white"
+                      icon={<Globe className="w-6 h-6" />}
+                    />
+                  </>
+                )}
               </div>
             </div>
           </div>

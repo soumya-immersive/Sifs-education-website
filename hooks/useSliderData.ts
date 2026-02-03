@@ -18,7 +18,16 @@ export const useSliderData = () => {
                 console.log('📡 Response status:', response.status, response.statusText);
 
                 if (!response.ok) {
-                    throw new Error('Failed to fetch sliders');
+                    // console.error(`Failed to fetch sliders: ${response.status} ${response.statusText}`);
+                    setError(`Failed to fetch sliders: ${response.status}`);
+                    return;
+                }
+
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    // console.warn("Received non-JSON response from API");
+                    setError("Received non-JSON response");
+                    return;
                 }
 
                 const data = await response.json();
