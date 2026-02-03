@@ -21,6 +21,8 @@ export default function ImageGalleryPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [activeCategory, setActiveCategory] = useState("All");
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [swiperRef, setSwiperRef] = useState<any>(null);
 
     useEffect(() => {
         fetchEvents(currentPage);
@@ -300,76 +302,154 @@ export default function ImageGalleryPage() {
             {/* MODAL POPUP */}
             {selectedItem && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200"
-                    onClick={() => setSelectedItem(null)}
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-200"
+                    onClick={() => {
+                        setSelectedItem(null);
+                        setActiveIndex(0);
+                    }}
                 >
                     <div
-                        className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative animate-in zoom-in duration-300"
+                        className="bg-white rounded-xl max-w-4xl w-full max-h-[95vh] overflow-hidden shadow-2xl relative animate-in zoom-in duration-300 flex flex-col"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Close Button */}
-                        <button
-                            onClick={() => setSelectedItem(null)}
-                            className="absolute top-4 right-4 z-10 bg-black/20 hover:bg-black/40 text-white p-2 rounded-full backdrop-blur-md transition-all"
-                        >
-                            <X className="w-6 h-6" />
-                        </button>
+                        {/* Modal Header */}
+                        <div className="p-4 border-b flex justify-between items-center bg-white sticky top-0 z-20">
+                            <h3 className="text-xl font-semibold text-gray-900 line-clamp-1">
+                                {selectedItem.title}
+                            </h3>
+                            <button
+                                onClick={() => {
+                                    setSelectedItem(null);
+                                    setActiveIndex(0);
+                                }}
+                                className="text-gray-500 hover:text-gray-700 transition-colors"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
 
-                        {/* Modal Image */}
-                        {/* Modal Image Slider */}
-                        <div className="relative h-64 sm:h-80 w-full bg-gray-100">
-                            {selectedItem.images && selectedItem.images.length > 0 ? (
-                                <Swiper
-                                    modules={[Navigation, Pagination, Autoplay]}
-                                    spaceBetween={0}
-                                    slidesPerView={1}
-                                    navigation
-                                    pagination={{ clickable: true }}
-                                    autoplay={{ delay: 3000, disableOnInteraction: false }}
-                                    loop={true}
-                                    className="h-full w-full"
-                                >
+                        {/* Modal Content - Scrollable area */}
+                        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+                            {/* Main Image Slider */}
+                            <div className="relative w-full aspect-[16/9] mb-6 rounded-lg overflow-hidden bg-gray-50 border group">
+                                {selectedItem.images && selectedItem.images.length > 0 ? (
+                                    <>
+                                        <Swiper
+                                            modules={[Navigation, Pagination, Autoplay]}
+                                            spaceBetween={0}
+                                            slidesPerView={1}
+                                            onSwiper={setSwiperRef}
+                                            onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
+                                            autoplay={{ delay: 3000, disableOnInteraction: false }}
+                                            loop={true}
+                                            className="h-full w-full"
+                                        >
+                                            {selectedItem.images.map((imgObj: any, index: number) => {
+                                                const filename = imgObj.image?.split('/').pop();
+                                                const imageUrl = filename
+                                                    ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Gallery-Slider/${filename}`
+                                                    : "/gallery1.png";
+
+                                                return (
+                                                    <SwiperSlide key={imgObj.id || index}>
+                                                        <div className="relative h-full w-full">
+                                                            <Image
+                                                                src={imageUrl}
+                                                                alt={`Slide ${index + 1}`}
+                                                                fill
+                                                                className="object-contain"
+                                                                unoptimized
+                                                            />
+                                                        </div>
+                                                    </SwiperSlide>
+                                                )
+                                            })}
+                                        </Swiper>
+
+                                        {/* Custom Navigation Arrows */}
+                                        <button
+                                            onClick={() => swiperRef?.slidePrev()}
+                                            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                                        >
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            onClick={() => swiperRef?.slideNext()}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                                        >
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
+                                    </>
+                                ) : (
+                                    <div className="relative h-full w-full">
+                                        <Image
+                                            src={selectedItem.image_url}
+                                            alt={selectedItem.title}
+                                            fill
+                                            className="object-contain"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Thumbnails Row */}
+                            {selectedItem.images && selectedItem.images.length > 1 && (
+                                <div className="flex gap-3 overflow-x-auto pb-4 mb-6 scrollbar-thin scrollbar-thumb-gray-300">
                                     {selectedItem.images.map((imgObj: any, index: number) => {
-                                        // Extract just the filename in case the API returns a full URL or just options
                                         const filename = imgObj.image?.split('/').pop();
                                         const imageUrl = filename
-                                            ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Gallery-Image/${filename}`
+                                            ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Gallery-Slider/${filename}`
                                             : "/gallery1.png";
 
                                         return (
-                                            <SwiperSlide key={imgObj.id || index}>
-                                                <div className="relative h-full w-full">
-                                                    <Image
-                                                        src={imageUrl}
-                                                        alt={`Slide ${index + 1}`}
-                                                        fill
-                                                        className="object-contain" // Use contain to see whole image without cropping
-                                                        unoptimized // Add unoptimized to bypass next/image strict domain issues if needed for quick fix
-                                                    />
-                                                </div>
-                                            </SwiperSlide>
-                                        )
+                                            <button
+                                                key={index}
+                                                onClick={() => swiperRef?.slideToLoop(index)}
+                                                className={`relative flex-shrink-0 w-24 h-16 rounded-md overflow-hidden border-2 transition-all ${activeIndex === index ? "border-indigo-600 ring-2 ring-indigo-200" : "border-transparent opacity-60 hover:opacity-100"
+                                                    }`}
+                                            >
+                                                <Image
+                                                    src={imageUrl}
+                                                    alt={`Thumb ${index + 1}`}
+                                                    fill
+                                                    className="object-cover"
+                                                    unoptimized
+                                                />
+                                            </button>
+                                        );
                                     })}
-                                </Swiper>
-                            ) : (
-                                <div className="relative h-full w-full">
-                                    <Image
-                                        src={selectedItem.image_url}
-                                        alt={selectedItem.title}
-                                        fill
-                                        className="object-contain"
-                                    />
                                 </div>
                             )}
+
+                            {/* Description Section */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-4 text-sm text-gray-500">
+                                    <span className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-medium">
+                                        {selectedItem.mode_of_study}
+                                    </span>
+                                    <span>{selectedItem.formatted_date}</span>
+                                </div>
+                                <div
+                                    className="text-gray-700 leading-relaxed text-base"
+                                    dangerouslySetInnerHTML={{ __html: selectedItem.event_outline }}
+                                />
+                            </div>
                         </div>
 
-                        {/* Modal Content */}
-                        <div className="p-6 sm:p-10">
+                        {/* Modal Footer */}
+                        <div className="p-4 border-t bg-gray-50 flex justify-end sticky bottom-0 z-20">
                             <button
-                                onClick={() => setSelectedItem(null)}
-                                className="mt-8 w-full sm:w-auto px-10 py-3 bg-gray-900 text-white rounded-lg font-semibold hover:bg-black transition-all shadow-lg"
+                                onClick={() => {
+                                    setSelectedItem(null);
+                                    setActiveIndex(0);
+                                }}
+                                className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition-colors border"
                             >
-                                Close Window
+                                Close
                             </button>
                         </div>
                     </div>
