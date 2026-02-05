@@ -103,12 +103,85 @@ export default function Banner() {
 
   if (loading) {
     return (
-      <div className="relative overflow-hidden pt-16 pb-32">
+      <div className="relative overflow-hidden pt-16 pb-6">
+        {/* SOFT BACKGROUND */}
         <div className="absolute inset-0 bg-gradient-to-br from-white via-purple-50/40 to-blue-50/20" />
-        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 flex items-center justify-center min-h-[600px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3E58EE] mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
+        <div
+          className="absolute inset-0 opacity-70"
+          style={{
+            backgroundImage: "url('/banner-bg.png')",
+            backgroundPosition: "center",
+            backgroundSize: "cover",
+          }}
+        />
+
+        {/* SKELETON CONTENT */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 flex flex-col lg:flex-row items-center justify-between">
+          {/* ---------------- LEFT CONTENT SKELETON ---------------- */}
+          <div className="lg:w-1/2 text-center lg:text-left">
+            {/* Title Skeleton */}
+            <div className="space-y-3">
+              <div className="h-12 md:h-16 bg-gray-300 rounded-lg animate-pulse w-full"></div>
+              <div className="h-12 md:h-16 bg-gray-300 rounded-lg animate-pulse w-4/5 mx-auto lg:mx-0"></div>
+            </div>
+
+            {/* Description Skeleton */}
+            <div className="mt-4 space-y-2 max-w-md mx-auto lg:mx-0">
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
+            </div>
+
+            {/* Buttons Skeleton */}
+            <div className="mt-8 flex justify-center lg:justify-start gap-4">
+              <div className="h-12 w-40 bg-gradient-to-r from-gray-300 to-gray-400 rounded-xl animate-pulse"></div>
+              <div className="h-12 w-40 bg-gray-200 rounded-xl animate-pulse"></div>
+            </div>
+
+            {/* Zigzag Skeleton */}
+            <div className="mt-10">
+              <div className="h-6 w-16 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+
+          {/* ---------------- RIGHT IMAGE SKELETON ---------------- */}
+          <div className="lg:w-1/2 relative mt-14 lg:mt-0 flex justify-center lg:justify-end">
+            {/* MAIN IMAGE SKELETON */}
+            <div className="relative w-[420px] h-[550px] md:w-[490px] md:h-[620px] rotate-45">
+              <div className="w-full h-full bg-gray-300 rounded-3xl animate-pulse -rotate-45"></div>
+            </div>
+
+            {/* FLOATING TAG SKELETON - Top Right */}
+            <div className="absolute -top-6 right-10 bg-white p-4 rounded-xl shadow-xl">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="space-y-1">
+                  <div className="h-3 w-20 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-3 w-16 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* LEFT STAT SKELETON */}
+            <div className="absolute top-1/2 -left-10 bg-white py-3 px-4 rounded-xl shadow-xl">
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="space-y-1">
+                  <div className="h-4 w-12 bg-gray-300 rounded animate-pulse"></div>
+                  <div className="h-3 w-24 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT STAT SKELETON */}
+            <div className="absolute bottom-4 right-0 bg-white py-3 px-4 rounded-xl shadow-xl">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="space-y-1">
+                  <div className="h-4 w-12 bg-gray-300 rounded animate-pulse"></div>
+                  <div className="h-3 w-16 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

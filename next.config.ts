@@ -58,6 +58,7 @@ const nextConfig: NextConfig = {
       },
     ],
     unoptimized: process.env.NODE_ENV === 'development',
+    minimumCacheTTL: 60 * 60 * 24 * 365,
   },
 
   // Rewrites - merged from both files

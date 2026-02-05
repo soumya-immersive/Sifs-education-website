@@ -161,7 +161,17 @@ export default function EventsSection() {
       try {
         setLoading(true);
         const response = await fetch(
-          `${API_BASE_URL}/EventManagement/Website/events?type=upcoming`
+          `${API_BASE_URL}/EventManagement/Website/events?type=upcoming&_t=${Date.now()}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            },
+            cache: 'no-store',
+          }
         );
 
         if (!response.ok) {
@@ -170,7 +180,7 @@ export default function EventsSection() {
 
         const result: APIResponse = await response.json();
 
-        if (result.success && result.data?.data) {
+        if (result.success && result.data?.data && result.data.data.length > 0) {
           // Transform API data to match our Event type
           const transformedEvents: Event[] = result.data.data.slice(0, 4).map((apiEvent, index) => ({
             id: apiEvent.id,
@@ -186,12 +196,16 @@ export default function EventsSection() {
           }));
 
           setEvents(transformedEvents);
+          setError(null);
         } else {
-          setError("No events found");
+          // No events available - this is not an error, just empty state
+          setEvents([]);
+          setError(null);
         }
       } catch (err) {
         console.error("Error fetching events:", err);
         setError(err instanceof Error ? err.message : "Failed to load events");
+        setEvents([]);
       } finally {
         setLoading(false);
       }
@@ -246,11 +260,63 @@ export default function EventsSection() {
     return (
       <section className="bg-gradient-to-r from-white via-white to-violet-50 py-16">
         <div className="mx-auto max-w-7xl px-4">
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#3A58EE] border-r-transparent"></div>
-              <p className="mt-4 text-gray-600">Loading events...</p>
+          {/* Header Skeleton */}
+          <div className="mb-8 flex items-center justify-between gap-4">
+            <div>
+              <div className="h-4 w-32 bg-gray-200 rounded animate-pulse mb-2"></div>
+              <div className="h-8 w-48 bg-gray-300 rounded animate-pulse"></div>
             </div>
+            <div className="h-10 w-28 bg-gray-200 rounded-lg animate-pulse"></div>
+          </div>
+
+          {/* Cards Grid Skeleton */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((index) => (
+              <div
+                key={index}
+                className="flex h-full p-3 flex-col overflow-hidden rounded-2xl bg-white shadow-[0_18px_40px_rgba(15,23,42,0.08)]"
+              >
+                {/* Image Skeleton */}
+                <div className="relative h-44 w-full bg-gray-200 rounded-lg animate-pulse mb-4"></div>
+
+                {/* Content Skeleton */}
+                <div className="flex flex-1 flex-col pb-5">
+                  {/* Date and Mode */}
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="h-3 w-24 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-3 w-20 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+
+                  {/* Title */}
+                  <div className="mb-2 space-y-2">
+                    <div className="h-4 w-full bg-gray-300 rounded animate-pulse"></div>
+                    <div className="h-4 w-3/4 bg-gray-300 rounded animate-pulse"></div>
+                  </div>
+
+                  {/* Description */}
+                  <div className="mb-4 space-y-2">
+                    <div className="h-3 w-full bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-3 w-full bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-3 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+
+                  <hr className="mb-3 border-gray-100" />
+
+                  {/* Timer + Link */}
+                  <div className="mt-auto flex items-center justify-between">
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div
+                          key={i}
+                          className="h-12 w-12 bg-gray-200 rounded-md animate-pulse"
+                        ></div>
+                      ))}
+                    </div>
+                    <div className="h-3 w-20 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -275,9 +341,28 @@ export default function EventsSection() {
     return (
       <section className="bg-gradient-to-r from-white via-white to-violet-50 py-16">
         <div className="mx-auto max-w-7xl px-4">
+          {/* Header */}
+          <div className="mb-8">
+            <p className="text-sm font-normal text-[#3A58EE]">Upcoming Events</p>
+            <h2 className="mt-1 text-2xl font-semibold text-black">
+              <span className="relative inline-block">
+                <span className="relative z-10">
+                  Explore Events
+                </span>
+                <Image
+                  src="/yellow-underline.png"
+                  alt=""
+                  width={200}
+                  height={14}
+                  className="absolute left-1/2 -translate-x-1/2 -bottom-1 z-0"
+                />
+              </span>
+            </h2>
+          </div>
+
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <p className="text-gray-600">No upcoming events at the moment.</p>
+              <h3 className="text-2xl font-semibold text-gray-800 mb-2">Coming Soon</h3>
             </div>
           </div>
         </div>
