@@ -2,9 +2,14 @@ import './globals.css';
 import Topbar from '../components/layout/Topbar';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
+import RouteChangeHandler from '../components/RouteChangeHandler';
 import { ReactNode } from 'react'; // Add this import
 import { Metadata } from 'next';
 import { API_BASE_URL, BASE_URL } from '../lib/config';
+
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -42,6 +47,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <RouteChangeHandler />
         <Topbar />
         <Header />
         <main>{children}</main>
