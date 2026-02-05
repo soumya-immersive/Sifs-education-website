@@ -2,9 +2,14 @@ import './globals.css';
 import Topbar from '../components/layout/Topbar';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
+import RouteChangeHandler from '../components/RouteChangeHandler';
 import { ReactNode } from 'react'; // Add this import
 import { Metadata } from 'next';
 import { API_BASE_URL, BASE_URL } from '../lib/config';
+
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -45,6 +50,7 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossOrigin="anonymous" referrerPolicy="no-referrer" />
       </head>
       <body>
+        <RouteChangeHandler />
         <Topbar />
         <Header />
         <main>{children}</main>
