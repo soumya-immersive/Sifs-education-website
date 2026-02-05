@@ -14,13 +14,28 @@ import "swiper/css/pagination";
 // Types
 interface Portfolio {
   id: number;
+  language_id: number;
+  client_category_id: number;
   title: string;
   slug: string;
+  start_date: string | null;
+  submission_date: string | null;
+  client_name: string | null;
   tags: string;
   featured_image: string;
-  featured_image_url: string;
+  service_id: number | null;
+  content: string | null;
+  status: string | null;
+  serial_number: number;
+  meta_keywords: string;
   meta_description: string;
+  created_at: string;
+  updated_at: string;
+  language_name: string;
+  language_code: string;
+  rtl: number;
   client_category_name: string;
+  featured_image_url: string;
 }
 
 interface SectionData {
@@ -61,7 +76,7 @@ const logoItemVariants: Variants = {
 
 // Text fade-up
 const textItemVariants: Variants = {
-  hidden: { y: 15, opacity: 0 },
+  hidden: { y: 15, },
   visible: {
     y: 0,
     opacity: 1,
@@ -103,25 +118,45 @@ export default function GlobalInfluence() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
-        const data = await response.json();
+        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`, {
+          cache: 'no-store',
+        });
 
-        if (data?.data) {
-          // Set section data
-          if (data.data.bs) {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('API Response:', result);
+
+        if (result) {
+          // 1. Handle Section Data (BS)
+          // Check result.data.bs, result.data.data.bs (nested), then fallback to result.bs
+          const bsData = result.data?.bs || result.data?.data?.bs || result.bs;
+
+          if (bsData) {
             setSectionData({
-              global_influence_title: data.data.bs.global_influence_title || "Creating Global Influence",
-              global_influence_subtitle: data.data.bs.global_influence_subtitle || "Influencing and spreading forensic skills globally.",
+              // Map API keys to component state keys
+              global_influence_title: bsData.portfolio_section_title || bsData.global_influence_title || "Creating Global Influence",
+              global_influence_subtitle: bsData.portfolio_section_text || bsData.global_influence_subtitle || "Influencing and spreading forensic skills globally.",
             });
           }
 
-          // Set portfolios
-          if (data.data.portfolios && Array.isArray(data.data.portfolios)) {
-            setPortfolios(data.data.portfolios);
+          // 2. Handle Portfolios
+          // Check result.data.portfolios, result.data.data.portfolios (nested), then fallback to result.portfolios
+          const portfoliosList = result.data?.portfolios || result.data?.data?.portfolios || result.portfolios;
+
+          if (Array.isArray(portfoliosList)) {
+            console.log('Portfolios found:', portfoliosList.length);
+            setPortfolios(portfoliosList);
+          } else {
+            console.warn('No portfolios found in API response');
+            setPortfolios([]);
           }
         }
       } catch (error) {
-        console.error("Error fetching portfolios:", error);
+        console.error("Error fetching data:", error);
+        setPortfolios([]);
       } finally {
         setLoading(false);
       }
@@ -201,30 +236,44 @@ export default function GlobalInfluence() {
           {/* Main card */}
           <div className="relative rounded-3xl bg-white px-6 py-10 shadow-xl md:px-10">
             <div className="text-center">
-              <motion.h2
-                className="text-2xl font-extrabold text-gray-900 md:text-3xl"
-                variants={textItemVariants}
-              >
-                {sectionData.global_influence_title}
-              </motion.h2>
+              {loading ? (
+                /* Title Skeleton */
+                <div className="flex flex-col items-center gap-3">
+                  <div className="h-8 w-64 bg-gray-200 rounded-md animate-pulse" />
+                  <div className="h-4 w-96 max-w-full bg-gray-100 rounded-md animate-pulse" />
+                </div>
+              ) : (
+                <>
+                  <motion.h2
+                    className="text-2xl font-extrabold text-gray-900 md:text-3xl"
+                    variants={textItemVariants}
+                  >
+                    {sectionData.global_influence_title}
+                  </motion.h2>
 
-              <motion.p
-                className="mt-2 text-sm text-gray-500 md:text-base"
-                variants={textItemVariants}
-              >
-                {sectionData.global_influence_subtitle}
-              </motion.p>
+                  <motion.p
+                    className="mt-2 text-sm text-gray-500 md:text-base"
+                    variants={textItemVariants}
+                  >
+                    {sectionData.global_influence_subtitle}
+                  </motion.p>
+                </>
+              )}
             </div>
 
             {/* Logos Slider */}
             <motion.div className="mt-10" variants={logoItemVariants}>
               {loading ? (
-                <div className="flex items-center justify-center gap-4">
+                /* Slider Skeleton */
+                <div className="flex items-center justify-center gap-4 overflow-hidden">
+                  {/* Show multiple skeleton items to mimic the slider */}
                   {[1, 2, 3, 4, 5, 6].map((i) => (
                     <div
                       key={i}
-                      className="h-20 w-32 bg-gray-100 rounded-lg animate-pulse"
-                    />
+                      className="h-20 w-28 md:w-36 flex-shrink-0 rounded-lg border border-gray-100 bg-gray-50 p-2 shadow-sm animate-pulse"
+                    >
+                      <div className="h-full w-full bg-gray-200 rounded" />
+                    </div>
                   ))}
                 </div>
               ) : portfolios.length > 0 ? (

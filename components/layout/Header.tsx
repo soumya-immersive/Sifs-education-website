@@ -375,7 +375,7 @@ export default function Header() {
             width={150}
             height={100}
             priority
-            className="h-auto w-auto max-h-16 object-contain"
+            className="h-auto w-auto max-h-10 object-contain"
           />
         </Link>
 
