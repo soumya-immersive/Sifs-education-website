@@ -39,7 +39,7 @@ export default function BlogHero({ post }: BlogHeroProps) {
         animate="visible"
       >
         {/* --- Top Header Section --- */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-12">
+        {/* <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-12">
           <div className="lg:w-1/2 relative">
             <motion.h1 
               variants={fadeUp}
@@ -49,7 +49,6 @@ export default function BlogHero({ post }: BlogHeroProps) {
               <span className="text-gray-800">Details.</span>
             </motion.h1>
             
-            {/* Decorative Arrow (matching screenshot) */}
             <motion.div variants={fadeUp} className="hidden lg:block mt-4 ml-32 absolute top-0 right-30">
               <img 
                 src="/blog/swirly-arrow.png" 
@@ -68,10 +67,10 @@ export default function BlogHero({ post }: BlogHeroProps) {
               such as industry trends, agency updates, success stories, and expert insights.
             </p>
           </motion.div>
-        </div>
+        </div> */}
 
         {/* --- Main Featured Image --- */}
-        <motion.div 
+        <motion.div
           variants={fadeUp}
           className="relative w-full aspect-[21/9] rounded-[2rem] overflow-hidden shadow-2xl shadow-gray-200/50"
         >

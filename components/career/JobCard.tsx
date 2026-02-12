@@ -35,7 +35,7 @@ const JobCard: FC<JobCardProps> = ({ title, experience, deadline, educationalExp
               Educational Experience:
             </p>
             <p className="text-sm text-gray-600 leading-snug line-clamp-2">
-              {educationalExperience}
+              {educationalExperience.replace(/<[^>]*>/g, '')}
             </p>
           </div>
 

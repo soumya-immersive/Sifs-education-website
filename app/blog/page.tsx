@@ -20,9 +20,10 @@ export default function BlogPage() {
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState<string>("All Posts");
     const [debouncedSearch, setDebouncedSearch] = useState("");
 
-    const BASE_URL = "/uploads/blogs";
+
 
     // Debounce Search
     useEffect(() => {
@@ -31,7 +32,7 @@ export default function BlogPage() {
             setCurrentPage(1);
         }, 500);
         return () => clearTimeout(handler);
-    }, [searchTerm]);
+    }, [searchTerm, selectedCategory]);
 
     // Fetch Blogs
     useEffect(() => {
@@ -39,7 +40,8 @@ export default function BlogPage() {
             setLoading(true);
             try {
                 const searchQuery = debouncedSearch ? `&search=${encodeURIComponent(debouncedSearch)}` : "";
-                const apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front/blogs?page=${currentPage}&limit=9${searchQuery}`;
+                const categoryQuery = selectedCategory !== "All Posts" ? `&category=${encodeURIComponent(selectedCategory)}` : "";
+                const apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front/blogs?page=${currentPage}&limit=10${searchQuery}${categoryQuery}`;
 
                 const response = await fetch(apiUrl);
                 if (!response.ok) {
@@ -63,7 +65,7 @@ export default function BlogPage() {
         };
 
         fetchBlogs();
-    }, [currentPage, debouncedSearch]);
+    }, [currentPage, debouncedSearch, selectedCategory]);
 
     // Helper to strip HTML and truncate
     const getExcerpt = (html: string, length: number = 100) => {
@@ -158,7 +160,7 @@ export default function BlogPage() {
                                             {/* Image Container */}
                                             <div className="relative h-56 w-full bg-gray-200 overflow-hidden">
                                                 <img
-                                                    src={`${BASE_URL}/${post.main_image}`}
+                                                    src={`${BASE_URL}/uploads/Education-And-Internship-Admin-Blog-Main/${post.main_image}`}
                                                     alt={post.title}
                                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                     onError={(e) => {
@@ -194,9 +196,9 @@ export default function BlogPage() {
                                                 </h3>
 
                                                 {/* Excerpt */}
-                                                <p className="text-gray-500 text-sm mb-6 line-clamp-3">
+                                                {/* <p className="text-gray-500 text-sm mb-6 line-clamp-3">
                                                     {getExcerpt(post.content, 120)}
-                                                </p>
+                                                </p> */}
 
                                                 {/* Read More Button */}
                                                 <div className="mt-auto">
@@ -216,10 +218,14 @@ export default function BlogPage() {
                             <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
                                 <div className="text-gray-400 mb-2">No blogs found matching your criteria.</div>
                                 <button
-                                    onClick={() => { setSearchTerm(""); setDebouncedSearch(""); }}
+                                    onClick={() => {
+                                        setSearchTerm("");
+                                        setDebouncedSearch("");
+                                        setSelectedCategory("All Posts");
+                                    }}
                                     className="text-[#3E58EE] font-semibold hover:underline"
                                 >
-                                    Clear Search
+                                    Clear All Filters
                                 </button>
                             </div>
                         )}
@@ -293,7 +299,14 @@ export default function BlogPage() {
                             <h4 className="font-bold text-gray-900 text-lg mb-4">Categories</h4>
                             <div className="space-y-2">
                                 <button
-                                    className="w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all bg-[#3E58EE] text-white shadow-md shadow-blue-200"
+                                    onClick={() => {
+                                        setSelectedCategory("All Posts");
+                                        setCurrentPage(1);
+                                    }}
+                                    className={`w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all ${selectedCategory === "All Posts"
+                                        ? "bg-[#3E58EE] text-white shadow-md shadow-blue-200"
+                                        : "bg-[#FBFCFF] text-gray-600 hover:bg-[#F3F6FF] hover:text-[#3E58EE]"
+                                        }`}
                                 >
                                     All Posts
                                     <ChevronRight size={14} />
@@ -301,7 +314,14 @@ export default function BlogPage() {
                                 {categories.map((cat, i) => (
                                     <button
                                         key={i}
-                                        className="w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all bg-[#FBFCFF] text-gray-600 hover:bg-[#F3F6FF] hover:text-[#3E58EE]"
+                                        onClick={() => {
+                                            setSelectedCategory(cat);
+                                            setCurrentPage(1);
+                                        }}
+                                        className={`w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all ${selectedCategory === cat
+                                            ? "bg-[#3E58EE] text-white shadow-md shadow-blue-200"
+                                            : "bg-[#FBFCFF] text-gray-600 hover:bg-[#F3F6FF] hover:text-[#3E58EE]"
+                                            }`}
                                     >
                                         {cat}
                                         <ChevronRight size={14} />
@@ -322,7 +342,7 @@ export default function BlogPage() {
                                     >
                                         <div className="w-20 h-20 rounded-xl bg-gray-200 flex-shrink-0 overflow-hidden shadow-sm">
                                             <img
-                                                src={`${BASE_URL}/${post.main_image}`}
+                                                src={`${BASE_URL}/uploads/Education-And-Internship-Admin-Blog-Main/${post.main_image}`}
                                                 alt="post"
                                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                                 onError={(e) => {

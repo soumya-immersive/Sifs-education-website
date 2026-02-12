@@ -152,6 +152,10 @@ export default function EventsSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeLefts, setTimeLefts] = useState<{ [key: number]: any }>({});
+  const [headerData, setHeaderData] = useState({
+    title: "Explore Events",
+    subtitle: "Upcoming Events"
+  });
 
   // Default event images (cycling through available images)
   const defaultImages = ["/event/1.png", "/event/2.png", "/event/3.png"];
@@ -160,6 +164,21 @@ export default function EventsSection() {
     const fetchEvents = async () => {
       try {
         setLoading(true);
+
+        // Fetch header data
+        try {
+          const frontResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
+          const frontResult = await frontResponse.json();
+          if (frontResult.success && frontResult.data?.bs) {
+            setHeaderData({
+              title: frontResult.data.bs.event_section_title || "Explore Events",
+              subtitle: frontResult.data.bs.event_section_subtitle || "Upcoming Events"
+            });
+          }
+        } catch (err) {
+          console.error("Error fetching header data:", err);
+        }
+
         const response = await fetch(
           `${API_BASE_URL}/EventManagement/Website/events?type=upcoming&_t=${Date.now()}`,
           {
@@ -343,11 +362,11 @@ export default function EventsSection() {
         <div className="mx-auto max-w-7xl px-4">
           {/* Header */}
           <div className="mb-8">
-            <p className="text-sm font-normal text-[#3A58EE]">Upcoming Events</p>
+            <p className="text-sm font-normal text-[#3A58EE]">{headerData.subtitle}</p>
             <h2 className="mt-1 text-2xl font-semibold text-black">
               <span className="relative inline-block">
                 <span className="relative z-10">
-                  Explore Events
+                  {headerData.title}
                 </span>
                 <Image
                   src="/yellow-underline.png"
@@ -382,11 +401,11 @@ export default function EventsSection() {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between gap-4">
           <motion.div variants={headerItemVariants}>
-            <p className="text-sm font-normal text-[#3A58EE]">Upcoming Events</p>
+            <p className="text-sm font-normal text-[#3A58EE]">{headerData.subtitle}</p>
             <h2 className="mt-1 text-2xl font-semibold text-black">
               <span className="relative inline-block">
                 <span className="relative z-10">
-                  Explore Events
+                  {headerData.title}
                 </span>
                 <Image
                   src="/yellow-underline.png"

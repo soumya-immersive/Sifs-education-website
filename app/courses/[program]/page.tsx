@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
 // Program Listing Imports
 import CoursesHero from "../../../components/courses/CoursesHero";
 import CoursesFilterBar from "../../../components/courses/CoursesFilterBar";
-import CoursesGrid from "../../../components/courses/CoursesGrid";
+import CoursesGrid, { PaginationData } from "../../../components/courses/CoursesGrid";
 import Learning from "../../../components/courses/Learning";
 
 // Course Detail Imports
@@ -25,6 +26,19 @@ interface Props {
   params: Promise<{
     program: string;
   }>;
+  searchParams: Promise<{
+    search?: string;
+    slevel?: string;
+    sduration?: string;
+    sno?: string;
+    page?: string;
+    limit?: string;
+  }>;
+}
+
+interface PaginatedCourses {
+  courses: Course[];
+  pagination?: PaginationData;
 }
 
 // ----------------------------------------------------------------------
@@ -33,23 +47,38 @@ interface Props {
 // ----------------------------------------------------------------------
 // HELPER: Fetch Courses for Program Listing
 // ----------------------------------------------------------------------
-async function getApiCourses(programSlug: string, endpoint: string): Promise<Course[]> {
+async function getApiCourses(programSlug: string, endpoint: string, page: number = 1, limit: number = 10, search: string = "", slevel: string = "", sduration: string = "", sno: string = ""): Promise<PaginatedCourses> {
   try {
-    console.log(`[getApiCourses] Fetching from: ${endpoint}`);
-    const response = await fetch(endpoint, {
+    const searchQuery = search ? `&search=${encodeURIComponent(search)}` : "";
+    const levelQuery = slevel ? `&slevel=${encodeURIComponent(slevel)}` : "";
+    const durationQuery = sduration ? `&sduration=${encodeURIComponent(sduration)}` : "";
+    const sortQuery = sno ? `&sno=${encodeURIComponent(sno)}` : "";
+
+    const paginatedEndpoint = `${endpoint}?page=${page}&limit=${limit}${searchQuery}${levelQuery}${durationQuery}${sortQuery}&_t=${Date.now()}`;
+    console.log(`[getApiCourses] Fetching from: ${paginatedEndpoint}`);
+    const response = await fetch(paginatedEndpoint, {
       cache: 'no-store',
     });
 
     if (!response.ok) {
       console.error(`[getApiCourses] Failed: ${response.status} ${response.statusText}`);
-      return [];
+      return { courses: [] };
     }
 
     const json = await response.json();
     console.log(`[getApiCourses] Response success: ${json.success}, data length: ${json.data?.data?.length}`);
 
     if (json.success && json.data && Array.isArray(json.data.data)) {
-      return json.data.data.map((apiCourse: any) => ({
+      // Newer API shape puts pagination under json.data.pagination
+      const paginationObj = json.data.pagination || {
+        current_page: json.data.current_page,
+        per_page: json.data.per_page,
+        total: json.data.total,
+        last_page: json.data.last_page,
+      };
+
+      console.log(`[getApiCourses] Found paginated response: current_page=${paginationObj.current_page}, last_page=${paginationObj.last_page}`);
+      const mappedCourses = json.data.data.map((apiCourse: any) => ({
         id: apiCourse.id,
         programSlug: programSlug,
         slug: apiCourse.slug,
@@ -62,12 +91,64 @@ async function getApiCourses(programSlug: string, endpoint: string): Promise<Cou
         bannerImage: "/course/hero-bg.png",
         description: apiCourse.sub_title || ""
       }));
+
+      const current_page = Number(paginationObj.current_page) || 1;
+      const per_page = Number(paginationObj.per_page) || mappedCourses.length || 10;
+      const total = Number(paginationObj.total) || mappedCourses.length;
+      const total_pages = Number(paginationObj.last_page) || Math.max(1, Math.ceil(total / per_page));
+
+      return {
+        courses: mappedCourses,
+        pagination: {
+          current_page,
+          per_page,
+          total,
+          total_pages,
+          showing_from: ((current_page - 1) * per_page) + 1,
+          showing_to: Math.min(current_page * per_page, total),
+          has_previous: current_page > 1,
+          has_next: current_page < total_pages
+        }
+      };
+    } else if (json.success && json.data && Array.isArray(json.data.courses)) {
+      console.log(`[getApiCourses] Found alternative courses array response`);
+      const mappedCourses = json.data.courses.map((apiCourse: any) => ({
+        id: apiCourse.id,
+        programSlug: programSlug,
+        slug: apiCourse.slug,
+        title: apiCourse.title,
+        overview: apiCourse.sub_title || "",
+        courseCode: apiCourse.course_code,
+        heroImage: apiCourse.image_url,
+        rating: 5.0,
+        reviewsCount: 120,
+        bannerImage: "/course/hero-bg.png",
+        description: apiCourse.sub_title || ""
+      }));
+      return { courses: mappedCourses };
+    } else if (json.success && Array.isArray(json.data)) {
+      console.log(`[getApiCourses] Found direct array response`);
+      const mappedCourses = json.data.map((apiCourse: any) => ({
+        id: apiCourse.id,
+        programSlug: programSlug,
+        slug: apiCourse.slug,
+        title: apiCourse.title,
+        overview: apiCourse.sub_title || "",
+        courseCode: apiCourse.course_code,
+        heroImage: apiCourse.image_url,
+        rating: 5.0,
+        reviewsCount: 120,
+        bannerImage: "/course/hero-bg.png",
+        description: apiCourse.sub_title || ""
+      }));
+      return { courses: mappedCourses };
     }
 
-    return [];
+    console.warn(`[getApiCourses] Unrecognized API structure:`, json);
+    return { courses: [] };
   } catch (error) {
     console.error("[getApiCourses] Error fetching courses:", error);
-    return [];
+    return { courses: [] };
   }
 }
 
@@ -168,9 +249,14 @@ function CourseDetailsView({ course }: { course: Course }) {
 // ----------------------------------------------------------------------
 // MAIN PAGE COMPONENT
 // ----------------------------------------------------------------------
-export default async function Page({ params }: Props) {
+export default async function Page({ params, searchParams }: Props) {
   const { program: slug } = await params;
-  console.log(`[CoursesPage] Processing slug: ${slug}`);
+  const { page, limit, search, slevel, sduration, sno } = await searchParams;
+
+  const currentPage = parseInt(page as string) || 1;
+  const currentLimit = parseInt(limit as string) || 10;
+
+  console.log(`[CoursesPage] Processing slug: ${slug}, page: ${currentPage}`);
 
   // 1. Check if the slug corresponds to a PROGRAM (Category)
   const programData = coursePrograms.find((p) => p.slug === slug);
@@ -189,9 +275,11 @@ export default async function Page({ params }: Props) {
     }
 
     const endpoint = `${API_BASE_URL}/EducationAndInternship/Website/front/courses/category/${apiSlug}`;
-    console.log(`[CoursesPage] Using API endpoint: ${endpoint}`);
+    console.log(`[CoursesPage] Using API endpoint: ${endpoint}, search: ${search}, slevel: ${slevel}, sduration: ${sduration}, sno: ${sno}`);
 
-    programCourses = await getApiCourses(slug, endpoint);
+    const result = await getApiCourses(slug, endpoint, currentPage, currentLimit, search || "", slevel || "", sduration || "", sno || "");
+    programCourses = result.courses;
+    const pagination = result.pagination;
 
     // Fallback to local courses if API returned nothing
     if (programCourses.length === 0) {
@@ -204,7 +292,13 @@ export default async function Page({ params }: Props) {
       <main>
         <CoursesHero program={programData} />
         <CoursesFilterBar />
-        <CoursesGrid courses={programCourses} />
+        <CoursesGrid
+          courses={programCourses}
+          pagination={pagination}
+          slug={slug}
+          basePath="/courses"
+        />
+
         <Learning />
       </main>
     );

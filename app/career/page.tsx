@@ -96,7 +96,7 @@ export default function CareerPage() {
 
     return (
         <motion.div
-            className="w-full min-h-screen bg-[#FBFCFF]"
+            className="w-full min-h-screen bg-[#FBFCFF] pb-10"
             initial="hidden"
             animate="visible"
             variants={fadeUp}
@@ -178,10 +178,6 @@ export default function CareerPage() {
                     </motion.div>
                 </div>
 
-                {/* FORENSIC INSIGHTS SECTION */}
-                <motion.div className="mt-24" variants={fadeUp}>
-                    <ForensicInsightsSection />
-                </motion.div>
             </div>
         </motion.div>
     );

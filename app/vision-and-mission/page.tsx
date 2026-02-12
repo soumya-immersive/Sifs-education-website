@@ -107,7 +107,7 @@ export default function VisionMissionPage() {
     }
 
     return (
-        <main className="bg-[#F7F9FC] relative min-h-screen">
+        <main className="bg-[#F7F9FC] relative min-h-screen pb-10">
             <Toaster position="top-right" />
             <div className="">
                 <AboutHero
@@ -115,11 +115,11 @@ export default function VisionMissionPage() {
                     editMode={false}
                     updateData={() => { }} // Read-only
                 />
-                <MissionVision
+                {/* <MissionVision
                     data={missionData}
                     editMode={false} // Currently read-only as verified API data doesn't support card structure yet
                     updateData={(newData) => setMissionData(newData)}
-                />
+                /> */}
             </div>
         </main>
     );

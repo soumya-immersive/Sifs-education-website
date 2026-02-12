@@ -72,8 +72,18 @@ const TrainingTabTitle: React.FC<{ title: string; isActive: boolean; onClick: ()
   </button>
 );
 
-const TrainingCard: React.FC<{ training: TrainingItem; isFirst: boolean }> = ({ training, isFirst }) => (
-  <div className="rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm h-full flex flex-col group hover:shadow-md transition-shadow">
+const TrainingCard: React.FC<{
+  training: TrainingItem;
+  isActive: boolean;
+  onHover: (id: number | null) => void;
+  index: number;
+}> = ({ training, isActive, onHover, index }) => (
+  <div
+    className={`rounded-xl overflow-hidden bg-white border h-full flex flex-col transition-all duration-300 ${isActive ? "border-purple-100 shadow-md transform -translate-y-1" : "border-gray-100 shadow-sm"
+      }`}
+    onMouseEnter={() => onHover(index)}
+    onMouseLeave={() => onHover(null)}
+  >
     <div className="relative h-52 overflow-hidden">
       <img
         src={training.image_url || "/training/1.png"}
@@ -93,9 +103,14 @@ const TrainingCard: React.FC<{ training: TrainingItem; isFirst: boolean }> = ({ 
       </p>
       <div className="mt-auto">
         <hr className="border-gray-100 mb-4" />
-        <Link href={`/training-details/${training.slug}`} className={`flex items-center justify-center w-full py-2.5 rounded-lg transition-all font-semibold text-sm cursor-pointer ${isFirst ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-800"
-          }`}>
-          Enroll Now <ArrowRight className="ml-2 w-4 h-4" />
+        <Link
+          href={`/training-details/${training.slug}`}
+          className={`flex items-center justify-center w-full py-2.5 rounded-lg transition-all font-semibold text-sm cursor-pointer ${isActive
+            ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg"
+            : "bg-gray-100 text-gray-600"
+            }`}
+        >
+          Enroll Now <ArrowRight className={`ml-2 w-4 h-4 transition-transform ${isActive ? 'translate-x-1' : ''}`} />
         </Link>
       </div>
     </div>
@@ -109,6 +124,8 @@ const TrainingInternshipSection: React.FC = () => {
   const [sectionData, setSectionData] = useState<SectionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const swiperRef = useRef<any>(null);
 
   // Fetch categories and section data from API
@@ -155,6 +172,11 @@ const TrainingInternshipSection: React.FC = () => {
     const activeData = categories.find(cat => cat.name === activeCategory);
     return activeData?.trainings || [];
   }, [categories, activeCategory]);
+
+  // Reset active index when category changes
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [activeCategory]);
 
   // Get category names for tabs
   const categoryNames = useMemo(() => categories.map(cat => cat.name), [categories]);
@@ -238,6 +260,7 @@ const TrainingInternshipSection: React.FC = () => {
               {activeTrainings.length > 0 ? (
                 <Swiper
                   onSwiper={(s) => (swiperRef.current = s)}
+                  onSlideChange={(s) => setActiveIndex(s.realIndex)}
                   modules={[Navigation]}
                   spaceBetween={20}
                   slidesPerView={1.2}
@@ -249,7 +272,12 @@ const TrainingInternshipSection: React.FC = () => {
                 >
                   {activeTrainings.map((item, index) => (
                     <SwiperSlide key={item.id} className="h-auto">
-                      <TrainingCard training={item} isFirst={index === 0} />
+                      <TrainingCard
+                        training={item}
+                        index={index}
+                        isActive={hoveredIndex !== null ? hoveredIndex === index : activeIndex === index}
+                        onHover={setHoveredIndex}
+                      />
                     </SwiperSlide>
                   ))}
                 </Swiper>
@@ -264,10 +292,16 @@ const TrainingInternshipSection: React.FC = () => {
           {/* Navigation Arrows */}
           {activeTrainings.length > 0 && (
             <>
-              <button onClick={() => swiperRef.current?.slidePrev()} className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full hidden xl:flex items-center justify-center text-[#008DD2] hover:scale-110 cursor-pointer transition-all border border-gray-50">
+              <button
+                onClick={() => swiperRef.current?.slidePrev()}
+                className="absolute -left-4 md:-left-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full hidden xl:flex items-center justify-center text-[#008DD2] hover:scale-110 cursor-pointer transition-all border border-gray-50"
+              >
                 <ChevronLeft size={24} />
               </button>
-              <button onClick={() => swiperRef.current?.slideNext()} className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-[#008DD2] shadow-lg rounded-full hidden xl:flex items-center justify-center text-white hover:scale-110 cursor-pointer transition-all">
+              <button
+                onClick={() => swiperRef.current?.slideNext()}
+                className="absolute -right-4 md:-right-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-[#008DD2] shadow-lg rounded-full hidden xl:flex items-center justify-center text-white hover:scale-110 cursor-pointer transition-all"
+              >
                 <ChevronRight size={24} />
               </button>
             </>

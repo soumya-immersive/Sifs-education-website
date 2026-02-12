@@ -81,27 +81,17 @@ export default function TrainingFilterBar() {
         >
           {/* Training Type */}
           <select className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-full lg:w-auto">
-            <option>Training Type</option>
-            <option>Corporate Training</option>
-            <option>Onsite Training</option>
-            <option>Hands-on Training</option>
-            <option>Online Training</option>
+            <option value="Newest">Newest</option>
+            <option value="Old">Old</option>
           </select>
 
-          {/* Mode */}
-          <select className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-full lg:w-auto">
-            <option>Mode</option>
-            <option>Online</option>
-            <option>Onsite</option>
-            <option>Hybrid</option>
-          </select>
 
-          {/* Level */}
+          {/* Duration */}
           <select className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-full lg:w-auto">
-            <option>Level</option>
-            <option>Beginner</option>
-            <option>Intermediate</option>
-            <option>Advanced</option>
+            <option value="">Duration</option>
+            <option value="50">50+ Hours</option>
+            <option value="100">100+ Hours</option>
+            <option value="150">150+ Hours</option>
           </select>
         </motion.div>
       </motion.div>

@@ -194,9 +194,10 @@ export default async function JobDetailsPage({ params }: PageProps) {
                                     <Clock className="text-[#3E58EE] mt-1 shrink-0" size={18} />
                                     <div>
                                         <p className="text-xs font-bold text-gray-400 uppercase">Deadline</p>
-                                        <p className="text-sm font-semibold text-red-500">
-                                            {job.deadline}
-                                        </p>
+                                        <div
+                                            className="text-sm font-semibold text-red-500"
+                                            dangerouslySetInnerHTML={renderHTML(job.deadline)}
+                                        />
                                     </div>
                                 </div>
 
@@ -204,7 +205,7 @@ export default async function JobDetailsPage({ params }: PageProps) {
                                     <Users className="text-[#3E58EE] mt-1 shrink-0" size={18} />
                                     <div>
                                         <p className="text-xs font-bold text-gray-400 uppercase">Vacancy</p>
-                                        <p className="text-sm font-semibold text-gray-900">{job.vacancy} Position(s)</p>
+                                        <p className="text-sm font-semibold text-gray-900">{job.vacancy}</p>
                                     </div>
                                 </div>
 
@@ -212,7 +213,10 @@ export default async function JobDetailsPage({ params }: PageProps) {
                                     <Briefcase className="text-[#3E58EE] mt-1 shrink-0" size={18} />
                                     <div>
                                         <p className="text-xs font-bold text-gray-400 uppercase">Employment Status</p>
-                                        <p className="text-sm font-semibold text-gray-900">{job.employment_status}</p>
+                                        <div
+                                            className="text-sm font-semibold text-gray-900"
+                                            dangerouslySetInnerHTML={renderHTML(job.employment_status)}
+                                        />
                                     </div>
                                 </div>
 
@@ -220,7 +224,10 @@ export default async function JobDetailsPage({ params }: PageProps) {
                                     <Briefcase className="text-[#3E58EE] mt-1 shrink-0" size={18} />
                                     <div>
                                         <p className="text-xs font-bold text-gray-400 uppercase">Experience</p>
-                                        <p className="text-sm font-semibold text-gray-900">{job.experience}</p>
+                                        <div
+                                            className="text-sm font-semibold text-gray-900"
+                                            dangerouslySetInnerHTML={renderHTML(job.experience)}
+                                        />
                                     </div>
                                 </div>
 
@@ -236,7 +243,10 @@ export default async function JobDetailsPage({ params }: PageProps) {
                                     <DollarSign className="text-[#3E58EE] mt-1 shrink-0" size={18} />
                                     <div>
                                         <p className="text-xs font-bold text-gray-400 uppercase">Salary</p>
-                                        <p className="text-sm font-semibold text-gray-900">{job.salary}</p>
+                                        <div
+                                            className="text-sm font-semibold text-gray-900"
+                                            dangerouslySetInnerHTML={renderHTML(job.salary)}
+                                        />
                                     </div>
                                 </div>
                             </div>

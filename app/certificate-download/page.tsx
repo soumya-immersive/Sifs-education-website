@@ -92,14 +92,35 @@ function CertificateDownloadContent() {
             const result = await response.json();
 
             if (result.success && result.data) {
-                const template = result.data.certificate_template;
+                const certificateType = result.data.verification?.certificate_type;
+                let template = result.data.certificate_template;
+
+                // Provide a default template for quiz certificates if missing
+                if (!template && certificateType === "quiz_certificate") {
+                    template = {
+                        name: "Quiz Certificate",
+                        image_url: "/",
+                        orientation: "horizontal"
+                    };
+                }
+
+                if (!template) {
+                    setVerifyError("Certificate template information is missing.");
+                    return;
+                }
+
                 const orientation = template.orientation?.toString().toLowerCase() === "vertical" ? "vertical" : "horizontal";
 
                 // Use proxy to avoid CORS issues with html2canvas capture
-                const proxiedImageUrl = `/api/image-proxy?url=${encodeURIComponent(template.image_url)}`;
+                const proxiedImageUrl = template.image_url.startsWith('http')
+                    ? `/api/image-proxy?url=${encodeURIComponent(template.image_url)}`
+                    : template.image_url;
 
                 setCertificateData({
-                    certificate: result.data.certificate,
+                    certificate: {
+                        ...result.data.certificate,
+                        certificate_type: certificateType
+                    },
                     template: {
                         ...template,
                         image_url: proxiedImageUrl,
@@ -285,9 +306,9 @@ function CertificateDownloadContent() {
                             <h2 className="text-4xl font-black text-gray-900 mb-4 tracking-tight">
                                 Verify Your Credential
                             </h2>
-                            <p className="text-gray-500 text-lg max-w-xl mx-auto leading-relaxed">
+                            {/* <p className="text-gray-500 text-lg max-w-xl mx-auto leading-relaxed">
                                 Enter your certificate number below to validate its authenticity and download your digital copy.
-                            </p>
+                            </p> */}
                         </div>
 
                         {/* Verify Form */}
@@ -300,7 +321,7 @@ function CertificateDownloadContent() {
                                         setVerifyInput(e.target.value);
                                         setVerifyError("");
                                     }}
-                                    placeholder="e.g., CMP/043"
+                                    placeholder="Enter Certificate Number"
                                     className="w-full px-8 py-6 pr-36 border-2 border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all text-xl font-medium"
                                     disabled={verifyLoading}
                                 />
@@ -435,16 +456,32 @@ function CertificateDownloadContent() {
                                                             ) : (
                                                                 <>
                                                                     {/* Horizontal Orientation Layout - Balanced centering */}
-                                                                    <div className="absolute top-[24%] left-0 w-full text-center">
-                                                                        <h2 className="text-4xl font-bold text-[#ffffff] tracking-wide inline-block drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+                                                                    <div className={`absolute ${certificateData.certificate.certificate_type === 'quiz_certificate' ? 'top-[44%]' : 'top-[24%]'} left-0 w-full text-center`}>
+                                                                        <h2 className={`text-3xl md:text-5xl font-bold tracking-wide inline-block ${certificateData.certificate.certificate_type === 'quiz_certificate'
+                                                                            ? 'text-gray-900 border-b-2 border-gray-900 pb-2'
+                                                                            : 'text-[#ffffff] drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]'
+                                                                            }`}>
                                                                             {certificateData.certificate.name}
                                                                         </h2>
                                                                     </div>
-                                                                    <div className="absolute bottom-[11%] left-0 w-full text-center">
-                                                                        <p className="text-[20px] tracking-wider inline-block text-black tracking-widest font-Arial">
+                                                                    <div className={`absolute ${certificateData.certificate.certificate_type === 'quiz_certificate'
+                                                                        ? 'bottom-[12%] right-[10%] text-right'
+                                                                        : 'bottom-[11%] left-0 w-full text-center'
+                                                                        }`}>
+                                                                        <p className={`text-[18px] tracking-wider inline-block font-bold ${certificateData.certificate.certificate_type === 'quiz_certificate'
+                                                                            ? 'text-gray-800'
+                                                                            : 'text-black'
+                                                                            } tracking-widest font-Arial`}>
                                                                             {certificateData.certificate.certificate_number}
                                                                         </p>
                                                                     </div>
+                                                                    {certificateData.certificate.certificate_type === 'quiz_certificate' && (
+                                                                        <div className="absolute bottom-[12%] left-[10%] text-left">
+                                                                            <p className="text-[18px] font-bold text-gray-800">
+                                                                                {certificateData.certificate.formatted_issue_date || certificateData.certificate.formatted_event_date}
+                                                                            </p>
+                                                                        </div>
+                                                                    )}
                                                                 </>
                                                             )}
                                                         </div>

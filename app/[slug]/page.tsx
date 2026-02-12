@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { coursePrograms } from "../../data/coursePrograms";
 import { internshipPrograms } from "../../data/internshipPrograms";
 import { courses, type Course } from "../../data/courses";
@@ -9,7 +10,7 @@ import type { ApiCoursesResponse } from "@/types/course";
 // Courses Components
 import CoursesHero from "../../components/courses/CoursesHero";
 import CoursesFilterBar from "../../components/courses/CoursesFilterBar";
-import CoursesGrid from "../../components/courses/CoursesGrid";
+import CoursesGrid, { PaginationData } from "../../components/courses/CoursesGrid";
 
 // Internship Components
 import InternshipsHero from "../../components/internships/InternshipsHero";
@@ -23,23 +24,41 @@ interface Props {
     params: Promise<{
         slug: string;
     }>;
+    searchParams: Promise<{
+        page?: string;
+        limit?: string;
+        search?: string;
+        slevel?: string;
+        sduration?: string;
+        sno?: string;
+        scat?: string;
+    }>;
+}
+
+interface PaginatedCourses {
+    courses: Course[];
+    pagination?: PaginationData;
 }
 
 // ----------------------------------------------------------------------
 // HELPER: Fetch Courses for Program Listing
 // ----------------------------------------------------------------------
-async function getApiCourses(programSlug: string, endpoint: string): Promise<Course[]> {
+async function getApiCourses(programSlug: string, endpoint: string, page: number = 1, limit: number = 10, search: string = "", slevel: string = "", sduration: string = "", sno: string = ""): Promise<PaginatedCourses> {
     try {
-        console.log(`[getApiCourses] Fetching from: ${endpoint}`);
-        const response = await fetch(endpoint, {
+        const searchQuery = search ? `&search=${encodeURIComponent(search)}` : "";
+        const levelQuery = slevel ? `&slevel=${encodeURIComponent(slevel)}` : "";
+        const durationQuery = sduration ? `&sduration=${encodeURIComponent(sduration)}` : "";
+        const sortQuery = sno ? `&sno=${encodeURIComponent(sno)}` : "";
+
+        const paginatedEndpoint = `${endpoint}?page=${page}&limit=${limit}${searchQuery}${levelQuery}${durationQuery}${sortQuery}&_t=${Date.now()}`;
+        console.log(`[getApiCourses] Fetching from: ${paginatedEndpoint}`);
+        const response = await fetch(paginatedEndpoint, {
             cache: 'no-store',
         });
 
         if (!response.ok) {
             console.error(`[getApiCourses] Failed to fetch courses:`, response.status, response.statusText);
-            const errorText = await response.text();
-            console.error(`[getApiCourses] Error response:`, errorText);
-            return [];
+            return { courses: [] };
         }
 
         const responseText = await response.text();
@@ -50,8 +69,7 @@ async function getApiCourses(programSlug: string, endpoint: string): Promise<Cou
             json = JSON.parse(responseText);
         } catch (parseError) {
             console.error(`[getApiCourses] JSON parse error:`, parseError);
-            console.error(`[getApiCourses] Response text:`, responseText);
-            return [];
+            return { courses: [] };
         }
 
         console.log(`[getApiCourses] Parsed JSON structure:`, {
@@ -63,9 +81,9 @@ async function getApiCourses(programSlug: string, endpoint: string): Promise<Cou
             isDataDataArray: Array.isArray(json.data?.data)
         });
 
-        // Check if data is directly in json.data (array)
+        // Check if data is directly in json.data (array) - No pagination
         if (json.success && Array.isArray(json.data)) {
-            console.log(`[getApiCourses] Found ${json.data.length} courses (direct array)`);
+            console.log(`[getApiCourses] Found direct array response`);
             const mappedCourses = json.data.map((apiCourse: any) => ({
                 id: apiCourse.id,
                 programSlug: programSlug,
@@ -79,13 +97,12 @@ async function getApiCourses(programSlug: string, endpoint: string): Promise<Cou
                 bannerImage: "/course/hero-bg.png",
                 description: apiCourse.sub_title || ""
             }));
-            console.log(`[getApiCourses] Mapped courses:`, mappedCourses);
-            return mappedCourses;
+            return { courses: mappedCourses };
         }
 
-        // Check if data is in json.data.data (nested)
+        // Check if data is in json.data.data (nested with pagination)
         if (json.success && json.data && Array.isArray(json.data.data)) {
-            console.log(`[getApiCourses] Found ${json.data.data.length} courses (nested array)`);
+            console.log(`[getApiCourses] Found paginated response: current_page=${json.data.current_page}, total=${json.data.total}`);
             const mappedCourses = json.data.data.map((apiCourse: any) => ({
                 id: apiCourse.id,
                 programSlug: programSlug,
@@ -99,29 +116,60 @@ async function getApiCourses(programSlug: string, endpoint: string): Promise<Cou
                 bannerImage: "/course/hero-bg.png",
                 description: apiCourse.sub_title || ""
             }));
-            console.log(`[getApiCourses] Mapped courses:`, mappedCourses);
-            return mappedCourses;
-        } else {
-            console.warn(`[getApiCourses] Invalid response structure:`, {
-                success: json.success,
-                hasData: !!json.data,
-                isArray: Array.isArray(json.data?.data)
-            });
+
+            return {
+                courses: mappedCourses,
+                pagination: {
+                    current_page: json.data.current_page,
+                    per_page: json.data.per_page,
+                    total: json.data.total,
+                    total_pages: json.data.last_page,
+                    showing_from: ((json.data.current_page - 1) * json.data.per_page) + 1,
+                    showing_to: Math.min(json.data.current_page * json.data.per_page, json.data.total),
+                    has_previous: json.data.current_page > 1,
+                    has_next: json.data.current_page < json.data.last_page
+                }
+            };
+        } else if (json.success && json.data && Array.isArray(json.data.courses)) {
+            // Alternative structure some APIs use
+            console.log(`[getApiCourses] Found alternative courses array response`);
+            const mappedCourses = json.data.courses.map((apiCourse: any) => ({
+                id: apiCourse.id,
+                programSlug: programSlug,
+                slug: apiCourse.slug,
+                title: apiCourse.title,
+                overview: apiCourse.sub_title || "",
+                courseCode: apiCourse.course_code,
+                heroImage: apiCourse.image_url,
+                rating: 5.0,
+                reviewsCount: 120,
+                bannerImage: "/course/hero-bg.png",
+                description: apiCourse.sub_title || ""
+            }));
+            return { courses: mappedCourses };
         }
 
-        return [];
+        console.warn(`[getApiCourses] Unrecognized API structure:`, json);
+        return { courses: [] };
     } catch (error) {
         console.error(`[getApiCourses] Error fetching courses:`, error);
-        return [];
+        return { courses: [] };
     }
 }
 
 // ----------------------------------------------------------------------
 // HELPER: Fetch Internships for Program Listing
 // ----------------------------------------------------------------------
-async function getApiInternships(programSlug: string, endpoint: string): Promise<Internship[]> {
+async function getApiInternships(programSlug: string, endpoint: string, search: string = "", sduration: string = "", sno: string = "", scat: string = ""): Promise<Internship[]> {
     try {
-        const response = await fetch(endpoint, {
+        const queryParams = new URLSearchParams();
+        if (search) queryParams.append('search', search);
+        if (sno) queryParams.append('sno', sno);
+        if (sduration) queryParams.append('sduration', sduration);
+        if (scat) queryParams.append('scat', scat);
+
+        const url = queryParams.toString() ? `${endpoint}?${queryParams.toString()}` : endpoint;
+        const response = await fetch(url, {
             cache: 'no-store',
         });
 
@@ -161,14 +209,26 @@ async function getApiInternships(programSlug: string, endpoint: string): Promise
     }
 }
 
-export default async function ProgramPage({ params }: Props) {
+export default async function ProgramPage({ params, searchParams }: Props) {
     const { slug } = await params;
-    console.log(`[ProgramPage] Processing slug: ${slug}`);
+    const { page, limit, search, slevel, sduration, sno } = await searchParams;
 
-    // 1. Try to fetch as a COURSE CATEGORY first (slug kuch bhi ho skta h)
-    const categoryEndpoint = `${API_BASE_URL}/EducationAndInternship/Website/front/courses/category/${slug}`;
-    console.log(`[ProgramPage] Attempting to fetch courses from: ${categoryEndpoint}`);
-    const programCourses = await getApiCourses(slug, categoryEndpoint);
+    const currentPage = parseInt(page as string) || 1;
+    const currentLimit = parseInt(limit as string) || 10;
+
+    console.log(`[ProgramPage] Processing slug: ${slug}, page: ${currentPage}`);
+
+    // 1. Try to fetch as a COURSE CATEGORY first
+    let apiSlug = slug;
+    if (slug === 'foundation-certificate') {
+        apiSlug = 'foundation-forensic-courses';
+    }
+
+    const categoryEndpoint = `${API_BASE_URL}/EducationAndInternship/Website/front/courses/category/${apiSlug}`;
+    console.log(`[ProgramPage] Attempting to fetch courses from: ${categoryEndpoint}, page: ${currentPage}, search: ${search}, slevel: ${slevel}, sduration: ${sduration}, sno: ${sno}`);
+    const result = await getApiCourses(slug, categoryEndpoint, currentPage, currentLimit, search || "", slevel || "", sduration || "", sno || "");
+    const programCourses = result.courses;
+    const pagination = result.pagination;
 
     console.log(`[ProgramPage] Retrieved ${programCourses.length} courses for slug: ${slug}`);
 
@@ -196,7 +256,12 @@ export default async function ProgramPage({ params }: Props) {
             <main>
                 <CoursesHero program={displayProgram} />
                 <CoursesFilterBar />
-                <CoursesGrid courses={coursesToDisplay} />
+                <CoursesGrid
+                    courses={coursesToDisplay}
+                    pagination={pagination}
+                    slug={slug}
+                />
+
                 <CourseLearning />
             </main>
         );
@@ -211,8 +276,9 @@ export default async function ProgramPage({ params }: Props) {
             "online": `${API_BASE_URL}/EducationAndInternship/Website/training/online-forensic-internship`
         };
 
+        const { search, sduration, sno, scat } = await searchParams;
         if (apiEndpoints[slug]) {
-            programInternships = await getApiInternships(slug, apiEndpoints[slug]);
+            programInternships = await getApiInternships(slug, apiEndpoints[slug], (search as string) || "", (sduration as string) || "", (sno as string) || "", (scat as string) || "");
         } else {
             programInternships = internships.filter((i) => i.programSlug === slug);
         }

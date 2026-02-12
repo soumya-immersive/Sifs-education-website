@@ -7,16 +7,27 @@ import Learning from "../../components/internships/Learning";
 // You will likely need to adapt these components or create new ones if they are tightly coupled to the old data structure.
 // However, assuming they are reusable or you want to reuse the layout:
 
-async function getLabBasedInternships() {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/training/lab-based-internship`, { cache: 'no-store' });
+async function getLabBasedInternships(params: { [key: string]: string | string[] | undefined }) {
+    const queryParams = new URLSearchParams();
+    if (params.search) queryParams.append('search', params.search as string);
+    if (params.sno) queryParams.append('sno', params.sno as string);
+    if (params.sduration) queryParams.append('sduration', params.sduration as string);
+    if (params.scat) queryParams.append('scat', params.scat as string);
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/training/lab-based-internship?${queryParams.toString()}`, { cache: 'no-store' });
     if (!res.ok) {
         throw new Error('Failed to fetch data');
     }
     return res.json();
 }
 
-export default async function LabBasedInternshipPage() {
-    const data = await getLabBasedInternships();
+export default async function LabBasedInternshipPage({
+    searchParams
+}: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+    const params = await searchParams;
+    const data = await getLabBasedInternships(params);
 
     if (!data || !data.success || !data.data || !data.data.data) {
         notFound();

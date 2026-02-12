@@ -507,7 +507,7 @@ export default function Header() {
                        hover:from-[#354ED8] hover:to-[#A24EDC]
                        text-white font-medium py-2 px-6 rounded-lg shadow-lg transition"
           >
-            Sign Up
+            Sign In
           </a>
 
           {/* Mobile Menu Button */}

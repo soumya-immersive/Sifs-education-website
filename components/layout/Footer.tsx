@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
-import { API_BASE_URL } from "../../lib/config";
+import { API_BASE_URL, BASE_URL } from "../../lib/config";
 
 interface Social {
   id: number;
@@ -74,6 +74,7 @@ interface Section {
 
 interface FooterDataAttributes {
   footer_sections: Section[];
+  footer_description?: string;
   contact_mail: string;
   support_phone: string;
   copyright_text: string;
@@ -125,7 +126,8 @@ const Footer: React.FC = () => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          `${API_BASE_URL}/EducationAndInternship/Website/front`
+          `${API_BASE_URL}/EducationAndInternship/Website/front`,
+          { cache: "no-store" }
         );
         const json = await response.json();
 
@@ -143,6 +145,7 @@ const Footer: React.FC = () => {
 
           setData({
             footer_sections: parsedSections,
+            footer_description: bs?.footer_text || "",
             contact_mail: bs?.contact_mail || be?.order_mail || "info@sifs.in",
             support_email: bs?.support_email || "education@sifs.in",
             support_phone: bs?.support_phone || "011-47074263",
@@ -333,14 +336,34 @@ const Footer: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-5 gap-5 pb-10">
               {/* Logo & description (Col 1) */}
               <div className="md:col-span-1">
-                <div className="text-2xl font-black text-gray-900 mb-4">
-                  <span className="text-blue-600">SIFS</span>{" "}
-                  <span className="text-red-600">INDIA</span>
-                </div>
-                <p className="font-bold mb-4">Sherlock Institute of Forensic Science</p>
-                <p className="text-sm text-gray-700 mb-6">
-                  Since 2006, the institute has conducted the best offline and online diploma and certificate courses in forensic science.
-                </p>
+                <Link href="/">
+                  {data?.footer_logo ? (
+                    <img
+                      src={`${BASE_URL}/uploads/Education-And-Internship-Admin-FooterLogo/${data.footer_logo}`}
+                      alt="SIFS Logo"
+                      className="max-h-20 w-auto mb-6"
+                    />
+                  ) : (
+                    <div className="text-2xl font-black text-gray-900 mb-4">
+                      <span className="text-blue-600">SIFS</span>{" "}
+                      <span className="text-red-600">INDIA</span>
+                    </div>
+                  )}
+                </Link>
+
+                {data?.footer_description ? (
+                  <div
+                    className="text-sm text-gray-700 mb-6 [&_p]:mb-4 [&_strong]:font-bold [&_strong]:block [&_strong]:mb-1"
+                    dangerouslySetInnerHTML={{ __html: data.footer_description }}
+                  />
+                ) : (
+                  <>
+                    <p className="font-bold mb-4">Sherlock Institute of Forensic Science</p>
+                    <p className="text-sm text-gray-700 mb-6">
+                      Since 2006, the institute has conducted the best offline and online diploma and certificate courses in forensic science.
+                    </p>
+                  </>
+                )}
 
                 <div className="flex space-x-3 justify-left">
                   {data?.socials && data.socials.length > 0 ? (

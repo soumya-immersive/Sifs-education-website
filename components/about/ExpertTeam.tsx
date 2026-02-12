@@ -118,7 +118,7 @@ export default function ExpertTeam({ data, editMode, updateData }: ExpertTeamPro
         {/* TEAM SLIDER */}
         <div className="relative">
           <Swiper
-            modules={[Pagination, Autoplay]}
+            modules={[Autoplay]}
             spaceBetween={24}
             slidesPerView={1}
             autoplay={{
@@ -128,7 +128,7 @@ export default function ExpertTeam({ data, editMode, updateData }: ExpertTeamPro
             }}
             pagination={{
               clickable: true,
-              dynamicBullets: true,
+              dynamicBullets: false,
             }}
             breakpoints={{
               640: {

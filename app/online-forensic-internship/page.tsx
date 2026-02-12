@@ -4,16 +4,27 @@ import InternshipsFilterBar from "../../components/internships/InternshipsFilter
 import InternshipsGrid from "../../components/internships/InternshipsGrid";
 import Learning from "../../components/internships/Learning";
 
-async function getOnlineForensicInternships() {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/training/online-forensic-internship`, { cache: 'no-store' });
+async function getOnlineForensicInternships(params: { [key: string]: string | string[] | undefined }) {
+    const queryParams = new URLSearchParams();
+    if (params.search) queryParams.append('search', params.search as string);
+    if (params.sno) queryParams.append('sno', params.sno as string);
+    if (params.sduration) queryParams.append('sduration', params.sduration as string);
+    if (params.scat) queryParams.append('scat', params.scat as string);
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/training/online-forensic-internship?${queryParams.toString()}`, { cache: 'no-store' });
     if (!res.ok) {
         throw new Error('Failed to fetch data');
     }
     return res.json();
 }
 
-export default async function OnlineForensicInternshipPage() {
-    const data = await getOnlineForensicInternships();
+export default async function OnlineForensicInternshipPage({
+    searchParams
+}: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+    const params = await searchParams;
+    const data = await getOnlineForensicInternships(params);
 
     if (!data || !data.success || !data.data || !data.data.data) {
         notFound();

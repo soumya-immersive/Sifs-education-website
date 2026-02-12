@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { motion, Variants } from "framer-motion";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 /* ---------------- Animations ---------------- */
 
@@ -24,6 +26,51 @@ const fadeUp: Variants = {
 };
 
 export default function InternshipsFilterBar() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // State for search and filters
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+  const [duration, setDuration] = useState(searchParams.get("sduration") || "");
+  const [sortOrder, setSortOrder] = useState(searchParams.get("sno") || "");
+  const [category, setCategory] = useState(searchParams.get("scat") || "");
+
+  // Sync state with URL search params
+  useEffect(() => {
+    setSearchQuery(searchParams.get("search") || "");
+    setDuration(searchParams.get("sduration") || "");
+    setSortOrder(searchParams.get("sno") || "");
+    setCategory(searchParams.get("scat") || "");
+  }, [searchParams]);
+
+  // Helper to update URL params
+  const updateParams = (updates: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
+    });
+
+    // Reset to page 1 on search/filter change if pagination exists
+    params.delete("page");
+
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handleSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    updateParams({ search: searchQuery });
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    updateParams({ [key]: value || null });
+  };
+
   return (
     <section className="max-w-7xl mx-auto px-4 mt-8">
       <motion.div
@@ -41,12 +88,15 @@ export default function InternshipsFilterBar() {
         viewport={{ once: true }}
       >
         {/* LEFT: Search */}
-        <motion.div
+        <motion.form
+          onSubmit={handleSearch}
           variants={fadeUp}
           className="flex w-full lg:max-w-md"
         >
           <input
             type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search for internships (e.g. Cyber, Forensic)"
             className="
               w-full
@@ -56,10 +106,12 @@ export default function InternshipsFilterBar() {
               text-sm
               outline-none
               placeholder:text-gray-400
+              focus:border-[#8E5BEF]
             "
           />
 
           <button
+            type="submit"
             className="
               flex items-center justify-center
               px-4
@@ -72,30 +124,33 @@ export default function InternshipsFilterBar() {
           >
             <Search className="w-4 h-4" />
           </button>
-        </motion.div>
+        </motion.form>
 
         {/* RIGHT: Filters */}
         <motion.div
           variants={fadeUp}
-          className="flex w-full lg:w-auto gap-3 justify-between lg:justify-end"
+          className="flex flex-wrap w-full lg:w-auto gap-3 justify-between lg:justify-end"
         >
-          <select className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-full lg:w-auto">
-            <option>Category</option>
-            <option>Digital Forensics</option>
-            <option>Cyber Security</option>
+
+          <select
+            value={duration}
+            onChange={(e) => handleFilterChange("sduration", e.target.value)}
+            className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-[48%] lg:w-auto outline-none focus:ring-1 focus:ring-[#8E5BEF]"
+          >
+            <option value="">Duration</option>
+            <option value="50">50+ Hours</option>
+            <option value="100">100+ Hours</option>
+            <option value="150">150+ Hours</option>
           </select>
 
-          <select className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-full lg:w-auto">
-            <option>Duration</option>
-            <option>1 Month</option>
-            <option>3 Months</option>
-            <option>6 Months</option>
-          </select>
-
-          <select className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-full lg:w-auto">
-            <option>Mode</option>
-            <option>Online</option>
-            <option>On-site</option>
+          <select
+            value={sortOrder}
+            onChange={(e) => handleFilterChange("sno", e.target.value)}
+            className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-full lg:w-auto outline-none focus:ring-1 focus:ring-[#8E5BEF]"
+          >
+            <option value="">Sort By</option>
+            <option value="Newest">Newest</option>
+            <option value="Old">Old</option>
           </select>
         </motion.div>
       </motion.div>
