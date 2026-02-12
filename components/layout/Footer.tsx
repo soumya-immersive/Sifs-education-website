@@ -6,6 +6,15 @@ import Link from "next/link";
 import { Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
 import { API_BASE_URL } from "../../lib/config";
 
+interface Social {
+  id: number;
+  icon: string;
+  url: string;
+  platform: string;
+  serial_number: number;
+  is_valid: boolean;
+}
+
 // --- Framer Motion Variants (NO `ease` to avoid TS type issues) ---
 
 // Parent container
@@ -70,6 +79,7 @@ interface FooterDataAttributes {
   copyright_text: string;
   support_email: string;
   footer_logo: string;
+  socials: Social[];
 }
 
 // Helper to determine if link is external or internal
@@ -137,7 +147,8 @@ const Footer: React.FC = () => {
             support_email: bs?.support_email || "education@sifs.in",
             support_phone: bs?.support_phone || "011-47074263",
             copyright_text: bs?.copyright_text || "Copyright © 2025 SIFS INDIA. All Rights Reserved",
-            footer_logo: bs?.footer_logo || ""
+            footer_logo: bs?.footer_logo || "",
+            socials: json.socials || json.data?.socials || []
           });
         }
       } catch (error) {
@@ -331,19 +342,36 @@ const Footer: React.FC = () => {
                   Since 2006, the institute has conducted the best offline and online diploma and certificate courses in forensic science.
                 </p>
 
-                <div className="flex space-x-3">
-                  <a href="#" className="w-8 h-8 rounded-full flex items-center justify-center text-gray-800 hover:text-blue-600 transition-colors">
-                    <Facebook size={24} />
-                  </a>
-                  <a href="#" className="w-8 h-8 rounded-full flex items-center justify-center text-gray-800 hover:text-blue-600 transition-colors">
-                    <Linkedin size={24} />
-                  </a>
-                  <a href="#" className="w-8 h-8 rounded-full flex items-center justify-center text-gray-800 hover:text-blue-600 transition-colors">
-                    <Instagram size={24} />
-                  </a>
-                  <a href="#" className="w-8 h-8 rounded-full flex items-center justify-center text-gray-800 hover:text-blue-600 transition-colors">
-                    <Twitter size={24} />
-                  </a>
+                <div className="flex space-x-3 justify-left">
+                  {data?.socials && data.socials.length > 0 ? (
+                    data.socials.map((social) => (
+                      <a
+                        key={social.id}
+                        href={social.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-10 h-10 rounded-full flex items-center justify-left text-gray-800 hover:text-blue-600 transition-colors"
+                        aria-label={social.platform}
+                      >
+                        <i className={`${social.icon} text-xl`} />
+                      </a>
+                    ))
+                  ) : (
+                    <>
+                      <a href="#" className="w-8 h-14 rounded-full flex items-center justify-left text-gray-800 hover:text-blue-600 transition-colors">
+                        <Facebook size={24} />
+                      </a>
+                      <a href="#" className="w-8 h-8 rounded-full flex items-center justify-left text-gray-800 hover:text-blue-600 transition-colors">
+                        <Linkedin size={24} />
+                      </a>
+                      <a href="#" className="w-8 h-8 rounded-full flex items-center justify-left text-gray-800 hover:text-blue-600 transition-colors">
+                        <Instagram size={24} />
+                      </a>
+                      <a href="#" className="w-8 h-8 rounded-full flex items-center justify-left text-gray-800 hover:text-blue-600 transition-colors">
+                        <Twitter size={24} />
+                      </a>
+                    </>
+                  )}
                 </div>
               </div>
 

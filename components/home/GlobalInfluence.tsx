@@ -108,8 +108,8 @@ const modalContentVariants: Variants = {
 export default function GlobalInfluence() {
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [sectionData, setSectionData] = useState<SectionData>({
-    global_influence_title: "Creating Global Influence",
-    global_influence_subtitle: "Influencing and spreading forensic skills globally.",
+    global_influence_title: "",
+    global_influence_subtitle: "",
   });
   const [loading, setLoading] = useState(true);
   const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(null);
@@ -137,8 +137,8 @@ export default function GlobalInfluence() {
           if (bsData) {
             setSectionData({
               // Map API keys to component state keys
-              global_influence_title: bsData.portfolio_section_title || bsData.global_influence_title || "Creating Global Influence",
-              global_influence_subtitle: bsData.portfolio_section_text || bsData.global_influence_subtitle || "Influencing and spreading forensic skills globally.",
+              global_influence_title: bsData.portfolio_section_title || bsData.global_influence_title || "",
+              global_influence_subtitle: bsData.portfolio_section_text || bsData.global_influence_subtitle || "",
             });
           }
 

@@ -30,7 +30,7 @@ export default function CoursesFilterBar() {
   const handleSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
     console.log("Searching for:", searchQuery);
-    
+
   };
 
   return (
@@ -43,9 +43,9 @@ export default function CoursesFilterBar() {
         viewport={{ once: true }}
       >
         {/* LEFT: Search Bar */}
-        <motion.form 
+        <motion.form
           onSubmit={handleSearch}
-          variants={fadeUp} 
+          variants={fadeUp}
           className="flex w-full lg:max-w-md"
         >
           <input
@@ -69,7 +69,7 @@ export default function CoursesFilterBar() {
           className="flex flex-wrap w-full lg:w-auto gap-3 justify-between lg:justify-end"
         >
           {/* Skill Level */}
-          <select 
+          <select
             value={level}
             onChange={(e) => setLevel(e.target.value)}
             className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-[48%] lg:w-auto outline-none focus:ring-1 focus:ring-[#8E5BEF]"
@@ -81,7 +81,7 @@ export default function CoursesFilterBar() {
           </select>
 
           {/* Duration */}
-          <select 
+          <select
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
             className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-[48%] lg:w-auto outline-none focus:ring-1 focus:ring-[#8E5BEF]"
@@ -93,7 +93,7 @@ export default function CoursesFilterBar() {
           </select>
 
           {/* Sort */}
-          <select 
+          <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value)}
             className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-full lg:w-auto outline-none focus:ring-1 focus:ring-[#8E5BEF]"

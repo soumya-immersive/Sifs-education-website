@@ -112,7 +112,7 @@ const ApplyForensicLearning = () => {
       setCourse(""); // Reset course when subType changes
 
       // Map subType to the format expected by the API (matching handleSubmit logic)
-      const mappedSubType = subType === "associate-degree" ? "Online Courses" :
+      const mappedSubType = subType === "onilne-courses" ? "Online Courses" :
         subType === "lab-based" ? "Lab Based Internship" : subType;
 
       const payload = {
@@ -168,7 +168,7 @@ const ApplyForensicLearning = () => {
 
     const payload = {
       type: learningType,
-      course_sub_type: subType === "associate-degree" ? "Online Courses" :
+      course_sub_type: subType === "onilne-courses" ? "Online Courses" :
         subType === "lab-based" ? "Lab Based Internship" : subType,
       course: course,
       name: formData.name,

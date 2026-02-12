@@ -1,49 +1,90 @@
 "use client";
 
 import { Shield, FileCheck, AlertCircle, Loader2, Download, X } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 
-interface CertificateData {
+interface CertificateTemplate {
     name: string;
-    certificate_number: string;
-    certificate_image: string;
+    image_url: string;
     orientation: "vertical" | "horizontal";
-    event_id?: number;
-    download_link?: string;
 }
 
-export default function CertificateDownloadPage() {
+interface CertificateInfo {
+    name: string;
+    certificate_number: string;
+    event_title: string;
+    formatted_event_date: string;
+    [key: string]: any;
+}
+
+interface CertificateData {
+    certificate: CertificateInfo;
+    template: CertificateTemplate;
+    download_url?: string;
+    view_url?: string;
+}
+
+function CertificateDownloadContent() {
+    const searchParams = useSearchParams();
     const [verifyInput, setVerifyInput] = useState("");
     const [verifyLoading, setVerifyLoading] = useState(false);
     const [verifyError, setVerifyError] = useState("");
     const [certificateData, setCertificateData] = useState<CertificateData | null>(null);
     const [downloadLoading, setDownloadLoading] = useState(false);
+    const [imageError, setImageError] = useState(false);
+    const [imageLoading, setImageLoading] = useState(true);
+    const [scale, setScale] = useState(1);
     const certificateRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-    const handleVerify = async (e: React.FormEvent) => {
-        e.preventDefault();
+    // Dynamic scaling for responsiveness
+    useEffect(() => {
+        if (!certificateData) return;
 
-        if (!verifyInput.trim()) {
-            setVerifyError("Please enter your certificate number");
-            return;
+        const updateScale = () => {
+            if (containerRef.current) {
+                const containerWidth = containerRef.current.offsetWidth;
+                const targetWidth = certificateData.template.orientation === "vertical" ? 794 : 1123;
+                const newScale = Math.min(1, containerWidth / targetWidth);
+                setScale(newScale);
+            }
+        };
+
+        const timeoutId = setTimeout(updateScale, 100);
+        window.addEventListener("resize", updateScale);
+        return () => {
+            window.removeEventListener("resize", updateScale);
+            clearTimeout(timeoutId);
+        };
+    }, [certificateData]);
+
+    // Auto-verify if cert_no is in URL
+    useEffect(() => {
+        const certNo = searchParams.get("cert_no");
+        if (certNo) {
+            verifyCertificate(certNo);
         }
+    }, [searchParams]);
 
+    const verifyCertificate = async (certificateNumber: string) => {
         setVerifyLoading(true);
         setVerifyError("");
         setCertificateData(null);
+        setImageError(false);
+        setImageLoading(true);
 
         try {
-            // API call for certificate verification
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/EventManagement/Website/verify-certificate`,
+                `${process.env.NEXT_PUBLIC_API_BACKEND_URL}/EventManagement/Website/verify-certificate`,
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        certificate_number: verifyInput.trim(),
+                        certificate_number: certificateNumber.trim(),
                     }),
                 }
             );
@@ -51,26 +92,21 @@ export default function CertificateDownloadPage() {
             const result = await response.json();
 
             if (result.success && result.data) {
-                // Store certificate data from API response
-                const certificateInfo = result.data.certificate;
-                const downloadUrl = result.data.download_url;
+                const template = result.data.certificate_template;
+                const orientation = template.orientation?.toString().toLowerCase() === "vertical" ? "vertical" : "horizontal";
 
-                // Use proxy to avoid CORS issues with html2canvas
-                const originalImage = "https://www.sifs.in/events/assets/front/img/certificates/1592828674.jpg";
-                const proxyImage = `/api/image-proxy?url=${encodeURIComponent(originalImage)}`;
+                // Use proxy to avoid CORS issues with html2canvas capture
+                const proxiedImageUrl = `/api/image-proxy?url=${encodeURIComponent(template.image_url)}`;
 
                 setCertificateData({
-                    name: certificateInfo.name || "",
-                    certificate_number: certificateInfo.certificate_number || verifyInput.trim(),
-                    // User requested this specific background image
-                    certificate_image: proxyImage,
-                    // API response doesn't currently include orientation, defaulting to horizontal.
-                    // If the specific image 1592828674.jpg is vertical, this should be changed to 'vertical'.
-                    orientation: (certificateInfo.orientation === "vertical" || certificateInfo.orientation === "horizontal")
-                        ? certificateInfo.orientation
-                        : "horizontal",
-                    event_id: certificateInfo.event_id,
-                    download_link: downloadUrl // Store specific download link
+                    certificate: result.data.certificate,
+                    template: {
+                        ...template,
+                        image_url: proxiedImageUrl,
+                        orientation: orientation as "vertical" | "horizontal"
+                    },
+                    download_url: result.data.download_url,
+                    view_url: result.data.view_url
                 });
                 setVerifyInput("");
             } else {
@@ -84,32 +120,98 @@ export default function CertificateDownloadPage() {
         }
     };
 
-    const handleDownloadCertificate = async () => {
-        // ALWAYS use html2canvas to ensure the overlaid data matches the preview.
-        // We ignore the backend download_link intentionally as per user request.
+    const handleVerify = async (e: React.FormEvent) => {
+        e.preventDefault();
 
-        if (!certificateRef.current) return;
+        if (!verifyInput.trim()) {
+            setVerifyError("Please enter your certificate number");
+            return;
+        }
+
+        await verifyCertificate(verifyInput);
+    };
+
+    const handleDownloadCertificate = async () => {
+        if (!certificateRef.current || !certificateData) return;
 
         setDownloadLoading(true);
 
         try {
-            // Dynamically import html2canvas
             const html2canvas = (await import("html2canvas")).default;
 
-            const canvas = await html2canvas(certificateRef.current, {
-                scale: 2,
+            // Create a temporary clone for cleaning and rendering
+            const originalElement = certificateRef.current;
+            const clone = originalElement.cloneNode(true) as HTMLElement;
+
+            // Helper to strip unsupported color functions
+            const cleanStyles = (el: HTMLElement) => {
+                const unsupported = ["lab(", "oklch(", "lch(", "oklab("];
+                const styles = window.getComputedStyle(el);
+
+                // properties to check
+                const props = ["color", "backgroundColor", "borderColor", "boxShadow", "borderTopColor", "borderBottomColor", "borderLeftColor", "borderRightColor"];
+
+                props.forEach(prop => {
+                    const val = (el.style as any)[prop] || styles.getPropertyValue(prop.replace(/[A-Z]/g, m => "-" + m.toLowerCase()));
+                    if (val && unsupported.some(u => val.includes(u))) {
+                        // Fallback to safe colors
+                        if (prop.includes("Color")) el.style.setProperty(prop, "transparent", "important");
+                        else if (prop === "color") el.style.setProperty("color", "#000000", "important");
+                        else if (prop === "backgroundColor") el.style.setProperty("background-color", "#ffffff", "important");
+                        else el.style.setProperty(prop, "none", "important");
+                    }
+                });
+
+                Array.from(el.children).forEach(child => cleanStyles(child as HTMLElement));
+            };
+
+            // Set fixed dimensions and positioning for the clone
+            const width = certificateData.template.orientation === "vertical" ? 794 : 1123;
+            const height = certificateData.template.orientation === "vertical" ? 1123 : 794;
+
+            clone.style.width = `${width}px`;
+            clone.style.height = `${height}px`;
+            clone.style.position = "fixed";
+            clone.style.left = "-9999px";
+            clone.style.top = "0";
+            clone.style.transform = "none";
+            clone.style.opacity = "1";
+
+            document.body.appendChild(clone);
+            cleanStyles(clone);
+
+            // Wait a moment for images and styles to stabilize
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const canvas = await html2canvas(clone, {
+                scale: 3,
                 useCORS: true,
-                allowTaint: true,
                 backgroundColor: "#ffffff",
+                logging: false,
+                width: width,
+                height: height,
+                onclone: (clonedDoc: Document) => {
+                    // Final pass in the cloned document context
+                    const all = clonedDoc.getElementsByTagName("*");
+                    for (let i = 0; i < all.length; i++) {
+                        const el = all[i] as HTMLElement;
+                        const s = window.getComputedStyle(el);
+                        if (s.color.includes("lab(") || s.backgroundColor.includes("lab(")) {
+                            el.style.setProperty("color", "#000000", "important");
+                            el.style.setProperty("background-color", "#ffffff", "important");
+                        }
+                    }
+                }
             } as any);
 
-            // Convert canvas to blob
+            document.body.removeChild(clone);
+
             canvas.toBlob((blob) => {
                 if (blob) {
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement("a");
                     link.href = url;
-                    link.download = `certificate_${certificateData?.certificate_number || "download"}.png`;
+                    link.download = `SIFS_Certificate_${certificateData.certificate.certificate_number}.png`;
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -119,52 +221,52 @@ export default function CertificateDownloadPage() {
             }, "image/png");
         } catch (error) {
             console.error("Error downloading certificate:", error);
-            alert("Failed to download certificate. Please try again.");
+            alert("Failed to download certificate. Modern color functions (lab/oklch) detected in your browser theme may be causing issues. Try again or use a different browser.");
             setDownloadLoading(false);
         }
     };
 
     const handleCloseCertificate = () => {
         setCertificateData(null);
+        setImageError(false);
+        setImageLoading(true);
     };
 
     return (
-        <section className="relative bg-white min-h-screen">
-            {/* Header Section - Only show when NOT viewing certificate to keep view clean, or keep it if preferred. Keeping it for navigation context but adjusting styles if needed. */}
+        <section className="relative bg-gray-50 min-h-screen">
+            {/* Header Section */}
             {!certificateData && (
-                <div className="relative bg-gradient-to-r from-blue-700 to-blue-800 py-6 px-4 shadow-lg">
-                    <div className="max-w-7xl mx-auto flex items-center justify-between">
-                        {/* Logo */}
-                        <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 bg-white rounded-lg p-2 shadow-md">
+                <div className="relative bg-[#1a237e] py-12 px-4 shadow-xl overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
+                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div className="flex items-center gap-6">
+                            <div className="w-20 h-20 bg-white rounded-2xl p-3 shadow-2xl transform hover:scale-105 transition-transform">
                                 <Image
                                     src="/logo.png"
                                     alt="SIFS Logo"
-                                    width={60}
-                                    height={60}
+                                    width={80}
+                                    height={80}
                                     className="w-full h-full object-contain"
                                 />
                             </div>
-                        </div>
-
-                        {/* Title */}
-                        <div className="text-center flex-1">
-                            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-wide">
-                                DOWNLOAD CERTIFICATE
-                            </h1>
-                            <div className="flex items-center justify-center gap-2 mt-1 text-sm text-blue-100">
-                                <span>HOME</span>
-                                <span>/</span>
-                                <span className="text-yellow-400 font-semibold">DOWNLOAD CERTIFICATE</span>
+                            <div className="text-left">
+                                <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-2">
+                                    Certificate Verification
+                                </h1>
+                                <div className="flex items-center gap-2 text-sm text-blue-100/80">
+                                    <span>HOME</span>
+                                    <span className="w-1 h-1 bg-blue-100/50 rounded-full" />
+                                    <span className="text-yellow-400 font-bold uppercase tracking-wider">Download Certificate</span>
+                                </div>
                             </div>
                         </div>
-
-                        {/* Right Side Illustration */}
-                        <div className="hidden lg:block w-32 h-32">
-                            <div className="relative w-full h-full">
-                                <div className="absolute inset-0 bg-white/10 rounded-full backdrop-blur-sm flex items-center justify-center">
-                                    <FileCheck className="w-16 h-16 text-white" />
-                                </div>
+                        <div className="hidden lg:flex items-center gap-4">
+                            <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20">
+                                <FileCheck className="w-10 h-10 text-white" />
+                            </div>
+                            <div className="text-white">
+                                <p className="text-sm font-medium text-blue-100/60 uppercase">System Status</p>
+                                <p className="text-lg font-bold">Secure Gateway Active</p>
                             </div>
                         </div>
                     </div>
@@ -172,25 +274,25 @@ export default function CertificateDownloadPage() {
             )}
 
             {/* Main Content */}
-            <div className={certificateData ? "w-full" : "max-w-4xl mx-auto px-4 py-16"}>
+            <div className={`relative z-10 ${certificateData ? "w-full" : "max-w-4xl mx-auto px-4 py-20"}`}>
                 {/* Verify Certificate Section */}
                 {!certificateData && (
-                    <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 border border-gray-100">
-                        <div className="text-center mb-8">
-                            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-pink-500 to-pink-700 rounded-full mb-4 shadow-lg">
-                                <Shield className="w-8 h-8 text-white" />
+                    <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-16 border border-gray-100 transform -translate-y-8">
+                        <div className="text-center mb-12">
+                            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-3xl mb-6 shadow-xl transform rotate-3">
+                                <Shield className="w-10 h-10 text-white" />
                             </div>
-                            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-                                Verify Certificate
+                            <h2 className="text-4xl font-black text-gray-900 mb-4 tracking-tight">
+                                Verify Your Credential
                             </h2>
-                            <p className="text-gray-700 font-medium text-lg">
-                                Do you have a valid certificate?
+                            <p className="text-gray-500 text-lg max-w-xl mx-auto leading-relaxed">
+                                Enter your certificate number below to validate its authenticity and download your digital copy.
                             </p>
                         </div>
 
                         {/* Verify Form */}
                         <form onSubmit={handleVerify} className="max-w-2xl mx-auto">
-                            <div className="relative">
+                            <div className="relative group">
                                 <input
                                     type="text"
                                     value={verifyInput}
@@ -198,23 +300,23 @@ export default function CertificateDownloadPage() {
                                         setVerifyInput(e.target.value);
                                         setVerifyError("");
                                     }}
-                                    placeholder="Enter your certificate number"
-                                    className="w-full px-6 py-4 pr-32 border-2 border-gray-300 rounded-xl text-gray-700 placeholder-gray-400 focus:border-pink-500 focus:ring-2 focus:ring-pink-200 outline-none transition-all text-lg"
+                                    placeholder="e.g., CMP/043"
+                                    className="w-full px-8 py-6 pr-36 border-2 border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all text-xl font-medium"
                                     disabled={verifyLoading}
                                 />
                                 <button
                                     type="submit"
                                     disabled={verifyLoading}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2.5 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold rounded-lg hover:from-pink-600 hover:to-pink-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 px-8 py-4 bg-[#1a237e] text-white font-bold rounded-xl hover:bg-[#283593] transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 active:scale-95"
                                 >
                                     {verifyLoading ? (
                                         <>
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                            <span>Verifying...</span>
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            <span>VERIFYING</span>
                                         </>
                                     ) : (
                                         <>
-                                            <Shield className="w-4 h-4" />
+                                            <Shield className="w-5 h-5" />
                                             <span>VALIDATE</span>
                                         </>
                                     )}
@@ -223,9 +325,14 @@ export default function CertificateDownloadPage() {
 
                             {/* Verify Error */}
                             {verifyError && (
-                                <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-                                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                                    <p className="text-red-700">{verifyError}</p>
+                                <div className="mt-8 bg-black/[0.02] border-l-4 border-red-500 rounded-r-2xl p-6 flex items-start gap-4 animate-in fade-in slide-in-from-top-4">
+                                    <div className="p-2 bg-red-100 rounded-full">
+                                        <AlertCircle className="w-6 h-6 text-red-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-red-900 font-bold block">Verification Error</p>
+                                        <p className="text-red-700/80 font-medium">{verifyError}</p>
+                                    </div>
                                 </div>
                             )}
                         </form>
@@ -234,137 +341,146 @@ export default function CertificateDownloadPage() {
 
                 {/* Certificate Preview Section */}
                 {certificateData && (
-                    <div className="bg-white w-full">
-                        <div className="text-center mb-8">
-                            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-green-700 rounded-full mb-4 shadow-lg">
-                                <FileCheck className="w-8 h-8 text-white" />
-                            </div>
-                            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-                                Congratulations! Your certificate is ready
+                    <div className="animate-in fade-in zoom-in-95 duration-500">
+                        <div className="max-w-7xl mx-auto px-4 pt-12 text-center mb-12">
+                            {/* <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-6">
+                                <FileCheck className="w-8 h-8 text-green-600" />
+                            </div> */}
+                            <h2 className="text-4xl font-black text-gray-900 mb-3 tracking-tight">
+                                Certificate Verified Successfully
                             </h2>
-                            <p className="text-gray-700 font-medium text-lg">
-                                Certificate verified successfully
-                            </p>
+                            {/* <p className="text-gray-500 text-lg font-medium">
+                                Credential issued to <span className="text-indigo-600 font-bold">{certificateData.certificate.name}</span>
+                            </p> */}
                         </div>
 
-                        {/* Certificate Display */}
-                        <div className="mb-8 overflow-x-auto text-center relative z-10">
-                            <div className="inline-block relative shadow-2xl bg-white">
-                                <div
-                                    ref={certificateRef}
-                                    className="relative"
-                                    style={{
-                                        // Fixed pixel dimensions are required for html2canvas to capture consistent positions.
-                                        // Using responsive units (%) or height:auto causes displacement during the capture process.
-                                        width: certificateData.orientation === "vertical" ? "794px" : "1123px",
-                                        height: certificateData.orientation === "vertical" ? "1123px" : "794px",
-                                        margin: "0 auto",
-                                        backgroundColor: "#ffffff"
-                                    }}
-                                >
-                                    {/* Certificate Image */}
-                                    {certificateData.certificate_image ? (
-                                        <div className="relative w-full h-full">
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img
-                                                src={certificateData.certificate_image}
-                                                alt="Certificate"
-                                                className="w-full h-full object-cover block"
-                                                crossOrigin="anonymous"
-                                            />
+                        {/* Certificate Display Container */}
+                        <div className="max-w-[1200px] mx-auto px-4 mb-16 overflow-hidden">
+                            <div className="relative group">
+                                {/* Loading Overlay */}
+                                {imageLoading && (
+                                    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 min-h-[500px]">
+                                        <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
+                                        <p className="text-gray-500 font-bold animate-pulse">GENERATING PREVIEW...</p>
+                                    </div>
+                                )}
 
-                                            {/* Overlays based on PHP styles: using absolute overlay wrapper */}
+                                {/* Error State */}
+                                {imageError && (
+                                    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-red-50 rounded-2xl border-2 border-red-100 min-h-[500px]">
+                                        <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+                                        <p className="text-red-900 font-bold">Failed to load certificate template</p>
+                                        <button
+                                            onClick={() => { setImageError(false); setImageLoading(true); }}
+                                            className="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg font-bold"
+                                        >
+                                            Retry
+                                        </button>
+                                    </div>
+                                )}
+
+                                <div className="bg-white rounded-2xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden border border-gray-100">
+                                    <div ref={containerRef} className="w-full flex justify-center p-4">
+                                        <div
+                                            className="relative transition-all duration-300"
+                                            style={{
+                                                width: `${(certificateData.template.orientation === "vertical" ? 794 : 1123) * scale}px`,
+                                                height: `${(certificateData.template.orientation === "vertical" ? 1123 : 794) * scale}px`,
+                                            }}
+                                        >
                                             <div
-                                                className="absolute inset-0 z-[99]"
                                                 style={{
-                                                    width: "100%",
-                                                    height: "100%",
-                                                    padding: "0px",
-                                                    top: "0px",
-                                                    left: "0px",
-                                                    right: "0px",
-                                                    bottom: "0px"
+                                                    transform: `scale(${scale})`,
+                                                    transformOrigin: "top left",
+                                                    width: certificateData.template.orientation === "vertical" ? "794px" : "1123px",
+                                                    height: certificateData.template.orientation === "vertical" ? "1123px" : "794px",
                                                 }}
                                             >
-                                                {certificateData.orientation === "vertical" ? (
-                                                    <>
-                                                        {/* Vertical Name */}
-                                                        <div className="absolute w-full text-center" style={{ top: "400px", left: 0, padding: "0 20px" }}>
-                                                            <h2 className="text-4xl font-bold font-serif tracking-wide" style={{ color: "#1f2937" }}>{certificateData.name}</h2>
+                                                <div
+                                                    ref={certificateRef}
+                                                    className="relative w-full h-full bg-white transition-opacity duration-700 shadow-2xl"
+                                                    style={{ opacity: imageLoading ? 0 : 1 }}
+                                                >
+                                                    {/* Certificate Base Image */}
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img
+                                                        src={certificateData.template.image_url}
+                                                        alt="Certificate Template"
+                                                        className="w-full h-full object-contain block"
+                                                        crossOrigin="anonymous"
+                                                        onLoad={() => setImageLoading(false)}
+                                                        onError={() => {
+                                                            setImageError(true);
+                                                            setImageLoading(false);
+                                                        }}
+                                                    />
+
+                                                    {/* Dynamic Text Overlays */}
+                                                    {!imageError && (
+                                                        <div className="absolute inset-0 pointer-events-none select-none">
+                                                            {certificateData.template.orientation === "vertical" ? (
+                                                                <>
+                                                                    {/* Vertical Orientation Layout - Centered with specific proportions */}
+                                                                    <div className="absolute top-[45%] left-0 w-full text-center px-12">
+                                                                        <h2 className="text-[32px] font-semibold text-black uppercase tracking-wide leading-tight">
+                                                                            {certificateData.certificate.name}
+                                                                        </h2>
+                                                                    </div>
+                                                                    <div className="absolute bottom-[7%] left-[65%] w-full">
+                                                                        <p className="text-[16px] font-bold text-gray-800 tracking-wider">
+                                                                            {certificateData.certificate.certificate_number}
+                                                                        </p>
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    {/* Horizontal Orientation Layout - Balanced centering */}
+                                                                    <div className="absolute top-[24%] left-0 w-full text-center">
+                                                                        <h2 className="text-4xl font-bold text-[#ffffff] tracking-wide inline-block drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+                                                                            {certificateData.certificate.name}
+                                                                        </h2>
+                                                                    </div>
+                                                                    <div className="absolute bottom-[11%] left-0 w-full text-center">
+                                                                        <p className="text-[20px] tracking-wider inline-block text-black tracking-widest font-Arial">
+                                                                            {certificateData.certificate.certificate_number}
+                                                                        </p>
+                                                                    </div>
+                                                                </>
+                                                            )}
                                                         </div>
-                                                        {/* Vertical Number */}
-                                                        <div className="absolute w-full text-left" style={{ top: "670px", paddingLeft: "485px" }}>
-                                                            <p className="text-sm font-bold" style={{ color: "#374151" }}>{certificateData.certificate_number}</p>
-                                                        </div>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        {/* Horizontal Name - Fixed Pixel Position */}
-                                                        <div className="absolute w-full text-center" style={{ top: "200px", right: 0, left: 0 }}>
-                                                            <h2
-                                                                className="text-4xl font-bold font-sans tracking-wide inline-block "
-                                                                style={{
-                                                                    color: "#ffffff",
-                                                                    textShadow: "0px 2px 4px rgba(0,0,0,0.6)",
-                                                                    fontFamily: "'Times New Roman', Times, serif"
-                                                                }}
-                                                            >
-                                                                {certificateData.name}
-                                                            </h2>
-                                                        </div>
-                                                        {/* Horizontal Number - Fixed Pixel Position */}
-                                                        <div className="absolute w-full text-center" style={{ top: "680px", left: 0 }}>
-                                                            <p
-                                                                className="text-2xl font-bold tracking-wider inline-block"
-                                                                style={{
-                                                                    fontFamily: "Arial, sans-serif",
-                                                                    color: "#1f2937"
-                                                                }}
-                                                            >
-                                                                {certificateData.certificate_number}
-                                                            </p>
-                                                        </div>
-                                                    </>
-                                                )}
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
-                                    ) : (
-                                        <div className="w-full h-full bg-gray-100 flex items-center justify-center border-2 border-dashed border-gray-300">
-                                            <div className="text-center p-8">
-                                                <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                                                <p className="text-gray-500 font-medium">Certificate template not available</p>
-                                            </div>
-                                        </div>
-                                    )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Action Buttons - Added padding bottom and z-index to prevent footer overlap */}
-                        <div className="relative z-20 flex flex-col sm:flex-row gap-4 justify-center pb-48">
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-6 justify-center pb-32 max-w-2xl mx-auto px-4">
                             <button
                                 onClick={handleDownloadCertificate}
-                                disabled={downloadLoading}
-                                className="px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-bold hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase"
+                                disabled={downloadLoading || imageLoading || imageError}
+                                className="flex-1 px-10 py-5 bg-gradient-to-r from-indigo-600 to-indigo-800 text-white rounded-2xl font-black hover:from-indigo-700 hover:to-indigo-900 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-lg uppercase tracking-tighter active:scale-95"
                             >
                                 {downloadLoading ? (
                                     <>
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                        <span>Downloading...</span>
+                                        <Loader2 className="w-6 h-6 animate-spin" />
+                                        <span>PREPARING...</span>
                                     </>
                                 ) : (
                                     <>
-                                        <Download className="w-5 h-5" />
-                                        <span>Download Now</span>
+                                        <Download className="w-6 h-6" />
+                                        <span>Download Certificate</span>
                                     </>
                                 )}
                             </button>
                             <button
                                 onClick={handleCloseCertificate}
-                                className="px-8 py-4 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-lg font-bold hover:from-pink-600 hover:to-pink-700 transition-all shadow-lg flex items-center justify-center gap-2 uppercase"
+                                className="px-10 py-5 bg-white text-gray-900 border-2 border-gray-200 rounded-2xl font-black hover:bg-gray-50 transition-all shadow-lg flex items-center justify-center gap-3 text-lg uppercase tracking-tighter active:scale-95"
                             >
-                                <X className="w-5 h-5" />
+                                <X className="w-6 h-6" />
                                 <span>Cancel</span>
                             </button>
                         </div>
@@ -373,8 +489,25 @@ export default function CertificateDownloadPage() {
             </div>
 
             {/* Background Decorations */}
-            <div className="absolute top-20 left-10 w-64 h-64 bg-blue-400 rounded-full blur-3xl opacity-20" />
-            <div className="absolute bottom-20 right-10 w-80 h-80 bg-pink-400 rounded-full blur-3xl opacity-20" />
+            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100 rounded-full blur-[120px] opacity-50" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-pink-100 rounded-full blur-[120px] opacity-50" />
+            </div>
         </section>
+    );
+}
+
+export default function CertificateDownloadPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-[#FBFCFF]">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
+                    <p className="text-gray-600 font-medium">Loading verification gate...</p>
+                </div>
+            </div>
+        }>
+            <CertificateDownloadContent />
+        </Suspense>
     );
 }

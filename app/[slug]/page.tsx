@@ -30,19 +30,43 @@ interface Props {
 // ----------------------------------------------------------------------
 async function getApiCourses(programSlug: string, endpoint: string): Promise<Course[]> {
     try {
+        console.log(`[getApiCourses] Fetching from: ${endpoint}`);
         const response = await fetch(endpoint, {
             cache: 'no-store',
         });
 
         if (!response.ok) {
-            console.error("Failed to fetch courses:", response.status, response.statusText);
+            console.error(`[getApiCourses] Failed to fetch courses:`, response.status, response.statusText);
+            const errorText = await response.text();
+            console.error(`[getApiCourses] Error response:`, errorText);
             return [];
         }
 
-        const json: ApiCoursesResponse = await response.json();
+        const responseText = await response.text();
+        console.log(`[getApiCourses] Raw response (first 500 chars):`, responseText.substring(0, 500));
 
-        if (json.success && json.data && Array.isArray(json.data.data)) {
-            return json.data.data.map((apiCourse) => ({
+        let json: any;
+        try {
+            json = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error(`[getApiCourses] JSON parse error:`, parseError);
+            console.error(`[getApiCourses] Response text:`, responseText);
+            return [];
+        }
+
+        console.log(`[getApiCourses] Parsed JSON structure:`, {
+            success: json.success,
+            hasData: !!json.data,
+            dataKeys: json.data ? Object.keys(json.data) : [],
+            isDataArray: Array.isArray(json.data),
+            hasDataData: json.data?.data ? true : false,
+            isDataDataArray: Array.isArray(json.data?.data)
+        });
+
+        // Check if data is directly in json.data (array)
+        if (json.success && Array.isArray(json.data)) {
+            console.log(`[getApiCourses] Found ${json.data.length} courses (direct array)`);
+            const mappedCourses = json.data.map((apiCourse: any) => ({
                 id: apiCourse.id,
                 programSlug: programSlug,
                 slug: apiCourse.slug,
@@ -55,11 +79,39 @@ async function getApiCourses(programSlug: string, endpoint: string): Promise<Cou
                 bannerImage: "/course/hero-bg.png",
                 description: apiCourse.sub_title || ""
             }));
+            console.log(`[getApiCourses] Mapped courses:`, mappedCourses);
+            return mappedCourses;
+        }
+
+        // Check if data is in json.data.data (nested)
+        if (json.success && json.data && Array.isArray(json.data.data)) {
+            console.log(`[getApiCourses] Found ${json.data.data.length} courses (nested array)`);
+            const mappedCourses = json.data.data.map((apiCourse: any) => ({
+                id: apiCourse.id,
+                programSlug: programSlug,
+                slug: apiCourse.slug,
+                title: apiCourse.title,
+                overview: apiCourse.sub_title || "",
+                courseCode: apiCourse.course_code,
+                heroImage: apiCourse.image_url,
+                rating: 5.0,
+                reviewsCount: 120,
+                bannerImage: "/course/hero-bg.png",
+                description: apiCourse.sub_title || ""
+            }));
+            console.log(`[getApiCourses] Mapped courses:`, mappedCourses);
+            return mappedCourses;
+        } else {
+            console.warn(`[getApiCourses] Invalid response structure:`, {
+                success: json.success,
+                hasData: !!json.data,
+                isArray: Array.isArray(json.data?.data)
+            });
         }
 
         return [];
     } catch (error) {
-        console.error("Error fetching courses:", error);
+        console.error(`[getApiCourses] Error fetching courses:`, error);
         return [];
     }
 }
@@ -111,31 +163,40 @@ async function getApiInternships(programSlug: string, endpoint: string): Promise
 
 export default async function ProgramPage({ params }: Props) {
     const { slug } = await params;
+    console.log(`[ProgramPage] Processing slug: ${slug}`);
 
-    // 1. Check if it's a COURSE PROGRAM
-    const courseProgram = coursePrograms.find((p) => p.slug === slug);
-    if (courseProgram) {
-        let programCourses: Course[] = [];
-        const apiEndpoints: Record<string, string> = {
-            "associate-degree": `${API_BASE_URL}/EducationAndInternship/Website/courses/online-courses`,
-            "foundation-certificate": `${API_BASE_URL}/EducationAndInternship/Website/courses/foundation-forensic-courses`,
-            "advanced-certificate": `${API_BASE_URL}/EducationAndInternship/Website/courses/short-term-courses`,
-            "short-term-courses": `${API_BASE_URL}/EducationAndInternship/Website/courses/short-term-courses`,
-            "professional-courses": `${API_BASE_URL}/EducationAndInternship/Website/courses/professional-forensic-courses`,
-            "classroom-courses": `${API_BASE_URL}/EducationAndInternship/Website/courses/classroom-courses`
+    // 1. Try to fetch as a COURSE CATEGORY first (slug kuch bhi ho skta h)
+    const categoryEndpoint = `${API_BASE_URL}/EducationAndInternship/Website/front/courses/category/${slug}`;
+    console.log(`[ProgramPage] Attempting to fetch courses from: ${categoryEndpoint}`);
+    const programCourses = await getApiCourses(slug, categoryEndpoint);
+
+    console.log(`[ProgramPage] Retrieved ${programCourses.length} courses for slug: ${slug}`);
+
+    // ----------------------------------------------------------------------
+    // LOGIC: Render Page if API has data OR if it's a known Program
+    // ----------------------------------------------------------------------
+    const knownCourseProgram = coursePrograms.find((p) => p.slug === slug);
+
+    if (programCourses.length > 0 || knownCourseProgram) {
+        // Determine which courses to show: API > Static > Empty
+        let coursesToDisplay = programCourses;
+        if (coursesToDisplay.length === 0) {
+            console.log(`[ProgramPage] No API courses for ${slug}, checking static data...`);
+            coursesToDisplay = courses.filter((c) => c.programSlug === slug);
+        }
+
+        const displayProgram = knownCourseProgram || {
+            label: slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+            slug: slug
         };
 
-        if (apiEndpoints[slug]) {
-            programCourses = await getApiCourses(slug, apiEndpoints[slug]);
-        } else {
-            programCourses = courses.filter((course) => course.programSlug === slug);
-        }
+        console.log(`[ProgramPage] Rendering courses page with program:`, displayProgram);
 
         return (
             <main>
-                <CoursesHero program={courseProgram} />
+                <CoursesHero program={displayProgram} />
                 <CoursesFilterBar />
-                <CoursesGrid courses={programCourses} />
+                <CoursesGrid courses={coursesToDisplay} />
                 <CourseLearning />
             </main>
         );
@@ -166,6 +227,28 @@ export default async function ProgramPage({ params }: Props) {
         );
     }
 
-    // 3. Fallback to 404
-    notFound();
+    // 3. Fallback to 404 if not found in any category and no data returned
+    console.warn(`[ProgramPage] Slug ${slug} not found in API or local config. Returning Data Not Found.`);
+
+    return (
+        <main className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-20">
+            <div className="text-center max-w-lg mx-auto">
+                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-3">Data Not Found</h1>
+                <p className="text-gray-600 mb-8">
+                    We couldn't find the page you're looking for. It might have been moved or doesn't exist.
+                </p>
+                <a
+                    href="/"
+                    className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-3 md:text-lg md:px-8 transition"
+                >
+                    Back to Home
+                </a>
+            </div>
+        </main>
+    );
 }

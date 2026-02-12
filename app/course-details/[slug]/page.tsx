@@ -1,7 +1,8 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { API_BASE_URL } from "@/lib/config";
 import type { ApiCourseDetailsResponse } from "@/types/course";
 import { courses, type Course } from "../../../data/courses";
+import { coursePrograms } from "../../../data/coursePrograms";
 
 // Course Detail Imports
 import CourseHero from "../../../components/course/CourseHero";
@@ -85,8 +86,17 @@ async function getApiCourseDetails(slug: string): Promise<Course | null> {
 export default async function CourseDetailsPage({ params }: PageProps) {
     const { slug } = await params;
 
+    // 1. Check if slug matches a known PROGRAM (redirect if so)
+    const knownProgram = coursePrograms.find(p => p.slug === slug);
+    if (knownProgram) {
+        console.log(`[CourseDetailsPage] Slug '${slug}' is a program. Redirecting to /${slug}`);
+        redirect(`/${slug}`);
+    }
+
+    // 2. Try static data
     let course: Course | null | undefined = courses.find((c) => c.slug === slug);
 
+    // 3. Try API
     if (!course) {
         course = await getApiCourseDetails(slug);
     }

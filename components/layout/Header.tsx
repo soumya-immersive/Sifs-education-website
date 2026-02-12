@@ -62,7 +62,7 @@ const defaultNavItems = [
       { label: "Visual Gallery", path: "/video" },
     ],
   },
-  { label: "Books", path: "/associate-degree" },
+  { label: "Books", path: "/onilne-courses" },
   { label: "Reach Us", path: "/contact" },
 ];
 
@@ -91,6 +91,19 @@ export default function Header() {
 
     const fetchHeaderData = async () => {
       try {
+        // 1. Fetch Categories first to update navigation
+        const categoriesResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/courses/categories`, { cache: 'no-store' });
+        const categoriesData = await categoriesResponse.json();
+
+        let dynamicCourseItems: NavItem[] = [];
+        if (categoriesData?.success && categoriesData?.data?.categories) {
+          dynamicCourseItems = categoriesData.data.categories.map((cat: any) => ({
+            label: cat.name,
+            path: `/${cat.slug}`
+          }));
+        }
+
+        // 2. Fetch General Header Data (Logo, header_text)
         const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`, {
           cache: 'no-store',
           headers: {
@@ -100,37 +113,42 @@ export default function Header() {
 
         if (!response.ok) {
           console.error("API request failed:", response.status);
+          // Still try to update nav items with categories even if front API fails
+          if (dynamicCourseItems.length > 0) {
+            setNavItems(prev => prev.map(item =>
+              item.label === "Courses" ? { ...item, children: dynamicCourseItems } : item
+            ));
+          }
           return;
         }
 
         const json = await response.json();
 
-        console.log("API Response:", json);
-
         if (json.success) {
-          // Set Logo if available
+          // Set Logo
           if (json.data?.bs?.logo) {
             const logoPath = `${BASE_URL}/uploads/Education-And-Internship-Admin-Logo/${json.data.bs.logo}`;
             setLogo(logoPath);
           }
 
-          // Check both possible locations for header_text
           const headerText = json.data?.be?.header_text || json.data?.bs?.header_text;
 
           if (headerText) {
-            console.log("Found header text:", headerText.substring(0, 200));
             const parsedItems = parseHeaderHTML(headerText);
-            console.log("Parsed Nav Items:", parsedItems);
-
             if (parsedItems.length > 0) {
               setNavItems(parsedItems);
-            } else {
-              console.warn("No nav items parsed, using default");
+              return; // Exit if we have API-provided navigation
             }
-          } else {
-            console.warn("Header text not found, using default nav items");
           }
         }
+
+        // Fallback: If no header_text from API, update the defaultNavItems with categories
+        if (dynamicCourseItems.length > 0) {
+          setNavItems(prev => prev.map(item =>
+            item.label === "Courses" ? { ...item, children: dynamicCourseItems } : item
+          ));
+        }
+
       } catch (error) {
         console.error("Failed to fetch header data:", error);
       }
@@ -364,6 +382,30 @@ export default function Header() {
 
   const getTarget = (item: NavItem) => (isExternalLink(item.path || "") ? "_blank" : undefined);
 
+  // Handle course link clicks - triggers API call for the specific course category
+  const handleCourseClick = async (slug: string, parentLabel: string) => {
+    // Only trigger for Courses menu items
+    if (parentLabel !== "Courses") return;
+
+    try {
+      console.log(`Fetching course category data for: ${slug}`);
+      const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/courses/category/${slug}`, {
+        cache: 'no-store',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`Course category data for ${slug}:`, data);
+        // You can store this data in state or context if needed
+        // For now, we're just logging it
+      } else {
+        console.error(`Failed to fetch course category ${slug}:`, response.status);
+      }
+    } catch (error) {
+      console.error(`Error fetching course category ${slug}:`, error);
+    }
+  };
+
   return (
     <header className="sticky top-0 z-40 bg-white shadow-md">
       <div className="flex items-center justify-between h-20 px-4 md:px-12 xl:px-24">
@@ -413,6 +455,11 @@ export default function Header() {
                           ) : (
                             <Link
                               href={child.path || "#"}
+                              onClick={() => {
+                                // Extract slug from path (remove leading /)
+                                const slug = child.path?.replace(/^\//, '') || '';
+                                handleCourseClick(slug, item.label);
+                              }}
                               className="flex items-center justify-between px-4 py-2 text-sm
                                        text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition"
                             >
@@ -511,7 +558,12 @@ export default function Header() {
                           <Link
                             key={`${child.label}-${cIndex}`}
                             href={child.path || "#"}
-                            onClick={toggleMenu}
+                            onClick={() => {
+                              // Extract slug from path (remove leading /)
+                              const slug = child.path?.replace(/^\//, '') || '';
+                              handleCourseClick(slug, item.label);
+                              toggleMenu();
+                            }}
                             className="block py-2 px-3 text-sm text-gray-600"
                           >
                             {child.label}

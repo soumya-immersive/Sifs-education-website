@@ -30,21 +30,26 @@ interface Props {
 // ----------------------------------------------------------------------
 // HELPER: Fetch Courses for Program Listing
 // ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+// HELPER: Fetch Courses for Program Listing
+// ----------------------------------------------------------------------
 async function getApiCourses(programSlug: string, endpoint: string): Promise<Course[]> {
   try {
+    console.log(`[getApiCourses] Fetching from: ${endpoint}`);
     const response = await fetch(endpoint, {
       cache: 'no-store',
     });
 
     if (!response.ok) {
-      console.error("Failed to fetch courses:", response.status, response.statusText);
+      console.error(`[getApiCourses] Failed: ${response.status} ${response.statusText}`);
       return [];
     }
 
-    const json: ApiCoursesResponse = await response.json();
+    const json = await response.json();
+    console.log(`[getApiCourses] Response success: ${json.success}, data length: ${json.data?.data?.length}`);
 
     if (json.success && json.data && Array.isArray(json.data.data)) {
-      return json.data.data.map((apiCourse) => ({
+      return json.data.data.map((apiCourse: any) => ({
         id: apiCourse.id,
         programSlug: programSlug,
         slug: apiCourse.slug,
@@ -61,7 +66,7 @@ async function getApiCourses(programSlug: string, endpoint: string): Promise<Cou
 
     return [];
   } catch (error) {
-    console.error("Error fetching courses:", error);
+    console.error("[getApiCourses] Error fetching courses:", error);
     return [];
   }
 }
@@ -165,29 +170,36 @@ function CourseDetailsView({ course }: { course: Course }) {
 // ----------------------------------------------------------------------
 export default async function Page({ params }: Props) {
   const { program: slug } = await params;
+  console.log(`[CoursesPage] Processing slug: ${slug}`);
 
   // 1. Check if the slug corresponds to a PROGRAM (Category)
   const programData = coursePrograms.find((p) => p.slug === slug);
 
   if (programData) {
+    console.log(`[CoursesPage] Found program data for: ${slug}`);
+
     // --- RENDER PROGRAM LISTING ---
     let programCourses: Course[] = [];
 
-    const apiEndpoints: Record<string, string> = {
-      "associate-degree": `${API_BASE_URL}/EducationAndInternship/Website/courses/online-courses`,
-      "foundation-certificate": `${API_BASE_URL}/EducationAndInternship/Website/courses/foundation-forensic-courses`,
-      "advanced-certificate": `${API_BASE_URL}/EducationAndInternship/Website/courses/short-term-courses`,
-      "short-term-courses": `${API_BASE_URL}/EducationAndInternship/Website/courses/short-term-courses`,
-      "professional-courses": `${API_BASE_URL}/EducationAndInternship/Website/courses/professional-forensic-courses`,
-      "classroom-courses": `${API_BASE_URL}/EducationAndInternship/Website/courses/classroom-courses`
-    };
+    // Map alias to actual API slug if necessary
+    // If we are on 'foundation-certificate', we might need to ask for 'foundation-forensic-courses'
+    let apiSlug = slug;
+    if (slug === 'foundation-certificate') {
+      apiSlug = 'foundation-forensic-courses';
+    }
 
-    if (apiEndpoints[slug]) {
-      programCourses = await getApiCourses(slug, apiEndpoints[slug]);
-    } else {
+    const endpoint = `${API_BASE_URL}/EducationAndInternship/Website/front/courses/category/${apiSlug}`;
+    console.log(`[CoursesPage] Using API endpoint: ${endpoint}`);
+
+    programCourses = await getApiCourses(slug, endpoint);
+
+    // Fallback to local courses if API returned nothing
+    if (programCourses.length === 0) {
+      console.log(`[CoursesPage] No API courses found, checking static data...`);
       programCourses = courses.filter((course) => course.programSlug === slug);
     }
 
+    // Always return the page structure, even if empty (CoursesGrid handles empty state)
     return (
       <main>
         <CoursesHero program={programData} />
@@ -213,6 +225,26 @@ export default async function Page({ params }: Props) {
     return <CourseDetailsView course={course} />;
   }
 
-  // 3. If neither, 404
-  notFound();
+  // 3. To prevent 404, show a "Data Not Found" section within the site layout
+  return (
+    <main className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-20">
+      <div className="text-center max-w-lg mx-auto">
+        <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-3">Course Not Found</h1>
+        <p className="text-gray-600 mb-8">
+          We couldn't find the course or program you're looking for. It might have been moved or doesn't exist.
+        </p>
+        <a
+          href="/"
+          className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-3 md:text-lg md:px-8 transition"
+        >
+          Back to Home
+        </a>
+      </div>
+    </main>
+  );
 }

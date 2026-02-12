@@ -41,15 +41,23 @@ export default function CoursesGrid({ courses }: Props) {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
   const [loading, setLoading] = useState(false);
 
+  console.log(`[CoursesGrid] Total courses: ${courses?.length || 0}`);
+  console.log(`[CoursesGrid] Visible count: ${visibleCount}`);
+  console.log(`[CoursesGrid] Courses data:`, courses);
+
   const handleLoadMore = () => {
+    console.log(`[CoursesGrid] Load More clicked. Current visible: ${visibleCount}, Total: ${courses.length}`);
     setLoading(true);
     setTimeout(() => {
-      setVisibleCount((prev) => prev + ITEMS_PER_LOAD);
+      const newCount = visibleCount + ITEMS_PER_LOAD;
+      console.log(`[CoursesGrid] Setting visible count to: ${newCount}`);
+      setVisibleCount(newCount);
       setLoading(false);
     }, 800);
   };
 
   const handleLoadLess = () => {
+    console.log(`[CoursesGrid] Load Less clicked`);
     setVisibleCount(ITEMS_PER_LOAD);
     // Optional: Scroll back up to the top of the grid smoothly
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -65,6 +73,9 @@ export default function CoursesGrid({ courses }: Props) {
     );
   }
 
+  const visibleCourses = courses.slice(0, visibleCount);
+  console.log(`[CoursesGrid] Rendering ${visibleCourses.length} courses out of ${courses.length}`);
+
   return (
     <section className="max-w-7xl mx-auto px-4 mt-10">
       {/* GRID */}
@@ -72,11 +83,17 @@ export default function CoursesGrid({ courses }: Props) {
         className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
         variants={container}
         initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
+        animate="visible"
+        key={visibleCount}
       >
-        {courses.slice(0, visibleCount).map((course) => (
-          <motion.div key={course.id} variants={fadeUp}>
+        {visibleCourses.map((course, index) => (
+          <motion.div
+            key={course.id}
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            style={{ opacity: 1 }}
+          >
             <CourseCard course={course} />
           </motion.div>
         ))}
