@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useState, useEffect } from "react";
 import { CheckCircle2, ChevronLeft, ShieldCheck, CreditCard, User, Mail, Phone, MapPin, School, Calendar, Globe, Wand2 } from "lucide-react";
 import Link from 'next/link';
+import DatePicker from "@/components/ui/DatePicker";
 import { API_BASE_URL } from "@/lib/config";
 
 interface Country {
@@ -13,7 +14,7 @@ interface Country {
     phonecode: number;
 }
 
-const InputField = ({ label, name, type = "text", placeholder, icon: Icon, required = false, value, onChange }: any) => (
+const InputField = ({ label, name, type = "text", placeholder, icon: Icon, required = false, value, onChange, ...props }: any) => (
     <div className="relative group">
         <label className="block text-gray-700 text-sm font-semibold mb-2 ml-1">{label} {required && <span className="text-red-500">*</span>}</label>
         <div className="relative">
@@ -28,6 +29,7 @@ const InputField = ({ label, name, type = "text", placeholder, icon: Icon, requi
                 className="w-full pl-10 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-gray-50 focus:bg-white placeholder-gray-400 text-gray-800"
                 value={value}
                 onChange={onChange}
+                {...props}
             />
         </div>
     </div>
@@ -70,6 +72,16 @@ function RegistrationForm() {
 
     // If level comes as '1', '2', '3', convert to Roman numerals for display
     const displayLevel = courseLevel === "1" ? "Level-I" : courseLevel === "2" ? "Level-II" : "Level-III";
+
+    const [maxDate, setMaxDate] = useState("");
+
+    useEffect(() => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        setMaxDate(`${year}-${month}-${day}`);
+    }, []);
 
     useEffect(() => {
         const fetchCountries = async () => {
@@ -261,10 +273,10 @@ function RegistrationForm() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
                 {/* Left Column - Form */}
-                <div className="lg:col-span-2 bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <div className="lg:col-span-2 bg-white rounded-3xl shadow-xl border border-gray-100">
 
                     {/* Form Header */}
-                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 text-white relative overflow-hidden">
+                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 text-white relative overflow-hidden rounded-t-3xl">
                         <div className="relative z-10">
                             <h1 className="text-3xl font-bold mb-2">Register for Course</h1>
                             <p className="text-indigo-100">Fill in your details to enroll in the course.</p>
@@ -320,7 +332,13 @@ function RegistrationForm() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <InputField label="Full Name" name="name" placeholder="John Doe" icon={User} required value={formData.name} onChange={handleChange} />
-                                <InputField label="Date of Birth" name="dob" type="date" icon={Calendar} required value={formData.dob} onChange={handleChange} />
+                                <DatePicker
+                                    label="Date of Birth"
+                                    value={formData.dob}
+                                    onChange={(date) => setFormData(prev => ({ ...prev, dob: date }))}
+                                    maxDate={maxDate}
+                                    required
+                                />
 
                                 {/* Gender Selection */}
                                 <div className="md:col-span-2">

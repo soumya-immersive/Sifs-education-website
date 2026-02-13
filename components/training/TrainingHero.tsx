@@ -75,19 +75,6 @@ export default function TrainingHero({ training }: Props) {
         >
           {training.overview}
         </motion.p>
-
-        {/* Rating (Optional UI – static for now) */}
-        <motion.div
-          variants={fadeUp}
-          className="flex items-center gap-2 mt-4"
-        >
-          <div className="flex text-yellow-400">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} size={16} fill="currentColor" />
-            ))}
-          </div>
-          <span className="text-sm text-gray-600">(4.7+ Ratings)</span>
-        </motion.div>
       </motion.div>
     </section>
   );

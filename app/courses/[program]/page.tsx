@@ -47,7 +47,7 @@ interface PaginatedCourses {
 // ----------------------------------------------------------------------
 // HELPER: Fetch Courses for Program Listing
 // ----------------------------------------------------------------------
-async function getApiCourses(programSlug: string, endpoint: string, page: number = 1, limit: number = 10, search: string = "", slevel: string = "", sduration: string = "", sno: string = ""): Promise<PaginatedCourses> {
+async function getApiCourses(programSlug: string, endpoint: string, page: number = 1, limit: number = 10, search: string = "", slevel: string = "", sduration: string = "", sno: string = ""): Promise<PaginatedCourses & { success: boolean }> {
   try {
     const searchQuery = search ? `&search=${encodeURIComponent(search)}` : "";
     const levelQuery = slevel ? `&slevel=${encodeURIComponent(slevel)}` : "";
@@ -55,18 +55,15 @@ async function getApiCourses(programSlug: string, endpoint: string, page: number
     const sortQuery = sno ? `&sno=${encodeURIComponent(sno)}` : "";
 
     const paginatedEndpoint = `${endpoint}?page=${page}&limit=${limit}${searchQuery}${levelQuery}${durationQuery}${sortQuery}&_t=${Date.now()}`;
-    console.log(`[getApiCourses] Fetching from: ${paginatedEndpoint}`);
     const response = await fetch(paginatedEndpoint, {
       cache: 'no-store',
     });
 
     if (!response.ok) {
-      console.error(`[getApiCourses] Failed: ${response.status} ${response.statusText}`);
-      return { courses: [] };
+      return { courses: [], success: false };
     }
 
     const json = await response.json();
-    console.log(`[getApiCourses] Response success: ${json.success}, data length: ${json.data?.data?.length}`);
 
     if (json.success && json.data && Array.isArray(json.data.data)) {
       // Newer API shape puts pagination under json.data.pagination
@@ -77,7 +74,6 @@ async function getApiCourses(programSlug: string, endpoint: string, page: number
         last_page: json.data.last_page,
       };
 
-      console.log(`[getApiCourses] Found paginated response: current_page=${paginationObj.current_page}, last_page=${paginationObj.last_page}`);
       const mappedCourses = json.data.data.map((apiCourse: any) => ({
         id: apiCourse.id,
         programSlug: programSlug,
@@ -99,6 +95,7 @@ async function getApiCourses(programSlug: string, endpoint: string, page: number
 
       return {
         courses: mappedCourses,
+        success: true,
         pagination: {
           current_page,
           per_page,
@@ -111,7 +108,6 @@ async function getApiCourses(programSlug: string, endpoint: string, page: number
         }
       };
     } else if (json.success && json.data && Array.isArray(json.data.courses)) {
-      console.log(`[getApiCourses] Found alternative courses array response`);
       const mappedCourses = json.data.courses.map((apiCourse: any) => ({
         id: apiCourse.id,
         programSlug: programSlug,
@@ -125,9 +121,8 @@ async function getApiCourses(programSlug: string, endpoint: string, page: number
         bannerImage: "/course/hero-bg.png",
         description: apiCourse.sub_title || ""
       }));
-      return { courses: mappedCourses };
+      return { courses: mappedCourses, success: true };
     } else if (json.success && Array.isArray(json.data)) {
-      console.log(`[getApiCourses] Found direct array response`);
       const mappedCourses = json.data.map((apiCourse: any) => ({
         id: apiCourse.id,
         programSlug: programSlug,
@@ -141,14 +136,13 @@ async function getApiCourses(programSlug: string, endpoint: string, page: number
         bannerImage: "/course/hero-bg.png",
         description: apiCourse.sub_title || ""
       }));
-      return { courses: mappedCourses };
+      return { courses: mappedCourses, success: true };
     }
 
-    console.warn(`[getApiCourses] Unrecognized API structure:`, json);
-    return { courses: [] };
+    return { courses: [], success: json.success || false };
   } catch (error) {
     console.error("[getApiCourses] Error fetching courses:", error);
-    return { courses: [] };
+    return { courses: [], success: false };
   }
 }
 
@@ -280,24 +274,40 @@ export default async function Page({ params, searchParams }: Props) {
     const result = await getApiCourses(slug, endpoint, currentPage, currentLimit, search || "", slevel || "", sduration || "", sno || "");
     programCourses = result.courses;
     const pagination = result.pagination;
+    const courseSuccess = result.success;
 
     // Fallback to local courses if API returned nothing
-    if (programCourses.length === 0) {
-      console.log(`[CoursesPage] No API courses found, checking static data...`);
+    if (programCourses.length === 0 && !courseSuccess) {
       programCourses = courses.filter((course) => course.programSlug === slug);
     }
 
-    // Always return the page structure, even if empty (CoursesGrid handles empty state)
+    const DataNotFoundMessage = ({ title = "No Items Found", message = "No items are available in this category at the moment." }: { title?: string, message?: string }) => (
+      <div className="py-20 text-center max-w-lg mx-auto px-4">
+        <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-3">{title}</h2>
+        <p className="text-gray-500 mb-8">{message}</p>
+      </div>
+    );
+
+    // Always return the page structure, even if empty
     return (
       <main>
         <CoursesHero program={programData} />
         <CoursesFilterBar />
-        <CoursesGrid
-          courses={programCourses}
-          pagination={pagination}
-          slug={slug}
-          basePath="/courses"
-        />
+        {programCourses.length > 0 ? (
+          <CoursesGrid
+            courses={programCourses}
+            pagination={pagination}
+            slug={slug}
+            basePath="/courses"
+          />
+        ) : (
+          <DataNotFoundMessage title="No Courses Found" />
+        )}
 
         <Learning />
       </main>

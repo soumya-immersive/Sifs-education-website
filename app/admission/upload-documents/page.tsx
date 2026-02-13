@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, FileCheck, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Search, FileCheck, Loader2, AlertCircle, CheckCircle2, Link } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/lib/config";
@@ -207,7 +207,7 @@ export default function AdmissionHero() {
 
           {/* Quick Help */}
           <p className="mt-4 text-sm text-gray-400">
-            Having trouble? <button className="text-[#0056B3] font-semibold underline underline-offset-4">Contact Support</button>
+            Having trouble? <button className="text-[#0056B3] font-semibold underline underline-offset-4"><Link to="/contact">Contact Support</Link></button>
           </p>
         </div>
       </div>

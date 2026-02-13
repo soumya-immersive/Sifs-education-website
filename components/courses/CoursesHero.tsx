@@ -57,7 +57,7 @@ export default function CoursesHero({
         <motion.div variants={container}>
           <motion.h1
             variants={fadeUp}
-            className="text-3xl font-bold text-gray-900"
+            className="text-4xl font-bold text-gray-900"
           >
             {program.label}
           </motion.h1>

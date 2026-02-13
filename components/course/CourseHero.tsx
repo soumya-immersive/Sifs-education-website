@@ -35,9 +35,8 @@ export default function CourseHero({ course }: Props) {
     <section
       className="relative bg-cover bg-center bg-no-repeat py-24 overflow-hidden"
       style={{
-        backgroundImage: `url(${
-          course.bannerImage || "/course/hero-bg.png"
-        })`,
+        backgroundImage: `url(${course.bannerImage || "/course/hero-bg.png"
+          })`,
       }}
     >
       <motion.div
@@ -70,7 +69,7 @@ export default function CourseHero({ course }: Props) {
         </motion.h1>
 
         {/* Rating */}
-        <motion.div
+        {/* <motion.div
           variants={fadeUp}
           className="flex items-center gap-2 mb-4"
         >
@@ -87,7 +86,7 @@ export default function CourseHero({ course }: Props) {
           <span className="text-sm text-gray-600">
             ({course.reviewsCount}+ Ratings)
           </span>
-        </motion.div>
+        </motion.div> */}
       </motion.div>
     </section>
   );

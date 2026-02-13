@@ -43,7 +43,7 @@ const defaultNavItems = [
     label: "Training",
     children: trainingPrograms.map((program) => ({
       label: program.label,
-      path: `/training/${program.slug}`,
+      path: `/${program.slug}`,
     })),
   },
   {
@@ -91,7 +91,7 @@ export default function Header() {
 
     const fetchHeaderData = async () => {
       try {
-        // 1. Fetch Categories first to update navigation
+        // 1. Fetch Course Categories
         const categoriesResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/courses/categories`, { cache: 'no-store' });
         const categoriesData = await categoriesResponse.json();
 
@@ -103,7 +103,35 @@ export default function Header() {
           }));
         }
 
-        // 2. Fetch General Header Data (Logo, header_text)
+        // 2. Fetch Training/Internship Categories
+        let dynamicTrainingItems: NavItem[] = [];
+        let dynamicInternshipItems: NavItem[] = [];
+        try {
+          const trResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/training-categories`, { cache: 'no-store' });
+          const trData = await trResponse.json();
+
+          if (trData?.success && trData?.data?.categories) {
+            const allCats = trData.data.categories;
+
+            dynamicTrainingItems = allCats
+              .filter((cat: any) => !cat.name.toLowerCase().includes('internship'))
+              .map((cat: any) => ({
+                label: cat.name,
+                path: `/${cat.slug}`
+              }));
+
+            dynamicInternshipItems = allCats
+              .filter((cat: any) => cat.name.toLowerCase().includes('internship'))
+              .map((cat: any) => ({
+                label: cat.name,
+                path: `/${cat.slug}`
+              }));
+          }
+        } catch (err) {
+          console.error("Failed to fetch training categories:", err);
+        }
+
+        // 3. Fetch General Header Data (Logo, header_text)
         const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`, {
           cache: 'no-store',
           headers: {
@@ -113,12 +141,13 @@ export default function Header() {
 
         if (!response.ok) {
           console.error("API request failed:", response.status);
-          // Still try to update nav items with categories even if front API fails
-          if (dynamicCourseItems.length > 0) {
-            setNavItems(prev => prev.map(item =>
-              item.label === "Courses" ? { ...item, children: dynamicCourseItems } : item
-            ));
-          }
+          // Update nav items with whatever categories we managed to fetch
+          setNavItems(prev => prev.map(item => {
+            if (item.label === "Courses" && dynamicCourseItems.length > 0) return { ...item, children: dynamicCourseItems };
+            if (item.label === "Training" && dynamicTrainingItems.length > 0) return { ...item, children: dynamicTrainingItems };
+            if (item.label === "Internship" && dynamicInternshipItems.length > 0) return { ...item, children: dynamicInternshipItems };
+            return item;
+          }));
           return;
         }
 
@@ -143,11 +172,12 @@ export default function Header() {
         }
 
         // Fallback: If no header_text from API, update the defaultNavItems with categories
-        if (dynamicCourseItems.length > 0) {
-          setNavItems(prev => prev.map(item =>
-            item.label === "Courses" ? { ...item, children: dynamicCourseItems } : item
-          ));
-        }
+        setNavItems(prev => prev.map(item => {
+          if (item.label === "Courses" && dynamicCourseItems.length > 0) return { ...item, children: dynamicCourseItems };
+          if (item.label === "Training" && dynamicTrainingItems.length > 0) return { ...item, children: dynamicTrainingItems };
+          if (item.label === "Internship" && dynamicInternshipItems.length > 0) return { ...item, children: dynamicInternshipItems };
+          return item;
+        }));
 
       } catch (error) {
         console.error("Failed to fetch header data:", error);
@@ -382,27 +412,29 @@ export default function Header() {
 
   const getTarget = (item: NavItem) => (isExternalLink(item.path || "") ? "_blank" : undefined);
 
-  // Handle course link clicks - triggers API call for the specific course category
-  const handleCourseClick = async (slug: string, parentLabel: string) => {
-    // Only trigger for Courses menu items
-    if (parentLabel !== "Courses") return;
+  // Handle link clicks - triggers API call for the specific category
+  const handleNavItemClick = async (slug: string, parentLabel: string) => {
+    let url = "";
+    if (parentLabel === "Courses") {
+      url = `${API_BASE_URL}/EducationAndInternship/Website/front/courses/category/${slug}`;
+    } else if (parentLabel === "Training" || parentLabel === "Internship") {
+      url = `${API_BASE_URL}/EducationAndInternship/Website/training-categories/${slug}`;
+    }
+
+    if (!url) return;
 
     try {
-      console.log(`Fetching course category data for: ${slug}`);
-      const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/courses/category/${slug}`, {
-        cache: 'no-store',
-      });
+      console.log(`Fetching ${parentLabel} category data for: ${slug} from ${url}`);
+      const response = await fetch(url, { cache: 'no-store' });
 
       if (response.ok) {
         const data = await response.json();
-        console.log(`Course category data for ${slug}:`, data);
-        // You can store this data in state or context if needed
-        // For now, we're just logging it
+        console.log(`${parentLabel} category data for ${slug}:`, data);
       } else {
-        console.error(`Failed to fetch course category ${slug}:`, response.status);
+        console.error(`Failed to fetch ${parentLabel} category ${slug}:`, response.status);
       }
     } catch (error) {
-      console.error(`Error fetching course category ${slug}:`, error);
+      console.error(`Error fetching ${parentLabel} category ${slug}:`, error);
     }
   };
 
@@ -458,7 +490,7 @@ export default function Header() {
                               onClick={() => {
                                 // Extract slug from path (remove leading /)
                                 const slug = child.path?.replace(/^\//, '') || '';
-                                handleCourseClick(slug, item.label);
+                                handleNavItemClick(slug, item.label);
                               }}
                               className="flex items-center justify-between px-4 py-2 text-sm
                                        text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition"
@@ -561,7 +593,7 @@ export default function Header() {
                             onClick={() => {
                               // Extract slug from path (remove leading /)
                               const slug = child.path?.replace(/^\//, '') || '';
-                              handleCourseClick(slug, item.label);
+                              handleNavItemClick(slug, item.label);
                               toggleMenu();
                             }}
                             className="block py-2 px-3 text-sm text-gray-600"
