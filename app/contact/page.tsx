@@ -3,8 +3,10 @@
 import { useState } from "react";
 import PageBanner from "../../components/common/PageBanner";
 import { motion, easeOut } from "framer-motion";
-import { API_BASE_URL } from "@/lib/config";
+import { API_BASE_URL, BASE_URL } from "@/lib/config";
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
+import Link from "next/link";
 
 export default function ContactPage() {
     const [form, setForm] = useState({
@@ -16,7 +18,23 @@ export default function ContactPage() {
         message: "",
     });
     const [loading, setLoading] = useState(false);
+    const [breadcrumb, setBreadcrumb] = useState<string>("");
     const [status, setStatus] = useState<{ type: 'success' | 'error' | '', message: string }>({ type: '', message: '' });
+
+    useEffect(() => {
+        const fetchBanner = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
+                const result = await response.json();
+                if (result.success && result.data?.bs?.breadcrumb) {
+                    setBreadcrumb(result.data.bs.breadcrumb);
+                }
+            } catch (error) {
+                console.error("Error fetching banner:", error);
+            }
+        };
+        fetchBanner();
+    }, []);
 
     const handleChange = (e: any) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -106,8 +124,8 @@ export default function ContactPage() {
             <motion.div variants={fadeUp}>
                 <PageBanner
                     title="Get in Touch"
-                    subtitle="Reference giving information on its origins, as well as a random Lipsum generator."
-                    bgImage="/contact-gradient-bg.png"
+                    subtitle="Have questions? Our team is here to help you. Reach out to us for any inquiries regarding education, training, internships, or workshops."
+                    bgImage={breadcrumb ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Breadcrumb/${breadcrumb}` : "/contact-gradient-bg.png"}
                 />
             </motion.div>
 
@@ -122,68 +140,68 @@ export default function ContactPage() {
                     animate="visible"
                 >
                     {/* LEFT FORM CARD */}
-                    <motion.div className="bg-white rounded-2xl border" variants={fadeUp}>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b border-gray-300 px-8 py-3">
-                            Get in touch
+                    <motion.div className="bg-white rounded-2xl border shadow-sm overflow-hidden" variants={fadeUp}>
+                        <h2 className="text-xl font-semibold text-gray-900 px-8 py-5 border-b border-gray-100 bg-gray-50/50">
+                            Send us a Message
                         </h2>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-8 py-3">
-                            <input
-                                type="text"
-                                name="first"
-                                placeholder="First name"
-                                value={form.first}
-                                onChange={handleChange}
-                                className="border rounded-lg p-3 text-sm text-gray-800 placeholder-gray-400"
-                            />
+                        <div className="p-8 space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input
+                                    type="text"
+                                    name="first"
+                                    placeholder="First name"
+                                    value={form.first}
+                                    onChange={handleChange}
+                                    className="border rounded-lg p-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                />
 
-                            <input
-                                type="email"
-                                name="email"
-                                placeholder="Email"
-                                value={form.email}
-                                onChange={handleChange}
-                                className="border rounded-lg p-3 text-sm text-gray-800 placeholder-gray-400"
-                            />
+                                <input
+                                    type="email"
+                                    name="email"
+                                    placeholder="Email Address"
+                                    value={form.email}
+                                    onChange={handleChange}
+                                    className="border rounded-lg p-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                />
 
-                            <input
-                                type="text"
-                                name="mobile"
-                                placeholder="Mobile number"
-                                value={form.mobile}
-                                onChange={handleChange}
-                                className="border rounded-lg p-3 text-sm text-gray-800 placeholder-gray-400"
-                            />
+                                <input
+                                    type="text"
+                                    name="mobile"
+                                    placeholder="Mobile number"
+                                    value={form.mobile}
+                                    onChange={handleChange}
+                                    className="border rounded-lg p-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                />
 
-                            <input
-                                type="text"
-                                name="subject"
-                                placeholder="Subject"
-                                value={form.subject}
-                                onChange={handleChange}
-                                className="border rounded-lg p-3 text-sm text-gray-800 placeholder-gray-400"
-                            />
-                        </div>
+                                <input
+                                    type="text"
+                                    name="subject"
+                                    placeholder="Subject"
+                                    value={form.subject}
+                                    onChange={handleChange}
+                                    className="border rounded-lg p-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                />
+                            </div>
 
-                        <div className="px-8 py-3">
                             <textarea
                                 name="address"
                                 placeholder="Full Address"
                                 value={form.address}
                                 onChange={handleChange}
-                                className="w-full border rounded-lg p-3 text-sm mt-4 h-20 text-gray-800 placeholder-gray-400"
+                                className="w-full border rounded-lg p-3 text-sm h-20 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                             />
 
                             <textarea
                                 name="message"
-                                placeholder="Message"
+                                placeholder="Write your message here..."
                                 value={form.message}
                                 onChange={handleChange}
-                                className="w-full border rounded-lg p-3 text-sm mt-4 h-28 text-gray-800 placeholder-gray-400"
+                                className="w-full border rounded-lg p-3 text-sm h-28 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                             />
 
                             {status.message && (
-                                <p className={`mt-4 text-sm ${status.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
+                                <p className={`text-sm ${status.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
                                     {status.message}
                                 </p>
                             )}
@@ -191,43 +209,68 @@ export default function ContactPage() {
                             <button
                                 onClick={handleSubmit}
                                 disabled={loading}
-                                className="mt-6 mb-6 bg-gradient-to-r from-[#3E58EE] to-[#B565E7] hover:from-[#354ED8] hover:to-[#A24EDC] text-white px-6 py-3 rounded-lg text-sm flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                className="w-full md:w-auto bg-gradient-to-r from-[#3E58EE] to-[#B565E7] hover:shadow-lg hover:shadow-blue-500/20 text-white px-8 py-3.5 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed group"
                             >
                                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                                {loading ? 'Sending...' : 'Send Message →'}
+                                {loading ? 'Sending...' : 'Send Message'}
+                                {!loading && <span className="group-hover:translate-x-1 transition-transform">→</span>}
                             </button>
                         </div>
                     </motion.div>
 
                     {/* RIGHT INFO CARD */}
-                    <motion.div className="bg-white rounded-2xl border" variants={fadeUp}>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b border-gray-300 px-8 py-3">
+                    <motion.div className="bg-white rounded-2xl border shadow-sm overflow-hidden" variants={fadeUp}>
+                        <h2 className="text-xl font-semibold text-gray-900 px-8 py-5 border-b border-gray-100 bg-gray-50/50">
                             We are here to help you
                         </h2>
 
-                        <div className="px-8 py-3">
-                            <p className="font-semibold text-gray-900">CORP OFFICE</p>
-
-                            <p className="text-sm text-gray-700 mt-2 flex items-start gap-2 leading-relaxed">
-                                <img src="/contact/1.png" alt="Location" className="w-5 h-5 mt-1" />
-                                A-14, Mahendru Enclave, Model Town Metro Station,<br />
-                                Delhi-110033, India.
-                            </p>
+                        <div className="p-8 pt-6">
+                            <div className="flex items-start gap-4 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50 mb-8">
+                                <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center shrink-0 border border-blue-100">
+                                    <img src="/contact/1.png" alt="Location" className="w-6 h-6" />
+                                </div>
+                                <div className="text-sm">
+                                    <p className="font-bold text-gray-900 uppercase tracking-wider text-[11px] mb-1">CORP OFFICE</p>
+                                    <p className="text-gray-700 leading-relaxed font-medium">
+                                        A-14, Mahendru Enclave, Model Town Metro Station,<br />
+                                        Delhi-110033, India.
+                                    </p>
+                                </div>
+                            </div>
 
                             {/* CONTACT ROWS */}
-                            <div className="mt-6 space-y-4 text-sm">
+                            <div className="space-y-5">
                                 {[
                                     { img: "/contact/2.png", title: "Education", phone: "+91-730-391-3002, +91-11-470-74263", email: "education@sifs.in" },
                                     { img: "/contact/3.png", title: "Training", phone: "+91-730-391-3003, +91-11-470-74263", email: "training@sifs.in" },
                                     { img: "/contact/4.png", title: "Internship", phone: "+91-858-887-7002, +91-11-470-74263", email: "info@sifs.in" },
                                     { img: "/contact/5.png", title: "Workshop", phone: "+91-730-391-3002, +91-11-470-74263", email: "info@sifs.in" },
                                 ].map((item, index) => (
-                                    <div key={index} className="flex gap-3">
-                                        <img src={item.img} alt={item.title} className="w-10 h-10" />
-                                        <div className="text-gray-800">
-                                            <p className="font-medium">{item.title}</p>
-                                            <p>{item.phone}</p>
-                                            <p className="text-gray-600">{item.email}</p>
+                                    <div key={index} className="flex gap-4 items-start group">
+                                        <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center shrink-0 group-hover:bg-blue-50 transition-colors border border-gray-100 group-hover:border-blue-100 shadow-sm">
+                                            <img src={item.img} alt={item.title} className="w-7 h-7 object-contain" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-gray-900 text-base">{item.title}</p>
+                                            <div className="text-[13px] text-gray-600 mt-1 flex flex-wrap items-center gap-x-2">
+                                                {item.phone.split(',').map((p, i) => (
+                                                    <span key={i} className="flex items-center gap-2">
+                                                        <Link
+                                                            href={`tel:${p.trim().replace(/[-\s]/g, '')}`}
+                                                            className="hover:text-blue-600 transition-colors font-medium"
+                                                        >
+                                                            {p.trim()}
+                                                        </Link>
+                                                        {i < item.phone.split(',').length - 1 && <span className="w-1 h-1 rounded-full bg-gray-300"></span>}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            <Link
+                                                href={`mailto:${item.email}`}
+                                                className="text-[13px] text-gray-500 hover:text-blue-600 transition-colors block mt-0.5"
+                                            >
+                                                {item.email}
+                                            </Link>
                                         </div>
                                     </div>
                                 ))}
@@ -237,25 +280,31 @@ export default function ContactPage() {
                 </motion.div>
 
                 {/* INTERNATIONAL SECTION */}
-                <motion.div variants={fadeUp} className="mt-12">
-                    <h3 className="font-semibold text-gray-900 mb-3">International Associates</h3>
-                    <div className="flex gap-2 flex-wrap">
-                        <span className="px-4 py-2 bg-[#e6f0ff] border rounded-sm text-sm text-gray-800">
+                <motion.div variants={fadeUp} className="mt-16">
+                    <h3 className="font-bold text-gray-900 mb-6 text-lg flex items-center gap-3">
+                        <span className="w-8 h-[2px] bg-blue-600"></span>
+                        International Associates
+                    </h3>
+                    <div className="flex gap-3 flex-wrap">
+                        <span className="px-5 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 shadow-sm">
                             Lucknow
                         </span>
                     </div>
                 </motion.div>
 
                 {/* NATIONAL SECTION */}
-                <motion.div variants={fadeUp} className="mt-10">
-                    <h3 className="font-semibold text-gray-900 mb-3">National Presence</h3>
-                    <div className="flex flex-wrap gap-2">
+                <motion.div variants={fadeUp} className="mt-12">
+                    <h3 className="font-bold text-gray-900 mb-6 text-lg flex items-center gap-3">
+                        <span className="w-8 h-[2px] bg-blue-600"></span>
+                        National Presence
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                         {[
                             "Ahmedabad", "Amritsar", "Bangalore", "Chandigarh", "Chennai",
                             "Dehradun", "Hyderabad", "Indore", "Jalandhar", "Kolkata",
                             "Kottayam", "Mumbai", "Pune City", "Pune Central", "Sahdol", "Udaipur"
                         ].map((city, i) => (
-                            <span key={i} className="px-4 py-2 bg-[#e6f0ff] border rounded-sm text-sm text-gray-800">
+                            <span key={i} className="px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-center text-[13px] font-medium text-gray-700 shadow-sm hover:border-blue-400 hover:text-blue-600 transition-all cursor-default">
                                 {city}
                             </span>
                         ))}
@@ -263,6 +312,7 @@ export default function ContactPage() {
                 </motion.div>
 
             </div>
+
         </motion.div>
     );
 }

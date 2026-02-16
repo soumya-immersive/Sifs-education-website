@@ -65,7 +65,9 @@ export default async function RootLayout({
   children: ReactNode;
 }) {
   let lang = "en";
+  let dir = "ltr";
   let favicon = "/favicon.ico";
+  let bs: any = null;
 
   try {
     const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`, {
@@ -74,8 +76,10 @@ export default async function RootLayout({
     const json = await response.json();
     if (json.success && json.data) {
       lang = json.data.currentLang?.code || "en";
-      favicon = json.data.bs?.favicon
-        ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Favicon/${json.data.bs.favicon}`
+      dir = json.data.currentLang?.rtl === 1 ? "rtl" : "ltr";
+      bs = json.data.bs;
+      favicon = bs?.favicon
+        ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Favicon/${bs.favicon}`
         : "/favicon.ico";
     }
   } catch (error) {
@@ -83,7 +87,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang={lang}>
+    <html lang={lang} dir={dir}>
       <head>
         <link rel="icon" href={favicon} sizes="any" />
         <link rel="shortcut icon" href={favicon} />
@@ -97,6 +101,26 @@ export default async function RootLayout({
         <Header />
         <main>{children}</main>
         <Footer />
+
+        {/* Dynamic Scripts from CMS */}
+        {bs?.is_analytics === 1 && bs?.google_analytics_script && (
+          <div dangerouslySetInnerHTML={{ __html: bs.google_analytics_script }} />
+        )}
+        {bs?.is_facebook_pexel === 1 && bs?.facebook_pexel_script && (
+          <div dangerouslySetInnerHTML={{ __html: bs.facebook_pexel_script }} />
+        )}
+        {bs?.is_tawkto === 1 && bs?.tawk_to_script && (
+          <div dangerouslySetInnerHTML={{ __html: bs.tawk_to_script }} />
+        )}
+        {bs?.is_addthis === 1 && bs?.addthis_script && (
+          <div dangerouslySetInnerHTML={{ __html: bs.addthis_script }} />
+        )}
+        {bs?.is_disqus === 1 && bs?.disqus_script && (
+          <div dangerouslySetInnerHTML={{ __html: bs.disqus_script }} />
+        )}
+        {bs?.is_appzi === 1 && bs?.appzi_script && (
+          <div dangerouslySetInnerHTML={{ __html: bs.appzi_script }} />
+        )}
       </body>
     </html>
   );

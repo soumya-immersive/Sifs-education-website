@@ -19,24 +19,26 @@ interface ApiTraining {
   training_code: string | null;
   price_level_1: string;
   duration: string;
-  training_outline: string;
-  case_studies: string;
   mode_of_study: string;
 }
-
-// Final API endpoint will be: `${API_BASE_URL}/EducationAndInternship/Website/training-categories/${program}`
 
 async function getApiTrainings(
   program: string,
   page: number = 1,
-  limit: number = 10
+  limit: number = 10,
+  search: string = "",
+  sduration: string = "",
+  sno: string = ""
 ): Promise<{ trainings: Training[]; pagination?: PaginationData }> {
   const queryParams = new URLSearchParams();
-  queryParams.append("page", String(page));
-  queryParams.append("limit", String(limit));
+  // Fetch with a higher limit to ensure we find the category, as the API paginates categories
+  queryParams.append("limit", "100");
+  if (search) queryParams.append("search", search);
+  if (sduration) queryParams.append("sduration", sduration);
+  if (sno) queryParams.append("sno", sno);
   queryParams.append("_t", String(Date.now()));
 
-  const url = `${API_BASE_URL}/EducationAndInternship/Website/training-categories/${program}?${queryParams.toString()}`;
+  const url = `${API_BASE_URL}/EducationAndInternship/Website/training-categories?${queryParams.toString()}`;
 
   try {
     console.log(`Fetching trainings for ${program} from ${url}`);
@@ -56,38 +58,19 @@ async function getApiTrainings(
     try {
       const json = JSON.parse(text);
 
-      let dataArr: any[] = [];
-      let pagination: PaginationData | undefined = undefined;
+      let targetCategory: any = null;
 
-      // Handle different API response structures
       if (json.success && json.data) {
-        if (Array.isArray(json.data.data)) {
-          // Paginated Structure
-          dataArr = json.data.data;
-          pagination = {
-            current_page: json.data.current_page,
-            per_page: json.data.per_page,
-            total: json.data.total,
-            total_pages: json.data.last_page,
-            showing_from: (json.data.current_page - 1) * json.data.per_page + 1,
-            showing_to: Math.min(
-              json.data.current_page * json.data.per_page,
-              json.data.total
-            ),
-            has_previous: json.data.current_page > 1,
-            has_next: json.data.current_page < json.data.last_page,
-          };
-        } else if (json.data.category?.trainings) {
-          // Nested structure
-          dataArr = json.data.category.trainings;
+        if (Array.isArray(json.data.categories)) {
+          targetCategory = json.data.categories.find((c: any) => c.slug === program);
         } else if (Array.isArray(json.data)) {
-          // Direct Array
-          dataArr = json.data;
+          // Fallback if data is direct array
+          targetCategory = json.data.find((c: any) => c.slug === program);
         }
       }
 
-      if (Array.isArray(dataArr)) {
-        const mappedTrainings = dataArr.map((t: ApiTraining) => ({
+      if (targetCategory && Array.isArray(targetCategory.trainings)) {
+        const allTrainings = targetCategory.trainings.map((t: ApiTraining) => ({
           id: t.id,
           slug: t.slug,
           programSlug: program,
@@ -105,11 +88,45 @@ async function getApiTrainings(
           ],
           price: t.price_level_1,
           duration: t.duration,
-          trainingOutline: t.training_outline,
-          caseStudies: t.case_studies,
+          trainingOutline: "", // Not in new API
         }));
 
-        return { trainings: mappedTrainings, pagination };
+        let filteredTrainings = allTrainings;
+
+        // Client-side filtering to ensure accuracy if API doesn't filter nested items
+        if (search) {
+          const searchLower = search.toLowerCase();
+          filteredTrainings = filteredTrainings.filter((t: any) =>
+            t.title.toLowerCase().includes(searchLower) ||
+            t.overview.toLowerCase().includes(searchLower)
+          );
+        }
+
+        if (sduration) {
+          const durationLower = sduration.toLowerCase();
+          filteredTrainings = filteredTrainings.filter((t: any) =>
+            t.duration.toLowerCase().includes(durationLower)
+          );
+        }
+
+        // Manual Pagination
+        const total = filteredTrainings.length;
+        const totalPages = Math.ceil(total / limit);
+        const offset = (page - 1) * limit;
+        const paginatedTrainings = filteredTrainings.slice(offset, offset + limit);
+
+        const pagination: PaginationData = {
+          current_page: page,
+          per_page: limit,
+          total: total,
+          total_pages: totalPages,
+          showing_from: offset + 1,
+          showing_to: Math.min(offset + limit, total),
+          has_previous: page > 1,
+          has_next: page < totalPages,
+        };
+
+        return { trainings: paginatedTrainings, pagination };
       }
       return { trainings: [] };
     } catch (parseError) {
@@ -130,6 +147,9 @@ interface Props {
     program: string;
   }>;
   searchParams: Promise<{
+    search?: string;
+    sduration?: string;
+    sno?: string;
     page?: string;
     limit?: string;
   }>;
@@ -137,7 +157,7 @@ interface Props {
 
 export default async function TrainingProgramPage({ params, searchParams }: Props) {
   const { program } = await params;
-  const { page, limit } = (await searchParams) || {};
+  const { page, limit, search, sduration, sno } = (await searchParams) || {};
 
   const currentPage = parseInt(page || "1", 10);
   const currentLimit = parseInt(limit || "10", 10);
@@ -150,7 +170,10 @@ export default async function TrainingProgramPage({ params, searchParams }: Prop
   const { trainings: programTrainings, pagination } = await getApiTrainings(
     program,
     currentPage,
-    currentLimit
+    currentLimit,
+    search || "",
+    sduration || "",
+    sno || ""
   );
 
   return (

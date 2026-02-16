@@ -130,7 +130,9 @@ const StepItem: React.FC<StepItemProps> = ({ step, isLast, isFirst }) => {
           {/* Small Dot - FOREGROUND */}
           {step.active ? (
             // Active (Step 2): Hollow Ring (White bg, Blue Border)
-            <div className="relative z-10 w-4 h-4 bg-white border-[3px] border-blue-500 rounded-full"></div>
+
+            // relative z-10 w-4 h-4 bg-white border-[3px] border-blue-500 rounded-full
+            <div className="relative z-10 w-4 h-4 bg-blue-500 rounded-full ring-4 ring-transparent"></div>
           ) : (
             // Inactive: Solid Blue Dot (added ring-white to separate from background if needed)
             <div className="relative z-10 w-4 h-4 bg-blue-500 rounded-full ring-4 ring-transparent"></div>
@@ -148,7 +150,7 @@ const StepItem: React.FC<StepItemProps> = ({ step, isLast, isFirst }) => {
       */}
       <div className="flex-1 pb-8 lg:pb-0 lg:px-2 lg:text-center">
         <div className="h-16 flex items-center lg:h-auto lg:block lg:justify-center">
-          <h3 className={`text-sm sm:text-base font-bold uppercase leading-tight ${step.active ? "text-blue-600" : "text-gray-900"}`}>
+          <h3 className="text-sm sm:text-base font-bold uppercase leading-tight text-gray-900">
             {step.title}
           </h3>
         </div>

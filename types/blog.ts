@@ -28,10 +28,22 @@ export interface BlogPagination {
     search_query: string;
 }
 
+export interface BlogCategory {
+    id: number;
+    language_id: number;
+    name: string;
+    status: number;
+    serial_number: number;
+    blog_count: number;
+    language_code?: string;
+    language_name?: string;
+}
+
 export interface BlogsResponse {
     success: boolean;
     message: string;
     statusCode: number;
+    timestamp?: string;
     data: {
         data: BlogPost[];
         pagination: BlogPagination;
@@ -39,6 +51,8 @@ export interface BlogsResponse {
             showing: string;
             search_info: string;
         };
+        category?: BlogCategory;
+        all_categories?: BlogCategory[];
     };
 }
 export interface BlogDetailsResponse {
@@ -51,5 +65,16 @@ export interface BlogDetailsResponse {
         seo_description: string;
         seo_keyword: string;
         seo_og_image: string;
+    };
+}
+
+export interface CategoriesResponse {
+    success: boolean;
+    message: string;
+    statusCode: number;
+    timestamp?: string;
+    data: {
+        categories: BlogCategory[];
+        total: number;
     };
 }

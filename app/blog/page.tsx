@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import PageBanner from "../../components/common/PageBanner";
 import { motion, easeOut } from "framer-motion";
 import {
@@ -12,16 +13,32 @@ import {
     ChevronLeft
 } from "lucide-react";
 import { API_BASE_URL, BASE_URL } from "@/lib/config";
-import type { BlogPost, BlogsResponse, BlogPagination } from "@/types/blog";
+import type { BlogPost, BlogsResponse, BlogPagination, BlogCategory, CategoriesResponse } from "@/types/blog";
 
 export default function BlogPage() {
+    const searchParams = useSearchParams();
     const [blogs, setBlogs] = useState<BlogPost[]>([]);
     const [pagination, setPagination] = useState<BlogPagination | null>(null);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState<string>("All Posts");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+        searchParams.get("category") ? Number(searchParams.get("category")) : null
+    );
+    const [categories, setCategories] = useState<BlogCategory[]>([]);
+    const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+
+    // Sync from URL if params change (e.g. navigation from sidebar)
+    useEffect(() => {
+        const querySearch = searchParams.get("search") || "";
+        const queryCategory = searchParams.get("category");
+
+        if (querySearch !== searchTerm) setSearchTerm(querySearch);
+
+        const catId = queryCategory ? Number(queryCategory) : null;
+        if (catId !== selectedCategoryId) setSelectedCategoryId(catId);
+
+    }, [searchParams]);
 
 
 
@@ -32,7 +49,26 @@ export default function BlogPage() {
             setCurrentPage(1);
         }, 500);
         return () => clearTimeout(handler);
-    }, [searchTerm, selectedCategory]);
+    }, [searchTerm, selectedCategoryId]);
+
+    // Fetch Categories
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/blog-categories`);
+                if (!response.ok) throw new Error('Failed to fetch categories');
+
+                const json: CategoriesResponse = await response.json();
+                if (json.success && json.data && json.data.categories) {
+                    setCategories(json.data.categories);
+                }
+            } catch (error) {
+                console.error("Failed to fetch categories:", error);
+            }
+        };
+
+        fetchCategories();
+    }, []);
 
     // Fetch Blogs
     useEffect(() => {
@@ -40,8 +76,13 @@ export default function BlogPage() {
             setLoading(true);
             try {
                 const searchQuery = debouncedSearch ? `&search=${encodeURIComponent(debouncedSearch)}` : "";
-                const categoryQuery = selectedCategory !== "All Posts" ? `&category=${encodeURIComponent(selectedCategory)}` : "";
-                const apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front/blogs?page=${currentPage}&limit=10${searchQuery}${categoryQuery}`;
+                let apiUrl = "";
+
+                if (selectedCategoryId) {
+                    apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front/blog-categories/${selectedCategoryId}/blogs?page=${currentPage}&limit=10${searchQuery}`;
+                } else {
+                    apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front/blogs?page=${currentPage}&limit=10${searchQuery}`;
+                }
 
                 const response = await fetch(apiUrl);
                 if (!response.ok) {
@@ -50,8 +91,8 @@ export default function BlogPage() {
 
                 const json: BlogsResponse = await response.json();
 
-                if (json.success && json.data && json.data.data) {
-                    setBlogs(json.data.data);
+                if (json.success && json.data) {
+                    setBlogs(json.data.data || []);
                     setPagination(json.data.pagination);
                 } else {
                     setBlogs([]);
@@ -65,7 +106,7 @@ export default function BlogPage() {
         };
 
         fetchBlogs();
-    }, [currentPage, debouncedSearch, selectedCategory]);
+    }, [currentPage, debouncedSearch, selectedCategoryId]);
 
     // Helper to strip HTML and truncate
     const getExcerpt = (html: string, length: number = 100) => {
@@ -74,17 +115,7 @@ export default function BlogPage() {
         return text.length > length ? text.substring(0, length) + "..." : text;
     };
 
-    const categories = [
-        "Forensic Science",
-        "Crime Scene Investigation",
-        "Criminology & Victimology",
-        "Cyber Security & Law",
-        "DNA Fingerprinting",
-        "Document Examination",
-        "Fingerprint Analysis",
-        "Forensic Accounting",
-        "Forensic Anthropology",
-    ];
+
 
     // Animation Variants
     const fadeUp = {
@@ -221,7 +252,7 @@ export default function BlogPage() {
                                     onClick={() => {
                                         setSearchTerm("");
                                         setDebouncedSearch("");
-                                        setSelectedCategory("All Posts");
+                                        setSelectedCategoryId(null);
                                     }}
                                     className="text-[#3E58EE] font-semibold hover:underline"
                                 >
@@ -300,10 +331,10 @@ export default function BlogPage() {
                             <div className="space-y-2">
                                 <button
                                     onClick={() => {
-                                        setSelectedCategory("All Posts");
+                                        setSelectedCategoryId(null);
                                         setCurrentPage(1);
                                     }}
-                                    className={`w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all ${selectedCategory === "All Posts"
+                                    className={`w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all ${selectedCategoryId === null
                                         ? "bg-[#3E58EE] text-white shadow-md shadow-blue-200"
                                         : "bg-[#FBFCFF] text-gray-600 hover:bg-[#F3F6FF] hover:text-[#3E58EE]"
                                         }`}
@@ -311,20 +342,20 @@ export default function BlogPage() {
                                     All Posts
                                     <ChevronRight size={14} />
                                 </button>
-                                {categories.map((cat, i) => (
+                                {categories.slice(0, 10).map((cat) => (
                                     <button
-                                        key={i}
+                                        key={cat.id}
                                         onClick={() => {
-                                            setSelectedCategory(cat);
+                                            setSelectedCategoryId(cat.id);
                                             setCurrentPage(1);
                                         }}
-                                        className={`w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all ${selectedCategory === cat
+                                        className={`w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all ${selectedCategoryId === cat.id
                                             ? "bg-[#3E58EE] text-white shadow-md shadow-blue-200"
                                             : "bg-[#FBFCFF] text-gray-600 hover:bg-[#F3F6FF] hover:text-[#3E58EE]"
                                             }`}
                                     >
-                                        {cat}
-                                        <ChevronRight size={14} />
+                                        {cat.name}
+                                        {/* {cat.blog_count ? <span className="ml-auto text-xs bg-gray-200 text-gray-600 py-0.5 px-2 rounded-full group-hover:bg-[#3E58EE] group-hover:text-white transition-colors">{cat.blog_count}</span> : <ChevronRight size={14} />} */}
                                     </button>
                                 ))}
                             </div>

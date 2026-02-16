@@ -146,8 +146,8 @@ async function getApiCourses(programSlug: string, endpoint: string, page: number
 async function getApiInternships(programSlug: string, endpoint: string, page: number = 1, limit: number = 10, search: string = "", sduration: string = "", sno: string = "", scat: string = ""): Promise<{ internships: Internship[], pagination?: PaginationData, success: boolean }> {
     try {
         const queryParams = new URLSearchParams();
-        queryParams.append('page', String(page));
-        queryParams.append('limit', String(limit));
+        // Use a high limit to fetch all categories to find the correct one
+        queryParams.append('limit', "100");
         if (search) queryParams.append('search', search);
         if (sno) queryParams.append('sno', sno);
         if (sduration) queryParams.append('sduration', sduration);
@@ -165,40 +165,24 @@ async function getApiInternships(programSlug: string, endpoint: string, page: nu
 
         const json = await response.json();
 
-        // Handle both direct array and paginated structure
+        let targetCategory: any = null;
         let dataArr: any[] = [];
-        let pagination: PaginationData | undefined = undefined;
 
         if (json.success && json.data) {
-            if (Array.isArray(json.data.data)) {
-                const current_page = Number(json.data.current_page) || 1;
-                const per_page = Number(json.data.per_page) || 10;
-                const total = Number(json.data.total) || 0;
-                const last_page = Number(json.data.last_page) || 1;
-
-                // Paginated Laravel structure
-                dataArr = json.data.data;
-                pagination = {
-                    current_page: current_page,
-                    per_page: per_page,
-                    total: total,
-                    total_pages: last_page,
-                    showing_from: ((current_page - 1) * per_page) + 1,
-                    showing_to: Math.min(current_page * per_page, total),
-                    has_previous: current_page > 1,
-                    has_next: current_page < last_page
-                };
-            } else if (json.data.category?.trainings && Array.isArray(json.data.category.trainings)) {
-                // Nested structure
-                dataArr = json.data.category.trainings;
+            if (Array.isArray(json.data.categories)) {
+                targetCategory = json.data.categories.find((c: any) => c.slug === programSlug);
             } else if (Array.isArray(json.data)) {
-                // Direct array
-                dataArr = json.data;
+                // Fallback if data is direct array
+                targetCategory = json.data.find((c: any) => c.slug === programSlug);
             }
         }
 
-        if (json.success && Array.isArray(dataArr)) {
-            const mapped = dataArr.map((item: any) => ({
+        if (targetCategory && Array.isArray(targetCategory.trainings)) {
+            dataArr = targetCategory.trainings;
+        }
+
+        if (dataArr.length > 0) {
+            let filteredItems = dataArr.map((item: any) => ({
                 id: item.id.toString(),
                 title: item.title,
                 overview: item.sub_title,
@@ -206,7 +190,7 @@ async function getApiInternships(programSlug: string, endpoint: string, page: nu
                 heroImage: item.image_url,
                 slug: item.slug,
                 programSlug: programSlug,
-                category: item.mode_of_study,
+                category: item.mode_of_study || 'Training',
                 duration: item.duration,
                 level: item.level || 'All Levels',
                 rating: 4.8,
@@ -217,7 +201,41 @@ async function getApiInternships(programSlug: string, endpoint: string, page: nu
                 tags: ['Featured'],
                 features: ['Certification', 'Hands-on', 'Expert Led']
             }));
-            return { internships: mapped, pagination, success: true };
+
+            // Client-side filtering
+            if (search) {
+                const searchLower = search.toLowerCase();
+                filteredItems = filteredItems.filter((t: any) =>
+                    t.title.toLowerCase().includes(searchLower) ||
+                    (t.overview && t.overview.toLowerCase().includes(searchLower))
+                );
+            }
+
+            if (sduration) {
+                const durationLower = sduration.toLowerCase();
+                filteredItems = filteredItems.filter((t: any) =>
+                    t.duration && t.duration.toLowerCase().includes(durationLower)
+                );
+            }
+
+            // Manual Pagination
+            const total = filteredItems.length;
+            const totalPages = Math.ceil(total / limit);
+            const offset = (page - 1) * limit;
+            const paginatedItems = filteredItems.slice(offset, offset + limit);
+
+            const pagination: PaginationData = {
+                current_page: page,
+                per_page: limit,
+                total: total,
+                total_pages: totalPages,
+                showing_from: offset + 1,
+                showing_to: Math.min(offset + limit, total),
+                has_previous: page > 1,
+                has_next: page < totalPages
+            };
+
+            return { internships: paginatedItems, pagination, success: true };
         }
 
         return { internships: [], success: json.success || false };
@@ -250,7 +268,7 @@ export default async function ProgramPage({ params, searchParams }: Props) {
     const courseSuccess = result.success;
 
     // 2. Try to fetch as an INTERNSHIP or TRAINING PROGRAM
-    const trainingEndpoint = `${API_BASE_URL}/EducationAndInternship/Website/training-categories/${slug}`;
+    const trainingEndpoint = `${API_BASE_URL}/EducationAndInternship/Website/training-categories`;
     const { scat, search: iSearch, sduration: iDuration, sno: iSno } = await searchParams;
     const internshipResult = await getApiInternships(slug, trainingEndpoint, currentPage, currentLimit, (iSearch as string) || "", (iDuration as string) || "", (iSno as string) || "", (scat as string) || "");
     const programItems = internshipResult.internships;
