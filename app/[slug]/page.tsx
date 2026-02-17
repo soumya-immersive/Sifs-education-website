@@ -7,6 +7,7 @@ import { trainings as staticTrainings, type Training } from "../../data/training
 import { courses, type Course } from "../../data/courses";
 import { internships, type Internship } from "../../data/internships";
 import { API_BASE_URL } from "@/lib/config";
+import type { Metadata, ResolvingMetadata } from "next"; // Added Metadata imports
 import type { ApiCoursesResponse } from "@/types/course";
 
 // Courses Components
@@ -26,6 +27,8 @@ import TrainingHero from "../../components/trainings/TrainingHero";
 import TrainingFilterBar from "../../components/trainings/TrainingFilterBar";
 import TrainingGrid from "../../components/trainings/TrainingGrid";
 import TrainingLearning from "../../components/trainings/Learning";
+import PageBanner from "@/components/common/PageBanner"; // Added import
+import CMSPageClient from "./CMSPageClient";
 
 interface Props {
     params: Promise<{
@@ -181,69 +184,159 @@ async function getApiInternships(programSlug: string, endpoint: string, page: nu
             dataArr = targetCategory.trainings;
         }
 
-        if (dataArr.length > 0) {
-            let filteredItems = dataArr.map((item: any) => ({
-                id: item.id.toString(),
-                title: item.title,
-                overview: item.sub_title,
-                image: item.image_url,
-                heroImage: item.image_url,
-                slug: item.slug,
-                programSlug: programSlug,
-                category: item.mode_of_study || 'Training',
-                duration: item.duration,
-                level: item.level || 'All Levels',
-                rating: 4.8,
-                reviewsCount: 120,
-                students: 500,
-                price: item.price_level_1,
-                originalPrice: item.price_level_1 ? parseInt(item.price_level_1) + 500 : 0,
-                tags: ['Featured'],
-                features: ['Certification', 'Hands-on', 'Expert Led']
-            }));
+        // Fix: Only return success if we actually found the category or valid data
+        if (targetCategory) {
+            if (dataArr.length > 0) {
+                let filteredItems = dataArr.map((item: any) => ({
+                    id: item.id.toString(),
+                    title: item.title,
+                    overview: item.sub_title,
+                    image: item.image_url,
+                    heroImage: item.image_url,
+                    slug: item.slug,
+                    programSlug: programSlug,
+                    category: item.mode_of_study || 'Training',
+                    duration: item.duration,
+                    level: item.level || 'All Levels',
+                    rating: 4.8,
+                    reviewsCount: 120,
+                    students: 500,
+                    price: item.price_level_1,
+                    originalPrice: item.price_level_1 ? parseInt(item.price_level_1) + 500 : 0,
+                    tags: ['Featured'],
+                    features: ['Certification', 'Hands-on', 'Expert Led']
+                }));
 
-            // Client-side filtering
-            if (search) {
-                const searchLower = search.toLowerCase();
-                filteredItems = filteredItems.filter((t: any) =>
-                    t.title.toLowerCase().includes(searchLower) ||
-                    (t.overview && t.overview.toLowerCase().includes(searchLower))
-                );
+                // Client-side filtering
+                if (search) {
+                    const searchLower = search.toLowerCase();
+                    filteredItems = filteredItems.filter((t: any) =>
+                        t.title.toLowerCase().includes(searchLower) ||
+                        (t.overview && t.overview.toLowerCase().includes(searchLower))
+                    );
+                }
+
+                if (sduration) {
+                    const durationLower = sduration.toLowerCase();
+                    filteredItems = filteredItems.filter((t: any) =>
+                        t.duration && t.duration.toLowerCase().includes(durationLower)
+                    );
+                }
+
+                // Manual Pagination
+                const total = filteredItems.length;
+                const totalPages = Math.ceil(total / limit);
+                const offset = (page - 1) * limit;
+                const paginatedItems = filteredItems.slice(offset, offset + limit);
+
+                const pagination: PaginationData = {
+                    current_page: page,
+                    per_page: limit,
+                    total: total,
+                    total_pages: totalPages,
+                    showing_from: offset + 1,
+                    showing_to: Math.min(offset + limit, total),
+                    has_previous: page > 1,
+                    has_next: page < totalPages
+                };
+
+                return { internships: paginatedItems, pagination, success: true };
             }
 
-            if (sduration) {
-                const durationLower = sduration.toLowerCase();
-                filteredItems = filteredItems.filter((t: any) =>
-                    t.duration && t.duration.toLowerCase().includes(durationLower)
-                );
-            }
-
-            // Manual Pagination
-            const total = filteredItems.length;
-            const totalPages = Math.ceil(total / limit);
-            const offset = (page - 1) * limit;
-            const paginatedItems = filteredItems.slice(offset, offset + limit);
-
-            const pagination: PaginationData = {
-                current_page: page,
-                per_page: limit,
-                total: total,
-                total_pages: totalPages,
-                showing_from: offset + 1,
-                showing_to: Math.min(offset + limit, total),
-                has_previous: page > 1,
-                has_next: page < totalPages
-            };
-
-            return { internships: paginatedItems, pagination, success: true };
+            // Category found but empty list
+            return { internships: [], success: true };
         }
 
-        return { internships: [], success: json.success || false };
+        // Category not found
+        return { internships: [], success: false };
+
     } catch (error) {
         console.error("Error fetching internships:", error);
         return { internships: [], success: false };
     }
 }
+
+// ----------------------------------------------------------------------
+// HELPER: Fetch Generic CMS Page
+// ----------------------------------------------------------------------
+interface PageApiData {
+    id: number;
+    title: string;
+    subtitle: string;
+    slug: string;
+    featured_image: string;
+    body: string;
+    featured_image_url: string;
+    seo?: {
+        seo_title: string;
+        seo_description: string;
+        seo_keywords: string;
+        seo_og_image: string;
+    };
+    seo_title?: string;
+    meta_description?: string;
+    meta_keywords?: string;
+}
+
+
+async function getGenericPage(slug: string): Promise<PageApiData | null> {
+    try {
+        const res = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/page/${slug}`, {
+            next: { revalidate: 60 },
+        });
+
+        if (!res.ok) return null;
+
+        const json = await res.json();
+
+        if (json.success && json.data) {
+            return json.data;
+        }
+
+        return null;
+    } catch (error) {
+        console.error(`Error fetching generic page data for slug: ${slug}`, error);
+        return null;
+    }
+}
+
+
+// ----------------------------------------------------------------------
+// GENERATE METADATA
+// ----------------------------------------------------------------------
+export async function generateMetadata(
+    { params }: Props,
+    parent: ResolvingMetadata
+): Promise<Metadata> {
+    const { slug } = await params;
+
+    // 1. Try to fetch as a GENERIC CMS PAGE
+    const genericPageData = await getGenericPage(slug);
+
+    if (genericPageData) {
+        const title = genericPageData.seo?.seo_title || genericPageData.seo_title || genericPageData.title;
+        const description = genericPageData.seo?.seo_description || genericPageData.meta_description || genericPageData.subtitle;
+        const keywords = genericPageData.seo?.seo_keywords || genericPageData.meta_keywords;
+        const ogImage = genericPageData.seo?.seo_og_image || genericPageData.featured_image_url;
+
+        return {
+            title: title,
+            description: description,
+            keywords: keywords,
+            openGraph: {
+                title: title,
+                description: description,
+                images: ogImage ? [ogImage] : [],
+            },
+        };
+    }
+
+    // Default fallback (could be improved to fetch course/training titles)
+    return {
+        title: slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+    };
+}
+
 
 export default async function ProgramPage({ params, searchParams }: Props) {
     const { slug } = await params;
@@ -274,6 +367,20 @@ export default async function ProgramPage({ params, searchParams }: Props) {
     const programItems = internshipResult.internships;
     const internshipPagination = internshipResult.pagination;
     const trainingSuccess = internshipResult.success;
+
+    // 3. Try to fetch as a GENERIC CMS PAGE
+    const genericPageData = await getGenericPage(slug);
+
+    // ----------------------------------------------------------------------
+    // UNIFIED RENDERING LOGIC
+    // ----------------------------------------------------------------------
+
+    // PRIORITY 1: Generic CMS Page
+    if (genericPageData) {
+        return <CMSPageClient initialPageData={genericPageData} />;
+    }
+
+
 
     // ----------------------------------------------------------------------
     // UNIFIED RENDERING LOGIC
@@ -364,18 +471,10 @@ export default async function ProgramPage({ params, searchParams }: Props) {
         );
     }
 
-    // Default Fallback: If we couldn't determine the type but want to show something
-    const fallbackProgram = {
-        label: slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
-        slug: slug
-    };
 
-    return (
-        <main>
-            <CoursesHero program={fallbackProgram} />
-            <CoursesFilterBar />
-            <DataNotFoundMessage title="Data Not Found" message="We couldn't find any content for this category. Please try a different filter or search." />
-            <CourseLearning />
-        </main>
-    );
+
+
+    // Default Fallback: If we couldn't determine the type but want to show something
+    notFound();
 }
+

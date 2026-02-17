@@ -78,3 +78,28 @@ export interface CategoriesResponse {
         total: number;
     };
 }
+
+export interface BlogPageMetaResponse {
+    success: boolean;
+    message: string;
+    statusCode: number;
+    timestamp?: string;
+    data: {
+        currentLang?: {
+            id: number;
+            name: string;
+            code: string;
+            is_default: number;
+            rtl: number;
+            created_at: string;
+            updated_at: string;
+        };
+        be?: {
+            blog_meta_title: string;
+        };
+        bs?: {
+            blog_section_title: string;
+            blog_section_subtitle: string;
+        };
+    };
+}

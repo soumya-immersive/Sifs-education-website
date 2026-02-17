@@ -7,6 +7,7 @@ import { ReactNode } from 'react'; // Add this import
 import { Metadata } from 'next';
 import { API_BASE_URL, BASE_URL } from '../lib/config';
 import { Toaster } from 'react-hot-toast';
+import MaintenanceView from '../components/common/MaintenanceView';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -23,6 +24,13 @@ export async function generateMetadata(): Promise<Metadata> {
     const json = await response.json();
 
     if (json.success && json.data) {
+      if (json.data.bs?.maintainance_mode === 1) {
+        return {
+          title: "Maintenance Mode | SIFS India",
+          description: "Our website is currently under maintenance. We will be back soon.",
+        };
+      }
+
       const faviconPath = json.data.bs?.favicon
         ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Favicon/${json.data.bs.favicon}`
         : "/favicon.ico";
@@ -68,6 +76,7 @@ export default async function RootLayout({
   let dir = "ltr";
   let favicon = "/favicon.ico";
   let bs: any = null;
+  let isMaintenance = false;
 
   try {
     const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`, {
@@ -78,6 +87,7 @@ export default async function RootLayout({
       lang = json.data.currentLang?.code || "en";
       dir = json.data.currentLang?.rtl === 1 ? "rtl" : "ltr";
       bs = json.data.bs;
+      isMaintenance = bs?.maintainance_mode === 1;
       favicon = bs?.favicon
         ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Favicon/${bs.favicon}`
         : "/favicon.ico";
@@ -96,30 +106,43 @@ export default async function RootLayout({
       </head>
       <body>
         <Toaster position="top-right" />
-        <RouteChangeHandler />
-        <Topbar />
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        {isMaintenance ? (
+          <MaintenanceView
+            text={bs?.maintainance_text}
+            image={bs?.maintainance_image_url}
+          />
+        ) : (
+          <>
+            <RouteChangeHandler />
+            <Topbar />
+            <Header />
+            <main>{children}</main>
+            <Footer />
+          </>
+        )}
 
         {/* Dynamic Scripts from CMS */}
-        {bs?.is_analytics === 1 && bs?.google_analytics_script && (
-          <div dangerouslySetInnerHTML={{ __html: bs.google_analytics_script }} />
-        )}
-        {bs?.is_facebook_pexel === 1 && bs?.facebook_pexel_script && (
-          <div dangerouslySetInnerHTML={{ __html: bs.facebook_pexel_script }} />
-        )}
-        {bs?.is_tawkto === 1 && bs?.tawk_to_script && (
-          <div dangerouslySetInnerHTML={{ __html: bs.tawk_to_script }} />
-        )}
-        {bs?.is_addthis === 1 && bs?.addthis_script && (
-          <div dangerouslySetInnerHTML={{ __html: bs.addthis_script }} />
-        )}
-        {bs?.is_disqus === 1 && bs?.disqus_script && (
-          <div dangerouslySetInnerHTML={{ __html: bs.disqus_script }} />
-        )}
-        {bs?.is_appzi === 1 && bs?.appzi_script && (
-          <div dangerouslySetInnerHTML={{ __html: bs.appzi_script }} />
+        {!isMaintenance && (
+          <>
+            {bs?.is_analytics === 1 && bs?.google_analytics_script && (
+              <div dangerouslySetInnerHTML={{ __html: bs.google_analytics_script }} />
+            )}
+            {bs?.is_facebook_pexel === 1 && bs?.facebook_pexel_script && (
+              <div dangerouslySetInnerHTML={{ __html: bs.facebook_pexel_script }} />
+            )}
+            {bs?.is_tawkto === 1 && bs?.tawk_to_script && (
+              <div dangerouslySetInnerHTML={{ __html: bs.tawk_to_script }} />
+            )}
+            {bs?.is_addthis === 1 && bs?.addthis_script && (
+              <div dangerouslySetInnerHTML={{ __html: bs.addthis_script }} />
+            )}
+            {bs?.is_disqus === 1 && bs?.disqus_script && (
+              <div dangerouslySetInnerHTML={{ __html: bs.disqus_script }} />
+            )}
+            {bs?.is_appzi === 1 && bs?.appzi_script && (
+              <div dangerouslySetInnerHTML={{ __html: bs.appzi_script }} />
+            )}
+          </>
         )}
       </body>
     </html>

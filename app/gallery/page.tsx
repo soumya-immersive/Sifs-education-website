@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useState, useEffect, useMemo } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { API_BASE_URL } from "@/lib/config";
+import PageBanner from "@/components/common/PageBanner";
+import { motion, easeOut } from "framer-motion";
 
 /* ---------------- Types ---------------- */
 
@@ -86,9 +88,9 @@ export default function GalleryPage() {
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [fetchProgress, setFetchProgress] = useState({ current: 0, total: 0 });
-
-  // Pagination state for current category
   const [currentPage, setCurrentPage] = useState(1);
+  const [isPageEnabled, setIsPageEnabled] = useState(true);
+  const [disabledMessage, setDisabledMessage] = useState("");
 
   // Reset slider index when modal opens
   useEffect(() => {
@@ -96,6 +98,15 @@ export default function GalleryPage() {
       setCurrentImageIndex(0);
     }
   }, [selectedItem]);
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: easeOut },
+    },
+  };
 
   const nextImage = (e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -137,14 +148,17 @@ export default function GalleryPage() {
           `${API_BASE_URL}/EducationAndInternship/Website/front/image-gallery/?page=1&limit=10`
         );
 
-        if (!firstPageResponse.ok) {
-          throw new Error("Failed to fetch gallery data");
-        }
-
         const firstPageData: ApiResponse = await firstPageResponse.json();
 
-        if (!firstPageData.success) {
-          throw new Error(firstPageData.message || "Failed to load gallery data");
+        if (!firstPageData.success && (firstPageData.message === "Gallery section is disabled" || firstPageData.message?.includes("disabled"))) {
+          setIsPageEnabled(false);
+          setDisabledMessage(firstPageData.message);
+          setLoading(false);
+          return;
+        }
+
+        if (!firstPageResponse.ok) {
+          throw new Error(firstPageData.message || "Failed to fetch gallery data");
         }
 
         // Get total pages from pagination
@@ -239,23 +253,15 @@ export default function GalleryPage() {
     return category?.name || "Unknown Category";
   };
 
+
   if (loading) {
     return (
-      <div className="w-full relative mb-24">
-        <div className="w-full h-52 md:h-64 relative">
-          <Image
-            src="/gallery-banner.png"
-            alt="Gallery Banner"
-            fill
-            className="object-cover"
-          />
-        </div>
-        <div className="text-center py-8">
-          <h2 className="text-3xl font-bold text-gray-900">
-            Forensic Science Events
-          </h2>
-          <p className="text-lg text-gray-600 mt-1">Photo Highlights</p>
-        </div>
+      <div className="w-full relative mb-24 bg-[#FBFCFF]">
+        <PageBanner
+          title="Gallery"
+          subtitle="Photo Highlights"
+          bgImage="/gallery-banner.png"
+        />
         <div className="max-w-7xl mx-auto px-4 py-10">
           <div className="flex flex-col justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
@@ -270,54 +276,81 @@ export default function GalleryPage() {
     );
   }
 
-  if (error) {
+  if (!isPageEnabled) {
     return (
-      <div className="w-full relative mb-24">
-        <div className="w-full h-52 md:h-64 relative">
-          <Image
-            src="/gallery-banner.png"
-            alt="Gallery Banner"
-            fill
-            className="object-cover"
-          />
-        </div>
-        <div className="text-center py-8">
-          <h2 className="text-3xl font-bold text-gray-900">
-            Forensic Science Events
-          </h2>
-          <p className="text-lg text-gray-600 mt-1">Photo Highlights</p>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 py-10">
-          <div className="text-center text-red-600">
-            Error loading gallery: {error}
-          </div>
+      <div className="w-full relative mb-24 bg-[#FBFCFF]">
+        <PageBanner
+          title="Gallery"
+          subtitle="Photo Highlights"
+          bgImage="/gallery-banner.png"
+        />
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+            className="bg-white rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/50 p-12 md:p-20 text-center max-w-3xl mx-auto"
+          >
+            <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-8">
+              <svg className="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">{disabledMessage || "Section Disabled"}</h2>
+          </motion.div>
         </div>
       </div>
     );
   }
 
+  if (error) {
+    return (
+      <div className="w-full relative mb-24 bg-[#FBFCFF]">
+        <PageBanner
+          title="Gallery"
+          subtitle="Photo Highlights"
+          bgImage="/gallery-banner.png"
+        />
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+            className="bg-white rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/50 p-12 md:p-20 text-center max-w-3xl mx-auto"
+          >
+            <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-8">
+              <svg className="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Notice</h2>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
+            >
+              Try Again
+            </button>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
+
+
   return (
     <div className="w-full relative mb-24">
       {/* 🔹 TOP BANNER IMAGE */}
-      <div className="w-full h-52 md:h-64 relative">
-        <Image
-          src="/gallery-banner.png"
-          alt="Gallery Banner"
-          fill
-          className="object-cover"
-        />
-      </div>
+      <PageBanner
+        title="Gallery"
+        subtitle="Photo Highlights"
+        bgImage="/gallery-banner.png"
+      />
 
-      {/* 🔹 TITLE SECTION */}
-      <div className="text-center py-8">
-        <h2 className="text-3xl font-bold text-gray-900">
-          Forensic Science Events
-        </h2>
-        <p className="text-lg text-gray-600 mt-1">Photo Highlights</p>
-      </div>
 
       {/* 🔹 CATEGORY FILTER TABS */}
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4 mt-24">
         <div className="flex gap-3 pb-3 overflow-x-auto scrollbar-hide">
           <button
             key="all"
@@ -432,8 +465,8 @@ export default function GalleryPage() {
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${currentPage > 1
-                  ? "bg-gray-200 hover:bg-gray-300 text-gray-800 cursor-pointer"
-                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                ? "bg-gray-200 hover:bg-gray-300 text-gray-800 cursor-pointer"
+                : "bg-gray-100 text-gray-400 cursor-not-allowed"
                 }`}
             >
               Previous
@@ -464,8 +497,8 @@ export default function GalleryPage() {
                       key={page}
                       onClick={() => handlePageChange(page)}
                       className={`px-4 py-2 rounded-lg font-medium transition-all ${currentPage === page
-                          ? "bg-indigo-600 text-white cursor-pointer"
-                          : "bg-gray-200 hover:bg-gray-300 text-gray-800 cursor-pointer"
+                        ? "bg-indigo-600 text-white cursor-pointer"
+                        : "bg-gray-200 hover:bg-gray-300 text-gray-800 cursor-pointer"
                         }`}
                     >
                       {page}
@@ -478,8 +511,8 @@ export default function GalleryPage() {
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${currentPage < totalPages
-                  ? "bg-gray-200 hover:bg-gray-300 text-gray-800 cursor-pointer"
-                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                ? "bg-gray-200 hover:bg-gray-300 text-gray-800 cursor-pointer"
+                : "bg-gray-100 text-gray-400 cursor-not-allowed"
                 }`}
             >
               Next

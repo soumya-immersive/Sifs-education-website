@@ -22,7 +22,6 @@ const defaultNavItems = [
       { label: "Achievement", path: "/achievements" },
       { label: "Our Faculty", path: "/team" },
       { label: "Career", path: "/career" },
-      { label: "Blog", path: "/blog" },
     ],
   },
   {
@@ -419,6 +418,8 @@ export default function Header() {
       url = `${API_BASE_URL}/EducationAndInternship/Website/front/courses/category/${slug}`;
     } else if (parentLabel === "Training" || parentLabel === "Internship") {
       url = `${API_BASE_URL}/EducationAndInternship/Website/training-categories/${slug}`;
+    } else if (parentLabel === "Institute") {
+      url = `${API_BASE_URL}/EducationAndInternship/Website/page/${slug}`;
     }
 
     if (!url) return;
