@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import CMSPageSkeleton from "@/components/skeletons/CMSPageSkeleton";
 
 import AboutHero from "../../components/about/AboutHero";
 import InitiativesSection from "../../components/about/InitiativesSection";
@@ -48,11 +48,7 @@ export default function CMSPageClient({ initialPageData }: CMSPageClientProps) {
     }, []);
 
     if (!hookLoaded || !isApiLoaded) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC]">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-            </div>
-        );
+        return <CMSPageSkeleton />;
     }
 
     // Merge Page-specific data with global design sections

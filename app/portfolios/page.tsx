@@ -6,6 +6,7 @@ import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { API_BASE_URL, BASE_URL } from "@/lib/config";
 import PageBanner from "../../components/common/PageBanner";
+import PortfolioPageSkeleton from "@/components/skeletons/PortfolioPageSkeleton";
 
 // Types
 interface PortfolioItem {
@@ -121,9 +122,7 @@ export default function PortfoliosPage() {
 
                 {/* Loading State */}
                 {loading ? (
-                    <div className="flex justify-center py-20">
-                        <Loader2 className="animate-spin text-blue-600 w-10 h-10" />
-                    </div>
+                    <PortfolioPageSkeleton />
                 ) : (
                     <>
                         {/* Grid */}

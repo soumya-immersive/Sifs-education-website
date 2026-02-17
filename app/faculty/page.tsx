@@ -11,6 +11,7 @@ import EditableImage from "../../components/editable/EditableImage";
 import { useFacultyPageData } from "@/hooks/useFacultyPageData";
 import { FacultyMember } from "../../types/faculty";
 import { API_BASE_URL, BASE_URL } from "@/lib/config";
+import FacultyPageSkeleton from "@/components/skeletons/FacultyPageSkeleton";
 
 /* ---------------- ANIMATIONS ---------------- */
 const fadeUp = {
@@ -119,11 +120,7 @@ export default function FacultiesPage() {
     : filteredFaculty.slice(0, ITEMS_PER_VIEW);
 
   if (!isLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    );
+    return <FacultyPageSkeleton />;
   }
 
   const handleEditClick = () => {

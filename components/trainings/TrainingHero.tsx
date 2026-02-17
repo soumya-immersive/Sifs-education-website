@@ -1,6 +1,8 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
+import { useState, useEffect } from "react";
+import { API_BASE_URL, BASE_URL } from "@/lib/config";
 
 const container: Variants = {
   hidden: {},
@@ -44,6 +46,24 @@ export default function TrainingHero({
   program?: Program;
   training?: Training;
 }) {
+  const [breadcrumb, setBreadcrumb] = useState<string>("");
+
+  useEffect(() => {
+    const fetchBanner = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
+        const result = await response.json();
+        if (result.success && result.data?.bs?.breadcrumb) {
+          setBreadcrumb(result.data.bs.breadcrumb);
+        }
+      } catch (error) {
+        console.error("Error fetching banner in TrainingHero:", error);
+      }
+    };
+
+    fetchBanner();
+  }, []);
+
   const title = training?.title || program?.label;
   const subtitle = training
     ? "Training Overview"
@@ -51,8 +71,9 @@ export default function TrainingHero({
 
   const image =
     training?.heroImage ||
-    program?.image ||
-    "/training/hero.png";
+    (program?.image && program.image !== "/training/hero.png"
+      ? program.image
+      : (breadcrumb ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Breadcrumb/${breadcrumb}` : "/training/hero.png"));
 
   return (
     <section

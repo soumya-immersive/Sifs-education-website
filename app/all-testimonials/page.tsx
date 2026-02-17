@@ -7,6 +7,7 @@ import Image from "next/image";
 import { API_BASE_URL, BASE_URL } from "@/lib/config";
 import PageBanner from "../../components/common/PageBanner";
 import type { Testimonial, TestimonialsResponse, Pagination } from "@/types/testimonial";
+import TestimonialsPageSkeleton from "@/components/skeletons/TestimonialsPageSkeleton";
 
 export default function AllTestimonialsPage() {
     const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -100,11 +101,7 @@ export default function AllTestimonialsPage() {
 
                 {/* Loading State */}
                 {loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {[...Array(4)].map((_, i) => (
-                            <div key={i} className="bg-gray-50 h-64 rounded-xl animate-pulse"></div>
-                        ))}
-                    </div>
+                    <TestimonialsPageSkeleton />
                 ) : (
                     <>
                         {/* Grid */}

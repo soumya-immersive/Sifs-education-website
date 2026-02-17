@@ -9,6 +9,7 @@ import Image from "next/image";
 import { useQuizData } from "@/hooks/useQuizData";
 import { QuizFormData } from "@/types/quiz";
 import { API_BASE_URL } from "@/lib/config";
+import QuizPageSkeleton from "@/components/skeletons/QuizPageSkeleton";
 
 export default function QuizZonePage() {
     const router = useRouter();
@@ -28,6 +29,16 @@ export default function QuizZonePage() {
     const [isVerifying, setIsVerifying] = useState(false);
     const [formMessage, setFormMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const formatDate = (dateString?: string) => {
+        if (!dateString) return "Date TBA";
+        const date = new Date(dateString);
+        return isNaN(date.getTime()) ? dateString : date.toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+    };
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
@@ -186,14 +197,7 @@ export default function QuizZonePage() {
 
 
     if (loading) {
-        return (
-            <div className="w-full bg-[#FBFCFF] min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3E58EE] mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading quiz data...</p>
-                </div>
-            </div>
-        );
+        return <QuizPageSkeleton />;
     }
 
     if (error) {
@@ -258,7 +262,7 @@ export default function QuizZonePage() {
 
                             <div
                                 className="text-gray-600 text-sm space-y-4 leading-relaxed prose prose-sm max-w-none"
-                                dangerouslySetInnerHTML={{ __html: data.activeQuiz.description }}
+                                dangerouslySetInnerHTML={{ __html: data.activeQuiz.description || "<p>No description available.</p>" }}
                             />
 
                             <div className="grid grid-cols-2 gap-4 pt-4 border-t text-sm">
@@ -266,14 +270,14 @@ export default function QuizZonePage() {
                                     <Calendar size={18} className="text-[#3E58EE]" />
                                     <div>
                                         <p className="font-bold">Start Date:</p>
-                                        <p>{data.activeQuiz.event?.start_date || data.activeQuiz.start_date || (data.activeQuiz as any).event?.formatted_start_date || 'Date TBA'}</p>
+                                        <p>{formatDate(data.activeQuiz.start_date || data.activeQuiz.event?.start_date)}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2 text-gray-700">
                                     <Calendar size={18} className="text-[#3E58EE]" />
                                     <div>
                                         <p className="font-bold">End Date:</p>
-                                        <p>{data.activeQuiz.event?.end_date || data.activeQuiz.end_date || 'Date TBA'}</p>
+                                        <p>{formatDate(data.activeQuiz.end_date || data.activeQuiz.event?.end_date)}</p>
                                     </div>
                                 </div>
                             </div>

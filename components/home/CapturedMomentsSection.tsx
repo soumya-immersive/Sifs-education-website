@@ -94,7 +94,7 @@ const MomentCard: React.FC<MomentCardProps> = ({ moment }) => {
       onClick={handleNavigate}
       className="rounded-xl overflow-hidden bg-white border border-gray-100 shadow-xl transition-all duration-300 hover:shadow-2xl h-full cursor-pointer group"
     >
-      <div className="relative p-4 md:p-6 bg-gray-50">
+      <div className="relative p-4 bg-gray-50">
         <div className="relative">
           <div
             className="absolute inset-0 z-0 opacity-20 rounded-lg"
