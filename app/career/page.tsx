@@ -8,6 +8,7 @@ import JobCard from '../../components/career/JobCard';
 import JobCategoriesSidebar from '../../components/career/JobCategoriesSidebar';
 import { API_BASE_URL } from "@/lib/config";
 import type { CareerJob, CareerCategory, CareersResponse } from "@/types/career";
+import CareerPageSkeleton from "@/components/skeletons/CareerPageSkeleton";
 
 export default function CareerPage() {
     // 1. STATE MANAGEMENT
@@ -99,6 +100,10 @@ export default function CareerPage() {
         },
     };
 
+    if (loading) {
+        return <CareerPageSkeleton />;
+    }
+
     return (
         <motion.div
             className="w-full min-h-screen bg-[#FBFCFF] pb-10"
@@ -149,50 +154,42 @@ export default function CareerPage() {
                             className="flex-1 w-full flex flex-col gap-6"
                             variants={staggerContainer}
                         >
-                            {loading ? (
-                                <div className="space-y-4">
-                                    {[...Array(3)].map((_, i) => (
-                                        <div key={i} className="h-64 bg-gray-100 rounded-2xl animate-pulse"></div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <AnimatePresence mode="popLayout">
-                                    {filteredJobs.length > 0 ? (
-                                        filteredJobs.map((job) => (
-                                            <motion.div
-                                                key={job.id}
-                                                layout
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, scale: 0.95 }}
-                                                transition={{ duration: 0.3 }}
-                                            >
-                                                <JobCard
-                                                    title={job.title}
-                                                    experience={job.experience}
-                                                    deadline={job.deadline}
-                                                    educationalExperience={job.educational_requirements || "Not specified"}
-                                                    slug={job.slug}
-                                                />
-                                            </motion.div>
-                                        ))
-                                    ) : (
+                            <AnimatePresence mode="popLayout">
+                                {filteredJobs.length > 0 ? (
+                                    filteredJobs.map((job) => (
                                         <motion.div
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-200"
+                                            key={job.id}
+                                            layout
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            transition={{ duration: 0.3 }}
                                         >
-                                            <p className="text-gray-500 font-medium">No job openings found in this category.</p>
-                                            <button
-                                                onClick={() => setSelectedCategory("All")}
-                                                className="mt-4 text-blue-600 font-bold hover:underline"
-                                            >
-                                                View all positions
-                                            </button>
+                                            <JobCard
+                                                title={job.title}
+                                                experience={job.experience}
+                                                deadline={job.deadline}
+                                                educationalExperience={job.educational_requirements || "Not specified"}
+                                                slug={job.slug}
+                                            />
                                         </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            )}
+                                    ))
+                                ) : (
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-200"
+                                    >
+                                        <p className="text-gray-500 font-medium">No job openings found in this category.</p>
+                                        <button
+                                            onClick={() => setSelectedCategory("All")}
+                                            className="mt-4 text-blue-600 font-bold hover:underline"
+                                        >
+                                            View all positions
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </motion.div>
                     </div>
                 )}

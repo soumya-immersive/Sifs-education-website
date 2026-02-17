@@ -1,6 +1,8 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
+import { useState, useEffect } from "react";
+import { API_BASE_URL, BASE_URL } from "@/lib/config";
 
 const container: Variants = {
   hidden: {},
@@ -40,6 +42,28 @@ export default function CoursesHero({
     image?: string;
   };
 }) {
+  const [breadcrumb, setBreadcrumb] = useState<string>("");
+
+  useEffect(() => {
+    const fetchBanner = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
+        const result = await response.json();
+        if (result.success && result.data?.bs?.breadcrumb) {
+          setBreadcrumb(result.data.bs.breadcrumb);
+        }
+      } catch (error) {
+        console.error("Error fetching banner in CoursesHero:", error);
+      }
+    };
+
+    fetchBanner();
+  }, []);
+
+  const heroImage = program.image && program.image !== "/courses/hero.png"
+    ? program.image
+    : (breadcrumb ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Breadcrumb/${breadcrumb}` : "/courses/hero.png");
+
   return (
     <section
       className="relative py-16 bg-[url('/courses/hero-bg.png')]
@@ -77,7 +101,7 @@ export default function CoursesHero({
           rounded-xl overflow-hidden"
         >
           <img
-            src={program.image || "/courses/hero.png"}
+            src={heroImage}
             alt={program.label}
             className="w-full h-full object-cover"
           />

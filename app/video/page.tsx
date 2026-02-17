@@ -3,9 +3,10 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { Play, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import { API_BASE_URL } from "../../lib/config";
+import { API_BASE_URL, BASE_URL } from "../../lib/config";
 import PageBanner from "@/components/common/PageBanner";
 import { motion, easeOut } from "framer-motion";
+import VideoGallerySkeleton from "@/components/skeletons/VideoGallerySkeleton";
 
 const ITEMS_PER_PAGE = 9;
 
@@ -18,6 +19,12 @@ export default function VideoGalleryPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPageEnabled, setIsPageEnabled] = useState(true);
   const [disabledMessage, setDisabledMessage] = useState("");
+
+  const getYouTubeId = (url: string) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
 
   const fadeUp = {
     hidden: { opacity: 0, y: 30 },
@@ -146,31 +153,19 @@ export default function VideoGalleryPage() {
   };
 
   if (loading && videos.length === 0) {
-    return (
-      <div className="w-full mb-12 bg-[#FBFCFF]">
-        <PageBanner
-          title="Visual Gallery"
-          subtitle="Forensic Science Events Video Showcase"
-          bgImage="/gallery-banner.png"
-        />
-        <div className="max-w-7xl mx-auto px-4 py-32">
-          <div className="flex flex-col justify-center items-center">
-            <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
-            <p className="text-gray-600 animate-pulse">Fetching latest videos...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <VideoGallerySkeleton />;
   }
 
   return (
     <div className="w-full mb-12 bg-[#FBFCFF]">
       {/* Banner Section */}
-      <PageBanner
-        title="Visual Gallery"
-        subtitle="Forensic Science Events Video Showcase"
-        bgImage="/gallery-banner.png"
-      />
+      <motion.div variants={fadeUp} initial="hidden" animate="visible">
+        <PageBanner
+          title="Visual Gallery"
+          subtitle="Forensic Science Events Video Showcase"
+          bgImage="/contact-gradient-bg.png"
+        />
+      </motion.div>
 
 
       {!isPageEnabled ? (
@@ -215,7 +210,7 @@ export default function VideoGalleryPage() {
       ) : null}
 
       {!error && isPageEnabled && (
-        <div id="video-grid" className="max-w-7xl mx-auto px-4 py-5 min-h-[400px]">
+        <div id="video-grid" className="max-w-7xl mx-auto px-4 py-5 min-h-[400px] mt-20">
           {videos.length === 0 ? (
             <motion.div
               initial="hidden"
@@ -245,14 +240,27 @@ export default function VideoGalleryPage() {
                 >
                   <div className="relative w-full h-52 rounded-xl overflow-hidden flex items-center justify-center bg-gray-100">
                     <Image
-                      src={item.gallery_image || "/placeholder-video.jpg"}
+                      src={
+                        item.gallery_image
+                          ? (item.gallery_image.startsWith('http')
+                            ? item.gallery_image
+                            : `${BASE_URL}/uploads/Education-And-Internship-Admin-Gallery-Featured/${item.gallery_image}`)
+                          : (getYouTubeId(item.video_url)
+                            ? `https://img.youtube.com/vi/${getYouTubeId(item.video_url)}/maxresdefault.jpg`
+                            : "/placeholder-video.jpg")
+                      }
                       alt={item.title}
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-110"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = "/placeholder-video.jpg";
+                        const ytId = getYouTubeId(item.video_url);
+                        if (ytId && !target.src.includes('youtube.com')) {
+                          target.src = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                        } else {
+                          target.src = "/placeholder-video.jpg";
+                        }
                       }}
                     />
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-[2px]">

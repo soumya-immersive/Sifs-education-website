@@ -7,6 +7,7 @@ import { Loader2, ChevronDown } from "lucide-react";
 import { motion, easeOut, AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
 import Link from "next/link";
+import ContactPageSkeleton from "@/components/skeletons/ContactPageSkeleton";
 
 const LocationItem = ({
     item,
@@ -109,6 +110,7 @@ export default function ContactPage() {
     const [status, setStatus] = useState<{ type: 'success' | 'error' | '', message: string }>({ type: '', message: '' });
     const [locations, setLocations] = useState<{ local: any[], international: any[] }>({ local: [], international: [] });
     const [loadingLocations, setLoadingLocations] = useState(true);
+    const [pageLoading, setPageLoading] = useState(true);
     const [activeLocationId, setActiveLocationId] = useState<number | null>(null);
     const [isPageEnabled, setIsPageEnabled] = useState(true);
     const [disabledMessage, setDisabledMessage] = useState("");
@@ -153,10 +155,21 @@ export default function ContactPage() {
             }
         };
 
-        fetchPageData();
-        fetchBanner();
-        fetchLocations();
+        const fetchData = async () => {
+            await Promise.all([
+                fetchPageData(),
+                fetchBanner(),
+                fetchLocations()
+            ]);
+            setPageLoading(false);
+        };
+
+        fetchData();
     }, []);
+
+    if (pageLoading) {
+        return <ContactPageSkeleton />;
+    }
 
     const toggleLocation = (id: number) => {
         setActiveLocationId(activeLocationId === id ? null : id);
@@ -251,7 +264,7 @@ export default function ContactPage() {
                 <PageBanner
                     title="Get in Touch"
                     subtitle="Have questions? Our team is here to help you. Reach out to us for any inquiries regarding education, training, internships, or workshops."
-                    bgImage={breadcrumb ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Breadcrumb/${breadcrumb}` : "/contact-gradient-bg.png"}
+                    bgImage="/contact-gradient-bg.png"
                 />
             </motion.div>
 
@@ -419,52 +432,46 @@ export default function ContactPage() {
                         </motion.div>
 
                         {/* INTERNATIONAL SECTION */}
-                        {loadingLocations ? (
-                            <div className="flex justify-center py-20">
-                                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                            </div>
-                        ) : (
-                            <>
-                                {(locations.international && locations.international.length > 0) && (
-                                    <motion.div variants={fadeUp} className="mt-16">
-                                        <h3 className="font-bold text-gray-900 mb-6 text-lg flex items-center gap-3">
-                                            <span className="w-8 h-[2px] bg-blue-600"></span>
-                                            International Associates
-                                        </h3>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                            {locations.international.map((item) => (
-                                                <LocationItem
-                                                    key={item.id}
-                                                    item={item}
-                                                    isOpen={activeLocationId === item.id}
-                                                    onToggle={() => toggleLocation(item.id)}
-                                                />
-                                            ))}
-                                        </div>
-                                    </motion.div>
-                                )}
+                        <>
+                            {(locations.international && locations.international.length > 0) && (
+                                <motion.div variants={fadeUp} className="mt-16">
+                                    <h3 className="font-bold text-gray-900 mb-6 text-lg flex items-center gap-3">
+                                        <span className="w-8 h-[2px] bg-blue-600"></span>
+                                        International Associates
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                        {locations.international.map((item) => (
+                                            <LocationItem
+                                                key={item.id}
+                                                item={item}
+                                                isOpen={activeLocationId === item.id}
+                                                onToggle={() => toggleLocation(item.id)}
+                                            />
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
 
-                                {/* NATIONAL SECTION */}
-                                {(locations.local && locations.local.length > 0) && (
-                                    <motion.div variants={fadeUp} className="mt-12">
-                                        <h3 className="font-bold text-gray-900 mb-6 text-lg flex items-center gap-3">
-                                            <span className="w-8 h-[2px] bg-blue-600"></span>
-                                            National Presence
-                                        </h3>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                            {locations.local.map((item) => (
-                                                <LocationItem
-                                                    key={item.id}
-                                                    item={item}
-                                                    isOpen={activeLocationId === item.id}
-                                                    onToggle={() => toggleLocation(item.id)}
-                                                />
-                                            ))}
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </>
-                        )}
+                            {/* NATIONAL SECTION */}
+                            {(locations.local && locations.local.length > 0) && (
+                                <motion.div variants={fadeUp} className="mt-12">
+                                    <h3 className="font-bold text-gray-900 mb-6 text-lg flex items-center gap-3">
+                                        <span className="w-8 h-[2px] bg-blue-600"></span>
+                                        National Presence
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                        {locations.local.map((item) => (
+                                            <LocationItem
+                                                key={item.id}
+                                                item={item}
+                                                isOpen={activeLocationId === item.id}
+                                                onToggle={() => toggleLocation(item.id)}
+                                            />
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </>
                     </>
                 )}
             </div>

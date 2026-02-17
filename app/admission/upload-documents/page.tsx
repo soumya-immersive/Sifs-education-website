@@ -4,6 +4,7 @@ import { Search, FileCheck, Loader2, AlertCircle, CheckCircle2, Link } from "luc
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/lib/config";
+import UploadDocumentsSkeleton from "@/components/skeletons/UploadDocumentsSkeleton";
 
 interface PageData {
   title: string;
@@ -128,12 +129,9 @@ export default function AdmissionHero() {
   };
 
   if (pageLoading) {
-    return (
-      <section className="relative bg-white pt-16 pb-24 px-4 overflow-hidden min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#0056B3]" />
-      </section>
-    );
+    return <UploadDocumentsSkeleton />;
   }
+
 
   return (
     <section className="relative bg-white pt-16 pb-24 px-4 overflow-hidden min-h-screen">

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Calendar, MapPin, Users, ChevronRight, ChevronLeft, Search, Filter, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { API_BASE_URL } from "@/lib/config";
+import ConferencePageSkeleton from "@/components/skeletons/ConferencePageSkeleton";
 
 interface ConferenceEvent {
     id: number;
@@ -105,6 +106,10 @@ export default function ConferencePage() {
         { id: 3, label: "Webinar" },
     ];
 
+    if (loading && events.length === 0) {
+        return <ConferencePageSkeleton />;
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
             {/* Hero Banner */}
@@ -189,9 +194,16 @@ export default function ConferencePage() {
 
                 {/* Loading State */}
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center py-20">
-                        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mb-4"></div>
-                        <p className="text-gray-600">Loading events...</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-80 animate-pulse">
+                                <div className="h-48 bg-gray-200" />
+                                <div className="p-6 space-y-4">
+                                    <div className="h-6 bg-gray-200 rounded w-full" />
+                                    <div className="h-4 bg-gray-100 rounded w-2/3" />
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 ) : (
                     <>

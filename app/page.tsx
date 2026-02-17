@@ -24,9 +24,9 @@ export async function generateMetadata(): Promise<Metadata> {
     if (json.success && json.data?.be) {
       const meta = json.data.be;
       return {
-        title: meta.home_meta_title || "Sherlock Institute of Forensic Science",
-        description: meta.home_meta_description || "Industry-specific and Job-ready Forensic Science Courses, Internships, and Workshops.",
-        keywords: meta.home_meta_keywords || "",
+        title: meta.home_meta_title,
+        description: meta.home_meta_description,
+        keywords: meta.home_meta_keywords,
       };
     }
   } catch (error) {

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { API_BASE_URL, BASE_URL } from "@/lib/config";
 import type { BlogPost, BlogsResponse, BlogPagination, BlogCategory, CategoriesResponse, BlogPageMetaResponse } from "@/types/blog";
+import BlogPageSkeleton from "@/components/skeletons/BlogPageSkeleton";
 
 export default function BlogPage() {
     const searchParams = useSearchParams();
@@ -171,6 +172,10 @@ export default function BlogPage() {
         },
     };
 
+    if (loading) {
+        return <BlogPageSkeleton />;
+    }
+
     const handlePageChange = (newPage: number) => {
         if (pagination && newPage >= 1 && newPage <= pagination.total_pages) {
             setCurrentPage(newPage);
@@ -212,13 +217,7 @@ export default function BlogPage() {
 
                         {/* LEFT: BLOG POSTS GRID */}
                         <div className="lg:col-span-2">
-                            {loading ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {[...Array(6)].map((_, i) => (
-                                        <div key={i} className="bg-gray-100 rounded-2xl h-96 animate-pulse"></div>
-                                    ))}
-                                </div>
-                            ) : blogs.length > 0 ? (
+                            {blogs.length > 0 ? (
                                 <motion.div
                                     className="grid grid-cols-1 md:grid-cols-2 gap-6"
                                     initial="hidden"
@@ -269,11 +268,6 @@ export default function BlogPage() {
                                                             {post.title}
                                                         </Link>
                                                     </h3>
-
-                                                    {/* Excerpt */}
-                                                    {/* <p className="text-gray-500 text-sm mb-6 line-clamp-3">
-                                                        {getExcerpt(post.content, 120)}
-                                                    </p> */}
 
                                                     {/* Read More Button */}
                                                     <div className="mt-auto">

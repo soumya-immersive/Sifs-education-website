@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState, useEffect, useMemo } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { API_BASE_URL } from "@/lib/config";
+import GalleryPageSkeleton from "@/components/skeletons/GalleryPageSkeleton";
 import PageBanner from "@/components/common/PageBanner";
 import { motion, easeOut } from "framer-motion";
 
@@ -255,35 +256,19 @@ export default function GalleryPage() {
 
 
   if (loading) {
-    return (
-      <div className="w-full relative mb-24 bg-[#FBFCFF]">
-        <PageBanner
-          title="Gallery"
-          subtitle="Photo Highlights"
-          bgImage="/gallery-banner.png"
-        />
-        <div className="max-w-7xl mx-auto px-4 py-10">
-          <div className="flex flex-col justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-            {fetchProgress.total > 0 && (
-              <p className="text-gray-600">
-                Loading gallery... Page {fetchProgress.current} of {fetchProgress.total}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-    );
+    return <GalleryPageSkeleton />;
   }
 
   if (!isPageEnabled) {
     return (
       <div className="w-full relative mb-24 bg-[#FBFCFF]">
-        <PageBanner
-          title="Gallery"
-          subtitle="Photo Highlights"
-          bgImage="/gallery-banner.png"
-        />
+        <motion.div variants={fadeUp}>
+          <PageBanner
+            title="Gallery"
+            subtitle="Photo Highlights"
+            bgImage="/contact-gradient-bg.png"
+          />
+        </motion.div>
         <div className="max-w-7xl mx-auto px-4 py-12">
           <motion.div
             initial="hidden"
@@ -306,11 +291,13 @@ export default function GalleryPage() {
   if (error) {
     return (
       <div className="w-full relative mb-24 bg-[#FBFCFF]">
-        <PageBanner
-          title="Gallery"
-          subtitle="Photo Highlights"
-          bgImage="/gallery-banner.png"
-        />
+        <motion.div variants={fadeUp}>
+          <PageBanner
+            title="Gallery"
+            subtitle="Photo Highlights"
+            bgImage="/contact-gradient-bg.png"
+          />
+        </motion.div>
         <div className="max-w-7xl mx-auto px-4 py-12">
           <motion.div
             initial="hidden"
@@ -342,11 +329,13 @@ export default function GalleryPage() {
   return (
     <div className="w-full relative mb-24">
       {/* 🔹 TOP BANNER IMAGE */}
-      <PageBanner
-        title="Gallery"
-        subtitle="Photo Highlights"
-        bgImage="/gallery-banner.png"
-      />
+      <motion.div variants={fadeUp}>
+        <PageBanner
+          title="Gallery"
+          subtitle="Photo Highlights"
+          bgImage="/contact-gradient-bg.png"
+        />
+      </motion.div>
 
 
       {/* 🔹 CATEGORY FILTER TABS */}
