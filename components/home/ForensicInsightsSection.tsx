@@ -172,9 +172,9 @@ const ForensicInsights: React.FC = () => {
           {title}
         </h3>
 
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2 grow">
+        {/* <p className="text-gray-600 text-sm mb-4 line-clamp-2 grow">
           {description}
-        </p>
+        </p> */}
 
         <hr className="mb-4 border-gray-100" />
 

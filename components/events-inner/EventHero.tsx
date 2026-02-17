@@ -159,7 +159,7 @@ const TimerCard = ({ value, label, color, bgColor }: TimerCardProps) => (
                 border-2 rounded-2xl ${color} ${bgColor}
                 backdrop-blur-sm shadow-sm`}
   >
-    <span className="text-3xl md:text-7xl font-black text-gray-800 leading-none">
+    <span className="text-3xl md:text-5xl font-black text-gray-800 leading-none">
       {value}
     </span>
     <span className="text-[10px] md:text-xs font-bold text-gray-500 mt-3 tracking-widest">

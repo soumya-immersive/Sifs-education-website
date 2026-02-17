@@ -1,5 +1,6 @@
 import TrainingProgramPage from "../training/[program]/page";
 
-export default function HandsOnTrainingPage() {
-    return <TrainingProgramPage params={Promise.resolve({ program: "handson-training" })} />;
+// @ts-ignore
+export default function HandsOnTrainingPage(props: any) {
+    return <TrainingProgramPage params={Promise.resolve({ program: "handson-training" })} searchParams={props.searchParams || Promise.resolve({})} />;
 }

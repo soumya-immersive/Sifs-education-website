@@ -279,8 +279,12 @@ export default function CourseSidebar({ course }: Props) {
                     </div>
                     <hr className="border-gray-100" />
                     <div className="flex items-center gap-2 text-gray-400 pt-1">
-                      {inst.linkedin && <Linkedin className="w-3 h-3 hover:text-indigo-600 transition-colors" />}
-                      {inst.twitter && <Twitter className="w-3 h-3 hover:text-sky-500 transition-colors" />}
+                      <div className="flex justify-center gap-3">
+                        {inst.facebook && <a href={inst.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-600"><Facebook className="w-4 h-4" /></a>}
+                        {inst.twitter && <a href={inst.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-sky-500"><Twitter className="w-4 h-4" /></a>}
+                        {inst.linkedin && <a href={inst.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-700"><Linkedin className="w-4 h-4" /></a>}
+                        {inst.instagram && <a href={inst.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-pink-600"><Instagram className="w-4 h-4" /></a>}
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import PageBanner from "../../components/common/PageBanner";
 import { motion, easeOut } from "framer-motion";
 import {
@@ -12,17 +13,41 @@ import {
     ChevronLeft
 } from "lucide-react";
 import { API_BASE_URL, BASE_URL } from "@/lib/config";
-import type { BlogPost, BlogsResponse, BlogPagination } from "@/types/blog";
+import type { BlogPost, BlogsResponse, BlogPagination, BlogCategory, CategoriesResponse, BlogPageMetaResponse } from "@/types/blog";
 
 export default function BlogPage() {
+    const searchParams = useSearchParams();
     const [blogs, setBlogs] = useState<BlogPost[]>([]);
     const [pagination, setPagination] = useState<BlogPagination | null>(null);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+        searchParams.get("category") ? Number(searchParams.get("category")) : null
+    );
+    const [categories, setCategories] = useState<BlogCategory[]>([]);
+    const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+    const [isPageEnabled, setIsPageEnabled] = useState(true);
+    const [disabledMessage, setDisabledMessage] = useState("");
+    const [pageMeta, setPageMeta] = useState({
+        title: "Blog",
+        subtitle: "Explore our latest insights, news, and articles on forensic science and criminal investigation.",
+        metaTitle: ""
+    });
 
-    const BASE_URL = "/uploads/blogs";
+    // Sync from URL if params change (e.g. navigation from sidebar)
+    useEffect(() => {
+        const querySearch = searchParams.get("search") || "";
+        const queryCategory = searchParams.get("category");
+
+        if (querySearch !== searchTerm) setSearchTerm(querySearch);
+
+        const catId = queryCategory ? Number(queryCategory) : null;
+        if (catId !== selectedCategoryId) setSelectedCategoryId(catId);
+
+    }, [searchParams]);
+
+
 
     // Debounce Search
     useEffect(() => {
@@ -31,7 +56,54 @@ export default function BlogPage() {
             setCurrentPage(1);
         }, 500);
         return () => clearTimeout(handler);
-    }, [searchTerm]);
+    }, [searchTerm, selectedCategoryId]);
+
+    // Fetch Categories
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/blog-categories`);
+                const json: CategoriesResponse = await response.json();
+
+                if (json.success && json.data && json.data.categories) {
+                    setCategories(json.data.categories);
+                } else if (!json.success && json.message === "Blog section is disabled") {
+                    setIsPageEnabled(false);
+                    setDisabledMessage(json.message);
+                }
+            } catch (error) {
+                console.error("Failed to fetch categories:", error);
+            }
+        };
+
+        fetchCategories();
+    }, []);
+
+    // Fetch Page Meta
+    useEffect(() => {
+        const fetchPageMeta = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/`);
+                const json: BlogPageMetaResponse = await response.json();
+
+                if (json.success && json.data) {
+                    setPageMeta({
+                        title: json.data.bs?.blog_section_title || "Blog",
+                        subtitle: json.data.bs?.blog_section_subtitle || "Explore our latest insights, news, and articles on forensic science and criminal investigation.",
+                        metaTitle: json.data.be?.blog_meta_title || ""
+                    });
+
+                    if (json.data.be?.blog_meta_title) {
+                        document.title = json.data.be.blog_meta_title;
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch page meta:", error);
+            }
+        };
+
+        fetchPageMeta();
+    }, []);
 
     // Fetch Blogs
     useEffect(() => {
@@ -39,7 +111,13 @@ export default function BlogPage() {
             setLoading(true);
             try {
                 const searchQuery = debouncedSearch ? `&search=${encodeURIComponent(debouncedSearch)}` : "";
-                const apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front/blogs?page=${currentPage}&limit=9${searchQuery}`;
+                let apiUrl = "";
+
+                if (selectedCategoryId) {
+                    apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front/blog-categories/${selectedCategoryId}/blogs?page=${currentPage}&limit=10${searchQuery}`;
+                } else {
+                    apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front/blogs?page=${currentPage}&limit=10${searchQuery}`;
+                }
 
                 const response = await fetch(apiUrl);
                 if (!response.ok) {
@@ -48,8 +126,8 @@ export default function BlogPage() {
 
                 const json: BlogsResponse = await response.json();
 
-                if (json.success && json.data && json.data.data) {
-                    setBlogs(json.data.data);
+                if (json.success && json.data) {
+                    setBlogs(json.data.data || []);
                     setPagination(json.data.pagination);
                 } else {
                     setBlogs([]);
@@ -63,7 +141,7 @@ export default function BlogPage() {
         };
 
         fetchBlogs();
-    }, [currentPage, debouncedSearch]);
+    }, [currentPage, debouncedSearch, selectedCategoryId]);
 
     // Helper to strip HTML and truncate
     const getExcerpt = (html: string, length: number = 100) => {
@@ -72,17 +150,7 @@ export default function BlogPage() {
         return text.length > length ? text.substring(0, length) + "..." : text;
     };
 
-    const categories = [
-        "Forensic Science",
-        "Crime Scene Investigation",
-        "Criminology & Victimology",
-        "Cyber Security & Law",
-        "DNA Fingerprinting",
-        "Document Examination",
-        "Fingerprint Analysis",
-        "Forensic Accounting",
-        "Forensic Anthropology",
-    ];
+
 
     // Animation Variants
     const fadeUp = {
@@ -120,234 +188,262 @@ export default function BlogPage() {
             {/* TOP BANNER */}
             <motion.div variants={fadeUp}>
                 <PageBanner
-                    title="Blog"
-                    subtitle={
-                        <>
-                            Explore our latest insights, news, and articles on <br /> forensic science and criminal investigation.
-                        </>
-                    }
+                    title={pageMeta.title}
+                    subtitle={pageMeta.subtitle}
                     bgImage="/blog-gradient-bg.png"
                 />
             </motion.div>
 
             <div className="max-w-7xl mx-auto px-4 py-12">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {!isPageEnabled ? (
+                    <motion.div
+                        variants={fadeUp}
+                        className="bg-white rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/50 p-12 md:p-20 text-center max-w-3xl mx-auto"
+                    >
+                        <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-8">
+                            <svg className="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <h2 className="text-3xl font-bold text-gray-900 mb-4">{disabledMessage || "Section Disabled"}</h2>
+                    </motion.div>
+                ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                    {/* LEFT: BLOG POSTS GRID */}
-                    <div className="lg:col-span-2">
-                        {loading ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {[...Array(6)].map((_, i) => (
-                                    <div key={i} className="bg-gray-100 rounded-2xl h-96 animate-pulse"></div>
-                                ))}
-                            </div>
-                        ) : blogs.length > 0 ? (
-                            <motion.div
-                                className="grid grid-cols-1 md:grid-cols-2 gap-6"
-                                initial="hidden"
-                                animate="visible"
-                                variants={staggerContainer}
-                            >
-                                {blogs.map((post) => (
-                                    <motion.div
-                                        key={post.id}
-                                        variants={fadeUp}
-                                        className="h-full"
-                                    >
-                                        <div className="group h-full flex flex-col bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
-                                            {/* Image Container */}
-                                            <div className="relative h-56 w-full bg-gray-200 overflow-hidden">
-                                                <img
-                                                    src={`${BASE_URL}/${post.main_image}`}
-                                                    alt={post.title}
-                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                    onError={(e) => {
-                                                        const target = e.target as HTMLImageElement;
-                                                        target.src = '/blog/blog-main-hero.png'; // Fallback
-                                                        target.onerror = null;
-                                                    }}
-                                                />
-                                                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-[#3E58EE] shadow-sm">
-                                                    Article
-                                                </div>
-                                            </div>
-
-                                            {/* Content */}
-                                            <div className="p-6 flex flex-col flex-grow">
-                                                {/* Meta */}
-                                                <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Calendar size={14} className="text-[#3E58EE]" />
-                                                        {new Date(post.publish_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                    </div>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <User size={14} className="text-[#3E58EE]" />
-                                                        <span className="truncate max-w-[100px]">{post.author || "SIFS India"}</span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Title */}
-                                                <h3 className="text-lg font-bold text-gray-900 mb-3 leading-snug group-hover:text-[#3E58EE] transition-colors line-clamp-2">
-                                                    <Link href={`/blog/${post.slug}`}>
-                                                        {post.title}
-                                                    </Link>
-                                                </h3>
-
-                                                {/* Excerpt */}
-                                                <p className="text-gray-500 text-sm mb-6 line-clamp-3">
-                                                    {getExcerpt(post.content, 120)}
-                                                </p>
-
-                                                {/* Read More Button */}
-                                                <div className="mt-auto">
-                                                    <Link href={`/blog/${post.slug}`}>
-                                                        <button className="w-full flex items-center justify-center gap-2 bg-gray-50 text-gray-700 py-2.5 rounded-xl font-semibold text-sm group-hover:bg-[#3E58EE] group-hover:text-white transition-all duration-300">
-                                                            Read Full Article
-                                                            <ChevronRight size={16} />
-                                                        </button>
-                                                    </Link>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </motion.div>
-                        ) : (
-                            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                                <div className="text-gray-400 mb-2">No blogs found matching your criteria.</div>
-                                <button
-                                    onClick={() => { setSearchTerm(""); setDebouncedSearch(""); }}
-                                    className="text-[#3E58EE] font-semibold hover:underline"
-                                >
-                                    Clear Search
-                                </button>
-                            </div>
-                        )}
-
-                        {/* PAGINATION */}
-                        {!loading && pagination && pagination.total_pages > 1 && (
-                            <motion.div variants={fadeUp} className="flex justify-center items-center gap-2 mt-12">
-                                <button
-                                    onClick={() => handlePageChange(currentPage - 1)}
-                                    disabled={!pagination.has_previous}
-                                    className="p-2.5 border border-gray-200 rounded-lg text-gray-500 hover:bg-white hover:border-[#3E58EE] hover:text-[#3E58EE] transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white shadow-sm"
-                                >
-                                    <ChevronLeft size={18} />
-                                </button>
-
-                                <div className="flex gap-2">
-                                    {Array.from({ length: Math.min(5, pagination.total_pages) }, (_, i) => {
-                                        let p = i + 1;
-                                        if (pagination.total_pages > 5) {
-                                            if (currentPage > 3) p = currentPage - 2 + i;
-                                            if (p > pagination.total_pages) p = pagination.total_pages - (4 - i);
-                                            // Handle edge case where p < 1
-                                            if (p < 1) p = 1 + i;
-                                        }
-
-                                        return (
-                                            <button
-                                                key={p}
-                                                onClick={() => handlePageChange(p)}
-                                                className={`w-10 h-10 flex items-center justify-center rounded-lg text-sm font-semibold transition-all shadow-sm ${currentPage === p
-                                                    ? "bg-[#3E58EE] text-white shadow-blue-200"
-                                                    : "bg-white text-gray-600 border border-gray-200 hover:border-[#3E58EE] hover:text-[#3E58EE]"
-                                                    }`}
-                                            >
-                                                {p}
-                                            </button>
-                                        )
-                                    })}
+                        {/* LEFT: BLOG POSTS GRID */}
+                        <div className="lg:col-span-2">
+                            {loading ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {[...Array(6)].map((_, i) => (
+                                        <div key={i} className="bg-gray-100 rounded-2xl h-96 animate-pulse"></div>
+                                    ))}
                                 </div>
-
-                                <button
-                                    onClick={() => handlePageChange(currentPage + 1)}
-                                    disabled={!pagination.has_next}
-                                    className="p-2.5 border border-gray-200 rounded-lg text-gray-500 hover:bg-white hover:border-[#3E58EE] hover:text-[#3E58EE] transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white shadow-sm"
+                            ) : blogs.length > 0 ? (
+                                <motion.div
+                                    className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                                    initial="hidden"
+                                    animate="visible"
+                                    variants={staggerContainer}
                                 >
-                                    <ChevronRight size={18} />
-                                </button>
-                            </motion.div>
-                        )}
-                    </div>
+                                    {blogs.map((post) => (
+                                        <motion.div
+                                            key={post.id}
+                                            variants={fadeUp}
+                                            className="h-full"
+                                        >
+                                            <div className="group h-full flex flex-col bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+                                                {/* Image Container */}
+                                                <div className="relative h-56 w-full bg-gray-200 overflow-hidden">
+                                                    <img
+                                                        src={`${BASE_URL}/uploads/Education-And-Internship-Admin-Blog-Main/${post.main_image}`}
+                                                        alt={post.title}
+                                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            target.src = '/blog/blog-main-hero.png'; // Fallback
+                                                            target.onerror = null;
+                                                        }}
+                                                    />
+                                                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-[#3E58EE] shadow-sm">
+                                                        Article
+                                                    </div>
+                                                </div>
 
-                    {/* RIGHT: SIDEBAR */}
-                    <div className="space-y-8">
-                        {/* SEARCH */}
-                        <motion.div variants={fadeUp} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm sticky top-4">
-                            <h4 className="text-lg font-bold text-gray-900 mb-4">Search blog</h4>
-                            <div className="relative group">
-                                <input
-                                    type="text"
-                                    placeholder="Search here..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full bg-[#FBFCFF] border border-gray-200 rounded-xl py-3 px-4 pr-10 text-sm outline-none focus:ring-2 focus:ring-[#3E58EE]/20 focus:border-[#3E58EE] transition-all group-hover:border-gray-300"
-                                />
-                                <Search className="absolute right-3 top-3 text-gray-400 group-focus-within:text-[#3E58EE] transition-colors" size={18} />
-                            </div>
-                        </motion.div>
+                                                {/* Content */}
+                                                <div className="p-6 flex flex-col flex-grow">
+                                                    {/* Meta */}
+                                                    <div className="flex items-center gap-4 text-xs text-gray-500 mb-3">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Calendar size={14} className="text-[#3E58EE]" />
+                                                            {new Date(post.publish_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <User size={14} className="text-[#3E58EE]" />
+                                                            <span className="truncate max-w-[100px]">{post.author || "SIFS India"}</span>
+                                                        </div>
+                                                    </div>
 
-                        {/* CATEGORIES */}
-                        <motion.div variants={fadeUp} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                            <h4 className="font-bold text-gray-900 text-lg mb-4">Categories</h4>
-                            <div className="space-y-2">
-                                <button
-                                    className="w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all bg-[#3E58EE] text-white shadow-md shadow-blue-200"
-                                >
-                                    All Posts
-                                    <ChevronRight size={14} />
-                                </button>
-                                {categories.map((cat, i) => (
+                                                    {/* Title */}
+                                                    <h3 className="text-lg font-bold text-gray-900 mb-3 leading-snug group-hover:text-[#3E58EE] transition-colors line-clamp-2">
+                                                        <Link href={`/blog/${post.slug}`}>
+                                                            {post.title}
+                                                        </Link>
+                                                    </h3>
+
+                                                    {/* Excerpt */}
+                                                    {/* <p className="text-gray-500 text-sm mb-6 line-clamp-3">
+                                                        {getExcerpt(post.content, 120)}
+                                                    </p> */}
+
+                                                    {/* Read More Button */}
+                                                    <div className="mt-auto">
+                                                        <Link href={`/blog/${post.slug}`}>
+                                                            <button className="w-full flex items-center justify-center gap-2 bg-gray-50 text-gray-700 py-2.5 rounded-xl font-semibold text-sm group-hover:bg-[#3E58EE] group-hover:text-white transition-all duration-300">
+                                                                Read Full Article
+                                                                <ChevronRight size={16} />
+                                                            </button>
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </motion.div>
+                            ) : (
+                                <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                                    <div className="text-gray-400 mb-2">No blogs found matching your criteria.</div>
                                     <button
-                                        key={i}
-                                        className="w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all bg-[#FBFCFF] text-gray-600 hover:bg-[#F3F6FF] hover:text-[#3E58EE]"
+                                        onClick={() => {
+                                            setSearchTerm("");
+                                            setDebouncedSearch("");
+                                            setSelectedCategoryId(null);
+                                        }}
+                                        className="text-[#3E58EE] font-semibold hover:underline"
                                     >
-                                        {cat}
+                                        Clear All Filters
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* PAGINATION */}
+                            {!loading && pagination && pagination.total_pages > 1 && (
+                                <motion.div variants={fadeUp} className="flex justify-center items-center gap-2 mt-12">
+                                    <button
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                        disabled={!pagination.has_previous}
+                                        className="p-2.5 border border-gray-200 rounded-lg text-gray-500 hover:bg-white hover:border-[#3E58EE] hover:text-[#3E58EE] transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white shadow-sm"
+                                    >
+                                        <ChevronLeft size={18} />
+                                    </button>
+
+                                    <div className="flex gap-2">
+                                        {Array.from({ length: Math.min(5, pagination.total_pages) }, (_, i) => {
+                                            let p = i + 1;
+                                            if (pagination.total_pages > 5) {
+                                                if (currentPage > 3) p = currentPage - 2 + i;
+                                                if (p > pagination.total_pages) p = pagination.total_pages - (4 - i);
+                                                // Handle edge case where p < 1
+                                                if (p < 1) p = 1 + i;
+                                            }
+
+                                            return (
+                                                <button
+                                                    key={p}
+                                                    onClick={() => handlePageChange(p)}
+                                                    className={`w-10 h-10 flex items-center justify-center rounded-lg text-sm font-semibold transition-all shadow-sm ${currentPage === p
+                                                        ? "bg-[#3E58EE] text-white shadow-blue-200"
+                                                        : "bg-white text-gray-600 border border-gray-200 hover:border-[#3E58EE] hover:text-[#3E58EE]"
+                                                        }`}
+                                                >
+                                                    {p}
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+
+                                    <button
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                        disabled={!pagination.has_next}
+                                        className="p-2.5 border border-gray-200 rounded-lg text-gray-500 hover:bg-white hover:border-[#3E58EE] hover:text-[#3E58EE] transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white shadow-sm"
+                                    >
+                                        <ChevronRight size={18} />
+                                    </button>
+                                </motion.div>
+                            )}
+                        </div>
+
+                        {/* RIGHT: SIDEBAR */}
+                        <div className="space-y-8">
+                            {/* SEARCH */}
+                            <motion.div variants={fadeUp} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm sticky top-4">
+                                <h4 className="text-lg font-bold text-gray-900 mb-4">Search blog</h4>
+                                <div className="relative group">
+                                    <input
+                                        type="text"
+                                        placeholder="Search here..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full bg-[#FBFCFF] border border-gray-200 rounded-xl py-3 px-4 pr-10 text-sm outline-none focus:ring-2 focus:ring-[#3E58EE]/20 focus:border-[#3E58EE] transition-all group-hover:border-gray-300"
+                                    />
+                                    <Search className="absolute right-3 top-3 text-gray-400 group-focus-within:text-[#3E58EE] transition-colors" size={18} />
+                                </div>
+                            </motion.div>
+
+                            {/* CATEGORIES */}
+                            <motion.div variants={fadeUp} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                                <h4 className="font-bold text-gray-900 text-lg mb-4">Categories</h4>
+                                <div className="space-y-2">
+                                    <button
+                                        onClick={() => {
+                                            setSelectedCategoryId(null);
+                                            setCurrentPage(1);
+                                        }}
+                                        className={`w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all ${selectedCategoryId === null
+                                            ? "bg-[#3E58EE] text-white shadow-md shadow-blue-200"
+                                            : "bg-[#FBFCFF] text-gray-600 hover:bg-[#F3F6FF] hover:text-[#3E58EE]"
+                                            }`}
+                                    >
+                                        All Posts
                                         <ChevronRight size={14} />
                                     </button>
-                                ))}
-                            </div>
-                        </motion.div>
+                                    {categories.slice(0, 10).map((cat) => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => {
+                                                setSelectedCategoryId(cat.id);
+                                                setCurrentPage(1);
+                                            }}
+                                            className={`w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all ${selectedCategoryId === cat.id
+                                                ? "bg-[#3E58EE] text-white shadow-md shadow-blue-200"
+                                                : "bg-[#FBFCFF] text-gray-600 hover:bg-[#F3F6FF] hover:text-[#3E58EE]"
+                                                }`}
+                                        >
+                                            {cat.name}
+                                            {/* {cat.blog_count ? <span className="ml-auto text-xs bg-gray-200 text-gray-600 py-0.5 px-2 rounded-full group-hover:bg-[#3E58EE] group-hover:text-white transition-colors">{cat.blog_count}</span> : <ChevronRight size={14} />} */}
+                                        </button>
+                                    ))}
+                                </div>
+                            </motion.div>
 
-                        {/* RECENT POSTS */}
-                        <motion.div variants={fadeUp} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                            <h4 className="font-bold text-lg text-gray-900 mb-4">Recent Post</h4>
-                            <div className="space-y-5">
-                                {blogs.slice(0, 4).map((post, i) => (
-                                    <Link
-                                        key={i}
-                                        href={`/blog/${post.slug}`}
-                                        className="flex gap-4 group cursor-pointer items-start"
-                                    >
-                                        <div className="w-20 h-20 rounded-xl bg-gray-200 flex-shrink-0 overflow-hidden shadow-sm">
-                                            <img
-                                                src={`${BASE_URL}/${post.main_image}`}
-                                                alt="post"
-                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                                onError={(e) => {
-                                                    (e.target as HTMLImageElement).src = '/blog-thumb.png'; // Fallback
-                                                    (e.target as HTMLImageElement).onerror = null;
-                                                }}
-                                            />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h5 className="text-sm font-bold text-gray-900 leading-snug group-hover:text-[#3E58EE] transition-colors line-clamp-2 mb-2">
-                                                {post.title}
-                                            </h5>
-                                            <p className="text-[11px] text-gray-400 flex items-center gap-1.5 font-medium">
-                                                <Calendar size={12} className="text-[#3E58EE]" />
-                                                {new Date(post.publish_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                            </p>
-                                        </div>
-                                    </Link>
-                                ))}
-                                {blogs.length === 0 && !loading && <span className="text-sm text-gray-400 block text-center py-4">No recent posts.</span>}
-                            </div>
-                        </motion.div>
+                            {/* RECENT POSTS */}
+                            <motion.div variants={fadeUp} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                                <h4 className="font-bold text-lg text-gray-900 mb-4">Recent Post</h4>
+                                <div className="space-y-5">
+                                    {blogs.slice(0, 4).map((post, i) => (
+                                        <Link
+                                            key={i}
+                                            href={`/blog/${post.slug}`}
+                                            className="flex gap-4 group cursor-pointer items-start"
+                                        >
+                                            <div className="w-20 h-20 rounded-xl bg-gray-200 flex-shrink-0 overflow-hidden shadow-sm">
+                                                <img
+                                                    src={`${BASE_URL}/uploads/Education-And-Internship-Admin-Blog-Main/${post.main_image}`}
+                                                    alt="post"
+                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = '/blog-thumb.png'; // Fallback
+                                                        (e.target as HTMLImageElement).onerror = null;
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h5 className="text-sm font-bold text-gray-900 leading-snug group-hover:text-[#3E58EE] transition-colors line-clamp-2 mb-2">
+                                                    {post.title}
+                                                </h5>
+                                                <p className="text-[11px] text-gray-400 flex items-center gap-1.5 font-medium">
+                                                    <Calendar size={12} className="text-[#3E58EE]" />
+                                                    {new Date(post.publish_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                </p>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                    {blogs.length === 0 && !loading && <span className="text-sm text-gray-400 block text-center py-4">No recent posts.</span>}
+                                </div>
+                            </motion.div>
+                        </div>
+
                     </div>
-
-                </div>
+                )}
             </div>
         </motion.div>
     );

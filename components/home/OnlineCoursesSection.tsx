@@ -83,38 +83,57 @@ const ActiveTabTitle: React.FC<ActiveTabTitleProps> = ({ title, isActive, onClic
 // ----------------------
 //     Sub-Component: CourseCard
 // ----------------------
-const CourseCard: React.FC<{ course: Course; index: number }> = ({ course, index }) => {
-  const isPrimary = index === 0;
-  const buttonClasses = isPrimary
-    ? 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white'
-    : 'bg-gray-100 hover:bg-gray-300 text-gray-400';
+const CourseCard: React.FC<{
+  course: Course;
+  index: number;
+  isActive: boolean;
+  onHover: (id: number | null) => void;
+}> = ({ course, index, isActive, onHover }) => {
+  const buttonClasses = isActive
+    ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-md'
+    : 'bg-gray-100 text-gray-400';
 
   return (
-    <div className="rounded-xl overflow-hidden bg-white border border-gray-100 h-full flex flex-col">
+    <div
+      className={`rounded-xl overflow-hidden bg-white border h-full flex flex-col transition-all duration-300 ${isActive ? 'border-purple-100 shadow-sm transform -translate-y-1' : 'border-gray-100'}`}
+      onMouseEnter={() => onHover(index)}
+      onMouseLeave={() => onHover(null)}
+    >
       <div className="bg-white rounded-lg flex flex-col h-full">
         <div className="relative h-48 overflow-hidden rounded-t-lg">
           <img
             src={course.image}
             alt={course.title}
-            className="w-full h-full object-cover transition duration-300 hover:scale-105"
+            className="w-full h-full object-cover transition duration-500 hover:scale-110"
           />
+          {/* {isActive && (
+            <div className="absolute top-3 left-3">
+              <span className="bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">
+                Recommended
+              </span>
+            </div>
+          )} */}
         </div>
 
         <div className="p-4 flex flex-col flex-grow">
-          <p className="text-sm font-normal text-[#008DD2] mb-1">{course.id}</p>
-          <h3 className="text-xl font-bold text-gray-900 line-clamp-2">{course.title}</h3>
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-sm font-normal text-[#008DD2]">{course.id}</p>
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 line-clamp-2 transition-colors duration-300 h-[55px]">
+            {course.title}
+          </h3>
           <p className="text-sm font-normal text-[#6B7385] mt-2 mb-6 h-16 line-clamp-3">
             {course.description}
           </p>
 
-          <hr className="mt-auto" />
+          <hr className="mt-auto border-gray-50" />
 
           <a
             href={`/course-details/${course.slug}`}
-            className={`flex items-center justify-center w-full py-3 rounded-lg font-normal transition duration-300 ease-in-out mt-3 cursor-pointer group ${buttonClasses}`}
+            className={`flex items-center justify-center w-full py-3 rounded-lg font-medium transition-all duration-300 ease-in-out mt-3 cursor-pointer group ${buttonClasses}`}
           >
             Enroll Now
-            <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+            <ArrowRight className={`ml-2 w-4 h-4 transition-transform ${isActive ? 'translate-x-1' : 'group-hover:translate-x-1'}`} />
           </a>
         </div>
       </div>
@@ -158,6 +177,8 @@ const OnlineCoursesSection: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
   const [coursesLoading, setCoursesLoading] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const swiperRef = useRef<any>(null);
 
   // Fetch section data and categories on mount
@@ -165,7 +186,15 @@ const OnlineCoursesSection: React.FC = () => {
     const fetchInitialData = async () => {
       try {
         // Fetch section data (title & subtitle)
-        const frontResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`, { cache: 'no-store' });
+        const frontResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front?_t=${Date.now()}`, {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          cache: 'no-store',
+        });
         const frontData = await frontResponse.json();
         if (frontData?.data?.bs) {
           setSectionData({
@@ -175,7 +204,15 @@ const OnlineCoursesSection: React.FC = () => {
         }
 
         // Fetch categories
-        const categoriesResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/courses/categories`, { cache: 'no-store' });
+        const categoriesResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/courses/categories?_t=${Date.now()}`, {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          cache: 'no-store',
+        });
         const categoriesData = await categoriesResponse.json();
         if (categoriesData?.success && categoriesData?.data?.categories) {
           const fetchedCategories = categoriesData.data.categories;
@@ -202,11 +239,19 @@ const OnlineCoursesSection: React.FC = () => {
       setCoursesLoading(true);
       try {
         // Use category ID to fetch courses
-        const apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front/courses/category/${activeCategory.id}`;
+        const apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front/courses/category/${activeCategory.slug}?_t=${Date.now()}`;
 
-        console.log('Fetching courses for category:', activeCategory.name, '| ID:', activeCategory.id);
+        console.log('Fetching courses for category:', activeCategory.name, '| ID:', activeCategory.slug);
 
-        const response = await fetch(apiUrl, { cache: 'no-store' });
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          cache: 'no-store',
+        });
 
         if (!response.ok) {
           console.error(`Failed to fetch courses: ${response.status} ${response.statusText}`);
@@ -242,6 +287,7 @@ const OnlineCoursesSection: React.FC = () => {
     };
 
     fetchCourses();
+    setActiveIndex(0); // Reset active index when category changes
   }, [activeCategory]);
 
   // Helper function to strip HTML and truncate
@@ -350,6 +396,7 @@ const OnlineCoursesSection: React.FC = () => {
               ) : courses.length > 0 ? (
                 <Swiper
                   onSwiper={(swiper) => (swiperRef.current = swiper)}
+                  onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
                   modules={[Navigation]}
                   spaceBetween={24}
                   slidesPerView={1.2}
@@ -361,7 +408,12 @@ const OnlineCoursesSection: React.FC = () => {
                 >
                   {courses.map((course, index) => (
                     <SwiperSlide key={`${course.id}-${index}`} className="h-auto pb-4">
-                      <CourseCard course={course} index={index} />
+                      <CourseCard
+                        course={course}
+                        index={index}
+                        isActive={hoveredIndex !== null ? hoveredIndex === index : activeIndex === index}
+                        onHover={setHoveredIndex}
+                      />
                     </SwiperSlide>
                   ))}
                 </Swiper>
@@ -378,14 +430,14 @@ const OnlineCoursesSection: React.FC = () => {
             <>
               <button
                 onClick={() => swiperRef.current?.slidePrev()}
-                className="cursor-pointer absolute -left-4 md:left-0 top-1/2 -translate-y-1/2 w-10 h-10 bg-white text-[#008DD2] rounded-full shadow-lg z-20 flex items-center justify-center transition hover:scale-110 border border-gray-100"
+                className="cursor-pointer absolute -left-4 md:-left-8 top-1/2 -translate-y-1/2 w-10 h-10 bg-white text-[#008DD2] rounded-full shadow-lg z-20 flex items-center justify-center transition hover:scale-110 border border-gray-100"
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
 
               <button
                 onClick={() => swiperRef.current?.slideNext()}
-                className="cursor-pointer absolute -right-4 md:right-0 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#008DD2] text-white rounded-full shadow-lg z-20 flex items-center justify-center transition hover:scale-110"
+                className="cursor-pointer absolute -right-4 md:-right-8 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#008DD2] text-white rounded-full shadow-lg z-20 flex items-center justify-center transition hover:scale-110"
               >
                 <ChevronRight className="w-6 h-6" />
               </button>

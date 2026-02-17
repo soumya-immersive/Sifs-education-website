@@ -2,11 +2,10 @@ import { notFound } from "next/navigation";
 import BlogHero from "../../../components/blog/BlogHero";
 import BlogContent from "../../../components/blog/BlogContent";
 import BlogSidebar from "../../../components/blog/BlogSidebar";
-import { API_BASE_URL } from "@/lib/config";
+import { API_BASE_URL, BASE_URL } from "@/lib/config";
 import { BlogDetailsResponse } from "@/types/blog";
 
-// Define the Image Base URL (same as in blog listing)
-const IMAGE_BASE_URL = "/uploads/blogs";
+
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -43,7 +42,7 @@ export default async function BlogDetailsPage({ params }: Props) {
   // Prepare data for BlogHero
   const heroData = {
     title: blog.title,
-    heroImage: blog.main_image ? `${IMAGE_BASE_URL}/${blog.main_image}` : undefined,
+    heroImage: blog.main_image ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Blog-Main/${blog.main_image}` : undefined,
   };
 
   return (

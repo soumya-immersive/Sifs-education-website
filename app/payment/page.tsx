@@ -204,8 +204,26 @@ function PaymentContent() {
                     if (apiResponse.ok && result.success) {
                         console.log("Payment Verification Success:", result);
                         setIsPaymentSuccess(true);
-                        // Redirect to Thank You page
-                        router.push(`/payment/thank-you?payment_id=${response.razorpay_payment_id}&registration_no=${registrationNo}&type=${type || 'course'}`);
+
+                        // Redirect based on type
+                        if (type === 'training') {
+                            const trainingSlug = initialData.training?.slug;
+                            if (trainingSlug) {
+                                router.push(`/training-details/${trainingSlug}`);
+                            } else {
+                                // Fallback if slug is missing
+                                router.push('/');
+                            }
+                        } else {
+                            // Default to course
+                            const courseSlug = initialData.course?.slug || initialData.course_slug;
+                            if (courseSlug) {
+                                router.push(`/course-details/${courseSlug}`);
+                            } else {
+                                // Fallback if slug is missing
+                                router.push('/');
+                            }
+                        }
                     } else {
                         throw new Error(result.message || "Payment verification failed on server.");
                     }
@@ -270,7 +288,7 @@ function PaymentContent() {
                     </div>
                     <h2 className="text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">Payment Successful!</h2>
                     <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-                        Redirecting to receipt...
+                        Redirecting to {type === 'training' ? 'Training' : 'Course'} details...
                     </p>
                 </div>
             </div>

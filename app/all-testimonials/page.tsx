@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Loader2, Search, ChevronLeft, ChevronRight, X, Quote, } from "lucide-react";
 import Image from "next/image";
 import { API_BASE_URL, BASE_URL } from "@/lib/config";
 import PageBanner from "../../components/common/PageBanner";
@@ -289,12 +289,12 @@ export default function AllTestimonialsPage() {
                                         {selectedTestimonial.rank}
                                     </div>
 
-                                    <div className="relative">
-                                        <span className="absolute -top-4 -left-2 text-6xl text-blue-100 font-serif leading-none">“</span>
-                                        <p className="text-gray-600 leading-relaxed text-lg relative z-10 px-4 md:px-0">
+                                    <div className="relative pt-6 pb-2">
+                                        <Quote className="absolute -top-2 -left-6 text-blue-100 rotate-180" size={32} fill="currentColor" />
+                                        <p className="text-gray-600 leading-relaxed text-lg relative z-10 italic">
                                             {selectedTestimonial.comment}
                                         </p>
-                                        <span className="absolute -bottom-8 -right-2 text-6xl text-blue-100 font-serif leading-none rotate-180">“</span>
+                                        <Quote className="absolute -bottom-4 right-0 text-blue-100" size={32} fill="currentColor" />
                                     </div>
                                 </div>
                             </div>

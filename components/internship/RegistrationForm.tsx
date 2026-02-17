@@ -4,6 +4,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { CheckCircle2, ChevronLeft, ShieldCheck, User, Mail, Phone, MapPin, School, Calendar, Globe, Wand2 } from "lucide-react";
 import Link from 'next/link';
+import DatePicker from "@/components/ui/DatePicker";
+import { API_BASE_URL } from "@/lib/config";
 
 interface Country {
     id: number;
@@ -64,18 +66,29 @@ export default function RegistrationForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     // const [isSuccess, setIsSuccess] = useState(false); // Unused if we redirect
 
+    const [maxDate, setMaxDate] = useState("");
+
+    useEffect(() => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        setMaxDate(`${year}-${month}-${day}`);
+    }, []);
+
     useEffect(() => {
         const fetchCountries = async () => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/front`);
+                const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
                 if (response.ok) {
                     const result = await response.json();
+
                     if (result.countries && Array.isArray(result.countries)) {
                         setCountries(result.countries);
                     } else if (result.data && result.data.countries && Array.isArray(result.data.countries)) {
                         setCountries(result.data.countries);
-                    } else if (result.data && result.data.be && result.data.be.countries && Array.isArray(result.data.be.countries)) {
-                        setCountries(result.data.be.countries);
+                    } else if (result.success && Array.isArray(result.data)) {
+                        setCountries(result.data);
                     }
                 }
             } catch (error) {
@@ -322,7 +335,13 @@ export default function RegistrationForm() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <InputField label="Full Name" name="name" placeholder="John Doe" icon={User} required value={formData.name} onChange={handleChange} />
-                                <InputField label="Date of Birth" name="dob" type="date" icon={Calendar} required value={formData.dob} onChange={handleChange} />
+                                <DatePicker
+                                    label="Date of Birth"
+                                    value={formData.dob}
+                                    onChange={(date) => setFormData(prev => ({ ...prev, dob: date }))}
+                                    maxDate={maxDate}
+                                    required
+                                />
 
                                 {/* Gender Selection */}
                                 <div className="md:col-span-2">

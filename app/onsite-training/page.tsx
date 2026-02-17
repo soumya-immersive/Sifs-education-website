@@ -1,5 +1,6 @@
 import TrainingProgramPage from "../training/[program]/page";
 
-export default function OnsiteTrainingPage() {
-    return <TrainingProgramPage params={Promise.resolve({ program: "onsite-training" })} />;
+// @ts-ignore
+export default function OnsiteTrainingPage(props: any) {
+    return <TrainingProgramPage params={Promise.resolve({ program: "onsite-training" })} searchParams={props.searchParams || Promise.resolve({})} />;
 }

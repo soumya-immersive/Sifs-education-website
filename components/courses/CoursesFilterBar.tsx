@@ -1,8 +1,8 @@
 "use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { motion, Variants } from "framer-motion";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 /* ---------------- Animations ---------------- */
 const container: Variants = {
@@ -20,17 +20,51 @@ const fadeUp: Variants = {
 };
 
 export default function CoursesFilterBar() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   // 1. State for Search and Filters
-  const [searchQuery, setSearchQuery] = useState("");
-  const [level, setLevel] = useState("");
-  const [duration, setDuration] = useState("");
-  const [sortOrder, setSortOrder] = useState("newest");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
+  const [level, setLevel] = useState(searchParams.get("slevel") || "");
+  const [duration, setDuration] = useState(searchParams.get("sduration") || "");
+  const [sortOrder, setSortOrder] = useState(searchParams.get("sno") || "Newest");
+
+  // Sync state with URL search params
+  useEffect(() => {
+    setSearchQuery(searchParams.get("search") || "");
+    setLevel(searchParams.get("slevel") || "");
+    setDuration(searchParams.get("sduration") || "");
+    setSortOrder(searchParams.get("sno") || "Newest");
+  }, [searchParams]);
+
+  // Helper to update URL params
+  const updateParams = (updates: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
+    });
+
+    // Reset to page 1 on any filter/search change
+    params.delete("page");
+
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   // 2. Handle Search (Triggered on button click or 'Enter')
   const handleSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
-    console.log("Searching for:", searchQuery);
-    
+    updateParams({ search: searchQuery });
+  };
+
+  // 3. Handle Drodown Changes
+  const handleFilterChange = (key: string, value: string) => {
+    updateParams({ [key]: value || null });
   };
 
   return (
@@ -43,9 +77,9 @@ export default function CoursesFilterBar() {
         viewport={{ once: true }}
       >
         {/* LEFT: Search Bar */}
-        <motion.form 
+        <motion.form
           onSubmit={handleSearch}
-          variants={fadeUp} 
+          variants={fadeUp}
           className="flex w-full lg:max-w-md"
         >
           <input
@@ -69,9 +103,9 @@ export default function CoursesFilterBar() {
           className="flex flex-wrap w-full lg:w-auto gap-3 justify-between lg:justify-end"
         >
           {/* Skill Level */}
-          <select 
+          <select
             value={level}
-            onChange={(e) => setLevel(e.target.value)}
+            onChange={(e) => handleFilterChange("slevel", e.target.value)}
             className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-[48%] lg:w-auto outline-none focus:ring-1 focus:ring-[#8E5BEF]"
           >
             <option value="">Skill Level</option>
@@ -81,9 +115,9 @@ export default function CoursesFilterBar() {
           </select>
 
           {/* Duration */}
-          <select 
+          <select
             value={duration}
-            onChange={(e) => setDuration(e.target.value)}
+            onChange={(e) => handleFilterChange("sduration", e.target.value)}
             className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-[48%] lg:w-auto outline-none focus:ring-1 focus:ring-[#8E5BEF]"
           >
             <option value="">Duration</option>
@@ -93,13 +127,13 @@ export default function CoursesFilterBar() {
           </select>
 
           {/* Sort */}
-          <select 
+          <select
             value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value)}
+            onChange={(e) => handleFilterChange("sno", e.target.value)}
             className="border border-[#D9D9D9] rounded-lg px-4 py-2.5 text-sm text-gray-600 w-full lg:w-auto outline-none focus:ring-1 focus:ring-[#8E5BEF]"
           >
-            <option value="newest">Newest</option>
-            <option value="oldest">Oldest</option>
+            <option value="Newest">Newest</option>
+            <option value="Old">Old</option>
           </select>
         </motion.div>
       </motion.div>

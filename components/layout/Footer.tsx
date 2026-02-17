@@ -3,8 +3,18 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
-import { API_BASE_URL } from "../../lib/config";
+import { Facebook, Twitter, Linkedin, Instagram, Loader2 } from "lucide-react";
+import { API_BASE_URL, BASE_URL } from "../../lib/config";
+import toast from "react-hot-toast";
+
+interface Social {
+  id: number;
+  icon: string;
+  url: string;
+  platform: string;
+  serial_number: number;
+  is_valid: boolean;
+}
 
 // --- Framer Motion Variants (NO `ease` to avoid TS type issues) ---
 
@@ -65,11 +75,15 @@ interface Section {
 
 interface FooterDataAttributes {
   footer_sections: Section[];
+  footer_description?: string;
   contact_mail: string;
   support_phone: string;
   copyright_text: string;
   support_email: string;
   footer_logo: string;
+  socials: Social[];
+  newsletter_title?: string;
+  newsletter_subtitle?: string;
 }
 
 // Helper to determine if link is external or internal
@@ -110,12 +124,48 @@ const LinkList: React.FC<{ title: string; links: LinkItem[] }> = ({
 
 const Footer: React.FC = () => {
   const [data, setData] = useState<FooterDataAttributes | null>(null);
+  const [email, setEmail] = useState("");
+  const [isSubscribing, setIsSubscribing] = useState(false);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setIsSubscribing(true);
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/EducationAndInternship/Website/front/subscribe`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success(result.message || "Successfully subscribed!");
+        setEmail("");
+      } else {
+        toast.error(result.message || "Failed to subscribe. Please try again.");
+      }
+    } catch (error) {
+      console.error("Subscription error:", error);
+      toast.error("An error occurred. Please try again later.");
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          `${API_BASE_URL}/EducationAndInternship/Website/front`
+          `${API_BASE_URL}/EducationAndInternship/Website/front`,
+          { cache: "no-store" }
         );
         const json = await response.json();
 
@@ -133,11 +183,15 @@ const Footer: React.FC = () => {
 
           setData({
             footer_sections: parsedSections,
+            footer_description: bs?.footer_text || "",
             contact_mail: bs?.contact_mail || be?.order_mail || "info@sifs.in",
             support_email: bs?.support_email || "education@sifs.in",
             support_phone: bs?.support_phone || "011-47074263",
             copyright_text: bs?.copyright_text || "Copyright © 2025 SIFS INDIA. All Rights Reserved",
-            footer_logo: bs?.footer_logo || ""
+            footer_logo: bs?.footer_logo || "",
+            socials: json.socials || json.data?.socials || [],
+            newsletter_title: bs?.newsl_section_title || "",
+            newsletter_subtitle: bs?.newsl_section_subtitle || ""
           });
         }
       } catch (error) {
@@ -264,7 +318,7 @@ const Footer: React.FC = () => {
       >
         {/* CTA Banner */}
         <motion.div
-          className="z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:-top-20"
+          className="z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:-top-20 w-full"
           variants={ctaBannerVariants}
         >
           <div
@@ -272,34 +326,45 @@ const Footer: React.FC = () => {
             style={backgroundStyle1}
           >
             <div className="relative z-20 flex flex-col md:flex-row items-center justify-between max-w-5xl mx-auto">
-              <div className="text-left md:mr-10 mb-6 md:mb-0">
-                <h2 className="text-white text-3xl font-bold mb-2">
-                  Forensic Insights in Your Inbox
+              <div className="text-center md:text-left md:mr-10 mb-6 md:mb-0">
+                <h2 className="text-white text-2xl md:text-3xl font-bold mb-2">
+                  {data?.newsletter_title}
                 </h2>
-                <p className="text-purple-200">
-                  Sign Up to Stay Informed About the Latest Happenings and Offers
+                <p className="text-purple-200 text-sm md:text-base">
+                  {data?.newsletter_subtitle}
                 </p>
               </div>
 
-              <form className="flex w-full md:w-auto p-2 bg-white rounded-full">
+              <form
+                onSubmit={handleSubscribe}
+                className="flex w-full md:w-auto p-2 bg-white rounded-full"
+              >
                 <input
                   type="email"
                   placeholder="Enter Your Email"
-                  className="flex-grow py-3 px-5 rounded-l-full outline-none text-gray-800"
+                  className="flex-grow py-3 px-5 rounded-l-full outline-none text-gray-800 text-sm md:text-base w-full"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isSubscribing}
                 />
                 <button
                   type="submit"
-                  className="flex items-center justify-center w-14 h-14 bg-blue-600 rounded-full hover:bg-blue-700 transition-colors shrink-0"
+                  disabled={isSubscribing}
+                  className="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 bg-blue-600 rounded-full hover:bg-blue-700 transition-colors shrink-0 disabled:bg-blue-400"
                   aria-label="Subscribe"
                 >
-                  <svg
-                    className="w-6 h-6 text-white"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M20 4L3 11l5 3 6-6 3.232 3.232-6.232 2.768L20 19z"></path>
-                  </svg>
+                  {isSubscribing ? (
+                    <Loader2 className="w-5 h-5 md:w-6 md:h-6 text-white animate-spin" />
+                  ) : (
+                    <svg
+                      className="w-5 h-5 md:w-6 md:h-6 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M20 4L3 11l5 3 6-6 3.232 3.232-6.232 2.768L20 19z"></path>
+                    </svg>
+                  )}
                 </button>
               </form>
             </div>
@@ -314,36 +379,73 @@ const Footer: React.FC = () => {
 
         {/* Main Footer */}
         <motion.div
-          className="relative pt-32 pb-12 text-gray-800"
+          className="relative pt-20 pb-12 lg:pt-36 text-gray-800"
           style={backgroundStyle}
           variants={mainContentVariants}
         >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-5 pb-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-5 pb-10">
               {/* Logo & description (Col 1) */}
               <div className="md:col-span-1">
-                <div className="text-2xl font-black text-gray-900 mb-4">
-                  <span className="text-blue-600">SIFS</span>{" "}
-                  <span className="text-red-600">INDIA</span>
-                </div>
-                <p className="font-bold mb-4">Sherlock Institute of Forensic Science</p>
-                <p className="text-sm text-gray-700 mb-6">
-                  Since 2006, the institute has conducted the best offline and online diploma and certificate courses in forensic science.
-                </p>
+                <Link href="/">
+                  {data?.footer_logo ? (
+                    <img
+                      src={`${BASE_URL}/uploads/Education-And-Internship-Admin-FooterLogo/${data.footer_logo}`}
+                      alt="SIFS Logo"
+                      className="max-h-20 w-auto mb-6"
+                    />
+                  ) : (
+                    <div className="text-2xl font-black text-gray-900 mb-4">
+                      <span className="text-blue-600">SIFS</span>{" "}
+                      <span className="text-red-600">INDIA</span>
+                    </div>
+                  )}
+                </Link>
 
-                <div className="flex space-x-3">
-                  <a href="#" className="w-8 h-8 rounded-full flex items-center justify-center text-gray-800 hover:text-blue-600 transition-colors">
-                    <Facebook size={24} />
-                  </a>
-                  <a href="#" className="w-8 h-8 rounded-full flex items-center justify-center text-gray-800 hover:text-blue-600 transition-colors">
-                    <Linkedin size={24} />
-                  </a>
-                  <a href="#" className="w-8 h-8 rounded-full flex items-center justify-center text-gray-800 hover:text-blue-600 transition-colors">
-                    <Instagram size={24} />
-                  </a>
-                  <a href="#" className="w-8 h-8 rounded-full flex items-center justify-center text-gray-800 hover:text-blue-600 transition-colors">
-                    <Twitter size={24} />
-                  </a>
+                {data?.footer_description ? (
+                  <div
+                    className="text-sm text-gray-700 mb-6 [&_p]:mb-4 [&_strong]:font-bold [&_strong]:block [&_strong]:mb-1"
+                    dangerouslySetInnerHTML={{ __html: data.footer_description }}
+                  />
+                ) : (
+                  <>
+                    <p className="font-bold mb-4">Sherlock Institute of Forensic Science</p>
+                    <p className="text-sm text-gray-700 mb-6">
+                      Since 2006, the institute has conducted the best offline and online diploma and certificate courses in forensic science.
+                    </p>
+                  </>
+                )}
+
+                <div className="flex space-x-3 justify-start">
+                  {data?.socials && data.socials.length > 0 ? (
+                    data.socials.map((social) => (
+                      <a
+                        key={social.id}
+                        href={social.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-10 h-10 rounded-full flex items-center justify-start text-gray-800 hover:text-blue-600 transition-colors"
+                        aria-label={social.platform}
+                      >
+                        <i className={`${social.icon} text-xl`} />
+                      </a>
+                    ))
+                  ) : (
+                    <>
+                      <a href="#" className="w-8 h-14 rounded-full flex items-center justify-start text-gray-800 hover:text-blue-600 transition-colors">
+                        <Facebook size={24} />
+                      </a>
+                      <a href="#" className="w-8 h-8 rounded-full flex items-center justify-start text-gray-800 hover:text-blue-600 transition-colors">
+                        <Linkedin size={24} />
+                      </a>
+                      <a href="#" className="w-8 h-8 rounded-full flex items-center justify-start text-gray-800 hover:text-blue-600 transition-colors">
+                        <Instagram size={24} />
+                      </a>
+                      <a href="#" className="w-8 h-8 rounded-full flex items-center justify-start text-gray-800 hover:text-blue-600 transition-colors">
+                        <Twitter size={24} />
+                      </a>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -389,7 +491,7 @@ const Footer: React.FC = () => {
               {/* Contact (Col 5) */}
               <div>
                 <h3 className="text-gray-900 font-bold mb-4">Contact Us</h3>
-                <ul className="flex flex-col md:flex-row md:flex-wrap text-sm text-gray-700 md:space-x-8">
+                <ul className="flex flex-col space-y-4 text-sm text-gray-700">
                   <li className="flex items-start mb-4">
                     <span className="mr-2 text-blue-600">📍</span>
                     <span>
@@ -430,7 +532,7 @@ const Footer: React.FC = () => {
           )}
         </motion.div>
       </motion.div>
-    </footer>
+    </footer >
   );
 };
 

@@ -2,13 +2,19 @@
 
 import { useState } from "react";
 import { motion, Variants } from "framer-motion";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import InternshipCard from "./InternshipCard";
 import { Internship } from "@/data/internships";
+import { PaginationData } from "../courses/CoursesGrid";
 
 /* ---------------- Props ---------------- */
 
 interface Props {
   internships: Internship[];
+  pagination?: PaginationData;
+  slug?: string;
+  basePath?: string;
 }
 
 const ITEMS_PER_LOAD = 3;
@@ -35,9 +41,10 @@ const fadeUp: Variants = {
 
 /* ---------------- Component ---------------- */
 
-export default function InternshipsGrid({ internships }: Props) {
+export default function InternshipsGrid({ internships, pagination, slug, basePath = "" }: Props) {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
   const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
 
   const handleLoadMore = () => {
     setLoading(true);
@@ -52,6 +59,15 @@ export default function InternshipsGrid({ internships }: Props) {
     setVisibleCount(ITEMS_PER_LOAD);
   };
 
+  const createPageUrl = (pageNum: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(pageNum));
+    if (pagination?.per_page) {
+      params.set("limit", String(pagination.per_page));
+    }
+    return `${basePath}${slug ? `/${slug}` : ""}?${params.toString()}`;
+  };
+
   if (!internships || internships.length === 0) {
     return (
       <section className="max-w-7xl mx-auto px-4 mt-16 text-center">
@@ -62,6 +78,9 @@ export default function InternshipsGrid({ internships }: Props) {
     );
   }
 
+  // If we have server-side pagination, we don't want to slice locally
+  const displayInternships = pagination ? internships : internships.slice(0, visibleCount);
+
   return (
     <section className="max-w-7xl mx-auto px-4 mt-10 mb-20">
       {/* GRID */}
@@ -71,16 +90,98 @@ export default function InternshipsGrid({ internships }: Props) {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
+        key={pagination ? pagination.current_page : visibleCount}
       >
-        {internships.slice(0, visibleCount).map((internship) => (
+        {displayInternships.map((internship) => (
           <motion.div key={internship.id} variants={fadeUp}>
             <InternshipCard internship={internship} />
           </motion.div>
         ))}
       </motion.div>
 
-      {/* ACTIONS */}
-      {internships.length > ITEMS_PER_LOAD && (
+      {/* SERVER-SIDE PAGINATION */}
+      {pagination && pagination.total_pages > 1 && (
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6 mt-10 px-4 border-t border-gray-100 pt-10">
+          {/* Left Side: Showing info */}
+          <div className="text-[#6B7385] text-sm font-medium">
+            Showing <span className="text-gray-900 font-bold">{pagination.showing_from}</span> to <span className="text-gray-900 font-bold">{pagination.showing_to}</span> of <span className="text-gray-900 font-bold">{pagination.total}</span> internships
+          </div>
+
+          {/* Right Side: Page navigation */}
+          <div className="flex items-center gap-4">
+            <Link
+              href={pagination.has_previous ? createPageUrl(pagination.current_page - 1) : "#"}
+              onClick={(e) => !pagination.has_previous && e.preventDefault()}
+              className={`px-4 py-2 rounded-lg border transition-all text-sm font-semibold ${pagination.has_previous
+                ? "border-gray-200 text-gray-700 hover:bg-gray-50 hover:shadow-sm"
+                : "border-gray-100 text-gray-300 cursor-not-allowed bg-gray-50/50"
+                }`}
+            >
+              Prev
+            </Link>
+
+            {/* Page numbers */}
+            <div className="flex items-center gap-2">
+              {(() => {
+                const pages: (number | "...")[] = [];
+                const total = pagination.total_pages;
+                const current = pagination.current_page;
+                const delta = 2;
+
+                const left = Math.max(1, current - delta);
+                const right = Math.min(total, current + delta);
+
+                if (left > 1) {
+                  pages.push(1);
+                  if (left > 2) pages.push("...");
+                }
+
+                for (let p = left; p <= right; p++) pages.push(p);
+
+                if (right < total) {
+                  if (right < total - 1) pages.push("...");
+                  pages.push(total);
+                }
+
+                return pages.map((p, idx) => {
+                  if (p === "...") {
+                    return (
+                      <div key={`dots-${idx}`} className="px-3 py-2 text-sm text-gray-500">{p}</div>
+                    );
+                  }
+
+                  const pageNum = p as number;
+                  const isActive = pageNum === current;
+
+                  return (
+                    <Link
+                      key={`page-${pageNum}`}
+                      href={createPageUrl(pageNum)}
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${isActive ? 'bg-gray-900 text-white' : 'text-gray-700 border border-transparent hover:bg-gray-50'}`}
+                    >
+                      {pageNum}
+                    </Link>
+                  );
+                });
+              })()}
+            </div>
+
+            <Link
+              href={pagination.has_next ? createPageUrl(pagination.current_page + 1) : "#"}
+              onClick={(e) => !pagination.has_next && e.preventDefault()}
+              className={`px-4 py-2 rounded-lg border transition-all text-sm font-semibold ${pagination.has_next
+                ? "border-gray-200 text-gray-700 hover:bg-gray-50 hover:shadow-sm"
+                : "border-gray-100 text-gray-300 cursor-not-allowed bg-gray-50/50"
+                }`}
+            >
+              Next
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* ACTIONS (Fallback) */}
+      {!pagination && internships.length > ITEMS_PER_LOAD && (
         <motion.div
           variants={fadeUp}
           initial="hidden"

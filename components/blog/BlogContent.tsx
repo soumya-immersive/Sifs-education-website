@@ -1,8 +1,10 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
-import { Share2, Link as LinkIcon } from "lucide-react";
+import { Share2, Link as LinkIcon, Check } from "lucide-react";
 import { BlogPost } from "@/types/blog";
+import { useState } from "react";
+import toast from "react-hot-toast";
 
 interface Props {
   post: BlogPost;
@@ -14,6 +16,68 @@ const fadeUp: Variants = {
 };
 
 export default function BlogContent({ post }: Props) {
+  const [copied, setCopied] = useState(false);
+
+  const getShareUrl = () => {
+    if (typeof window !== "undefined") {
+      return window.location.href;
+    }
+    return "";
+  };
+
+  const handleCopyLink = async () => {
+    const url = getShareUrl();
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success("Link copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const handleShare = async () => {
+    const url = getShareUrl();
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: post.title,
+          url: url,
+        });
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          toast.error("Error sharing");
+        }
+      }
+    } else {
+      handleCopyLink();
+    }
+  };
+
+  const socialLinks = [
+    {
+      name: 'facebook',
+      icon: '/blog/facebook.png',
+      url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getShareUrl())}`
+    },
+    {
+      name: 'instagram',
+      icon: '/blog/insta.png',
+      url: '#' // Instagram doesn't have a direct share URL for web
+    },
+    {
+      name: 'linkedin',
+      icon: '/blog/linkedin.png',
+      url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(getShareUrl())}`
+    },
+    {
+      name: 'twitter',
+      icon: '/blog/twitter.png',
+      url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(getShareUrl())}&text=${encodeURIComponent(post.title)}`
+    }
+  ];
+
   return (
     <motion.div
       initial="hidden"
@@ -38,8 +102,20 @@ export default function BlogContent({ post }: Props) {
           })}</span>
         </div>
         <div className="flex gap-4">
-          <button className="hover:text-blue-600 transition-colors"><Share2 size={18} /></button>
-          <button className="hover:text-blue-600 transition-colors"><LinkIcon size={18} /></button>
+          <button
+            onClick={handleShare}
+            className="hover:text-blue-600 transition-colors cursor-pointer"
+            title="Share"
+          >
+            <Share2 size={18} />
+          </button>
+          <button
+            onClick={handleCopyLink}
+            className="hover:text-blue-600 transition-colors cursor-pointer"
+            title="Copy Link"
+          >
+            {copied ? <Check size={18} className="text-green-600" /> : <LinkIcon size={18} />}
+          </button>
         </div>
       </motion.div>
 
@@ -52,15 +128,12 @@ export default function BlogContent({ post }: Props) {
 
       {/* Footer Socials */}
       <motion.div variants={fadeUp} className="flex gap-4 pt-6">
-        {[
-          { name: 'facebook', icon: '/blog/facebook.png' },
-          { name: 'instagram', icon: '/blog/insta.png' },
-          { name: 'linkedin', icon: '/blog/linkedin.png' },
-          { name: 'twitter', icon: '/blog/twitter.png' }
-        ].map((social) => (
+        {socialLinks.map((social) => (
           <a
             key={social.name}
-            href="#"
+            href={social.url}
+            target={social.url !== '#' ? "_blank" : undefined}
+            rel={social.url !== '#' ? "noopener noreferrer" : undefined}
             className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 cursor-pointer transition-colors"
           >
             <img
