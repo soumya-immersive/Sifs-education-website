@@ -8,6 +8,8 @@ import { Metadata } from 'next';
 import { API_BASE_URL, BASE_URL } from '../lib/config';
 import { Toaster } from 'react-hot-toast';
 import MaintenanceView from '../components/common/MaintenanceView';
+import CookieAlert from '../components/common/CookieAlert';
+import AnnouncementPopup from '../components/common/AnnouncementPopup';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -77,16 +79,17 @@ export default async function RootLayout({
   let favicon = "/favicon.ico";
   let bs: any = null;
   let isMaintenance = false;
+  let jsonData: any = null;
 
   try {
     const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`, {
       cache: 'no-store',
     });
-    const json = await response.json();
-    if (json.success && json.data) {
-      lang = json.data.currentLang?.code || "en";
-      dir = json.data.currentLang?.rtl === 1 ? "rtl" : "ltr";
-      bs = json.data.bs;
+    jsonData = await response.json();
+    if (jsonData.success && jsonData.data) {
+      lang = jsonData.data.currentLang?.code || "en";
+      dir = jsonData.data.currentLang?.rtl === 1 ? "rtl" : "ltr";
+      bs = jsonData.data.bs;
       isMaintenance = bs?.maintainance_mode === 1;
       favicon = bs?.favicon
         ? `${BASE_URL}/uploads/Education-And-Internship-Admin-Favicon/${bs.favicon}`
@@ -144,6 +147,19 @@ export default async function RootLayout({
             )}
           </>
         )}
+
+        <AnnouncementPopup
+          status={jsonData?.data?.bs?.is_announcement}
+          image={jsonData?.data?.bs?.announcement}
+          delay={jsonData?.data?.bs?.announcement_delay}
+          baseUrl={BASE_URL}
+        />
+
+        <CookieAlert
+          status={jsonData?.data?.be?.cookie_alert_status ?? jsonData?.data?.bs?.cookie_alert_status}
+          text={jsonData?.data?.be?.cookie_alert_text ?? jsonData?.data?.bs?.cookie_alert_text}
+          buttonText={jsonData?.data?.be?.cookie_alert_button_text ?? jsonData?.data?.bs?.cookie_alert_button_text}
+        />
       </body>
     </html>
   );
