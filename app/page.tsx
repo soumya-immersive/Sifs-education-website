@@ -14,6 +14,9 @@ import TrainingInternshipSection from '../components/home/TrainingInternshipSect
 import CapturedMomentsSection from '../components/home/CapturedMomentsSection';
 import TestimonialsSection from '../components/home/TestimonialsSection';
 import ForensicInsightsSection from '../components/home/ForensicInsightsSection';
+import Partners from '../components/home/Partners';
+import DownloadSection from '../components/home/DownloadSection';
+
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`, {
@@ -55,6 +58,8 @@ export default function HomePage() {
       <TrainingInternshipSection />
       <CapturedMomentsSection />
       <TestimonialsSection />
+      <Partners />
+      <DownloadSection />
       <ForensicInsightsSection />
     </>
   );
