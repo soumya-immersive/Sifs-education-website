@@ -3,6 +3,7 @@
 import { Shield, FileCheck, AlertCircle, Loader2, Download, X } from "lucide-react";
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { API_BASE_URL } from "@/lib/config";
 import Image from "next/image";
 
 interface CertificateTemplate {
@@ -77,7 +78,7 @@ function CertificateDownloadContent() {
 
         try {
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_BACKEND_URL}/EventManagement/Website/verify-certificate`,
+                `${API_BASE_URL}/EventManagement/Website/verify-certificate`,
                 {
                     method: "POST",
                     headers: {
