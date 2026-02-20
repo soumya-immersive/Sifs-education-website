@@ -3,6 +3,7 @@
 
 import Image from "next/image";
 import { motion, spring, easeOut } from "framer-motion";
+import { ensureHttps } from "@/lib/imageUtils";
 
 interface Partner {
   id: number;
@@ -109,9 +110,9 @@ export default function Participatory({ partners, testimonials }: ParticipatoryP
                 {displayPartners.map((partner) => {
                   // Ensure valid image source
                   const imageSrc = (partner.image_url && partner.image_url.trim() !== '')
-                    ? partner.image_url
+                    ? ensureHttps(partner.image_url)
                     : (partner.image && partner.image.trim() !== '')
-                      ? partner.image
+                      ? ensureHttps(partner.image)
                       : "/placeholder-partner.png";
 
                   return (

@@ -4,6 +4,7 @@ import Image from "next/image";
 import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { ensureHttps } from "@/lib/imageUtils";
 
 // --- 1. TYPE DEFINITION ---
 interface Blog {
@@ -144,7 +145,7 @@ const ForensicInsights: React.FC<ForensicInsightsSectionProps> = ({ blogs }) => 
                   {/* Image */}
                   <div className="relative h-56 w-full bg-gray-100">
                     <Image
-                      src={blog.main_image_url || blog.main_image || "/placeholder-blog.png"}
+                      src={ensureHttps(blog.main_image_url || blog.main_image) || "/placeholder-blog.png"}
                       alt={blog.title}
                       fill
                       className="object-cover"

@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { ensureHttps } from "@/lib/imageUtils";
 
 /* ---------------- Types ---------------- */
 interface Slider {
@@ -42,7 +43,7 @@ export default function EventsHero({ sliders }: EventsHeroProps) {
 
   // Ensure we have a valid image source
   const imageSrc = (slider?.image_url && slider.image_url.trim() !== '')
-    ? slider.image_url
+    ? ensureHttps(slider.image_url)
     : "/events/1.png";
 
   if (!slider) {

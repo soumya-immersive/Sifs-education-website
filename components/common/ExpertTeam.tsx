@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { ensureHttps } from "@/lib/imageUtils";
 
 interface Expert {
   id: number;
@@ -71,9 +72,9 @@ export default function ExpertTeam({ organizers }: ExpertTeamProps) {
             {experts.map((item) => {
               // Ensure valid image source
               const imageSrc = (item.image_url && item.image_url.trim() !== '')
-                ? item.image_url
+                ? ensureHttps(item.image_url)
                 : (item.image && item.image.trim() !== '')
-                  ? item.image
+                  ? ensureHttps(item.image)
                   : "/placeholder-user.jpg";
 
               return (
