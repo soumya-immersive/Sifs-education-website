@@ -7,6 +7,7 @@ import { motion, Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { API_BASE_URL } from "@/lib/config";
+import { ensureHttps } from "@/lib/imageUtils";
 
 type Event = {
   id: number;
@@ -37,6 +38,9 @@ type APIEvent = {
   start_day: string;
   start_month_year: string;
   formatted_date: string;
+  explore?: {
+    image_url: string;
+  };
 };
 
 type APIResponse = {
@@ -208,7 +212,7 @@ export default function EventsSection() {
             date: apiEvent.formatted_date,
             mode: "Online Zoom", // Default mode
             description: `${apiEvent.banner_title} ${apiEvent.banner_subtitle}`,
-            image: defaultImages[index % defaultImages.length],
+            image: ensureHttps(apiEvent.explore?.image_url) || defaultImages[index % defaultImages.length],
             start_date: apiEvent.start_date,
             end_date: apiEvent.end_date,
             formatted_date: apiEvent.formatted_date,
@@ -232,6 +236,7 @@ export default function EventsSection() {
 
     fetchEvents();
   }, []);
+
 
   // Initialize timers on mount
   useEffect(() => {
