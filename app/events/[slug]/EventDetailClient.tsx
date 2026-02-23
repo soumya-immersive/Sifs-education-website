@@ -180,6 +180,7 @@ export default function EventDetailClient({ data }: Props) {
                             fill
                             className="object-cover opacity-20"
                             priority
+                            unoptimized={event.explore.image_url.startsWith('http')}
                         />
                     )}
                 </div>
@@ -276,6 +277,7 @@ export default function EventDetailClient({ data }: Props) {
                                 alt={event.title}
                                 fill
                                 className="object-cover group-hover:scale-110 transition-transform duration-[2s]"
+                                unoptimized={event.explore?.image_url?.startsWith('http')}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-transparent to-transparent opacity-60"></div>
 
@@ -369,7 +371,7 @@ export default function EventDetailClient({ data }: Props) {
                                             whileHover={{ scale: 0.98 }}
                                             className={`relative rounded-3xl overflow-hidden cursor-crosshair group ${idx === 0 ? "col-span-2 row-span-2 h-[400px]" : "h-[192px]"}`}
                                         >
-                                            <Image src={ensureHttps(img.image_url)} alt="Gallery" fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
+                                            <Image src={ensureHttps(img.image_url)} alt="Gallery" fill className="object-cover transition-transform duration-700 group-hover:scale-110" unoptimized={img.image_url?.startsWith('http')} />
                                             <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                         </motion.div>
                                     ))}
@@ -419,7 +421,7 @@ export default function EventDetailClient({ data }: Props) {
                                     {volunteers.map((v) => (
                                         <div key={v.id} className="text-center group">
                                             <div className="relative w-28 h-28 mx-auto mb-4 rounded-[2rem] overflow-hidden group-hover:-translate-y-2 transition-transform duration-500 ring-2 ring-white/10 group-hover:ring-blue-500/50">
-                                                <Image src={ensureHttps(v.image_url)} alt={v.name} fill className="object-cover" />
+                                                <Image src={ensureHttps(v.image_url)} alt={v.name} fill className="object-cover" unoptimized={v.image_url?.startsWith('http')} />
                                             </div>
                                             <h4 className="font-bold text-sm tracking-tight">{v.name}</h4>
                                             <p className="text-[10px] uppercase font-black text-blue-400 tracking-widest mt-1">{v.rank}</p>
@@ -499,7 +501,7 @@ export default function EventDetailClient({ data }: Props) {
                                                 <div className="flex flex-wrap gap-4">
                                                     {list.map((s) => (
                                                         <a key={s.id} href={s.url} target="_blank" className="p-4 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-lg transition-all border border-transparent hover:border-blue-100 group">
-                                                            <Image src={ensureHttps(s.image_url)} alt={s.website_name} width={120} height={60} className="object-contain max-h-10 grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" />
+                                                            <Image src={ensureHttps(s.image_url)} alt={s.website_name} width={120} height={60} className="object-contain max-h-10 grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" unoptimized={s.image_url?.startsWith('http')} />
                                                         </a>
                                                     ))}
                                                 </div>
@@ -516,7 +518,7 @@ export default function EventDetailClient({ data }: Props) {
                                     {hotels.slice(0, 2).map((h) => (
                                         <div key={h.id} className="bg-white rounded-3xl overflow-hidden shadow-lg border border-slate-50 group">
                                             <div className="relative h-44">
-                                                <Image src={ensureHttps(h.image_url)} alt={h.name} fill className="object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                <Image src={ensureHttps(h.image_url)} alt={h.name} fill className="object-cover group-hover:scale-110 transition-transform duration-700" unoptimized={h.image_url?.startsWith('http')} />
                                                 <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[10px] font-black text-slate-900 shadow-sm">
                                                     PARTNER HOTEL
                                                 </div>
@@ -544,7 +546,7 @@ export default function EventDetailClient({ data }: Props) {
                                         {scenes.map((scene) => (
                                             <div key={scene.id} className="bg-white p-4 rounded-[2rem] border border-slate-100 flex items-center gap-4 hover:shadow-lg transition-all">
                                                 <div className="relative w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0">
-                                                    <Image src={ensureHttps(scene.image_url)} alt={scene.title} fill className="object-cover" />
+                                                    <Image src={ensureHttps(scene.image_url)} alt={scene.title} fill className="object-cover" unoptimized={scene.image_url?.startsWith('http')} />
                                                 </div>
                                                 <div className="min-w-0">
                                                     <h5 className="font-bold text-slate-900 text-sm truncate">{scene.title}</h5>
@@ -574,7 +576,7 @@ function MemberCard({ member, variant }: { member: Member; variant: "blue" | "pu
             className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/50 flex gap-8 items-start group"
         >
             <div className={`relative w-32 h-32 rounded-[2rem] overflow-hidden ${theme.bg} ring-4 ring-slate-50 group-hover:ring-blue-50 transition-all flex-shrink-0`}>
-                <Image src={ensureHttps(member.image_url)} alt={member.name} fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
+                <Image src={ensureHttps(member.image_url)} alt={member.name} fill className="object-cover transition-transform duration-500 group-hover:scale-110" unoptimized={member.image_url?.startsWith('http')} />
             </div>
             <div className="flex-1 min-w-0">
                 <h4 className="text-2xl font-black text-slate-900 tracking-tight leading-tight mb-1 truncate">{member.name}</h4>
@@ -593,7 +595,7 @@ function MemberRow({ member }: { member: Member }) {
     return (
         <div className="flex items-center gap-4 p-4 bg-white rounded-3xl border border-slate-50 shadow-sm hover:shadow-md transition-shadow group">
             <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0">
-                <Image src={ensureHttps(member.image_url)} alt={member.name} fill className="object-cover group-hover:scale-110 transition-transform" />
+                <Image src={ensureHttps(member.image_url)} alt={member.name} fill className="object-cover group-hover:scale-110 transition-transform" unoptimized={member.image_url?.startsWith('http')} />
             </div>
             <div className="flex-1 min-w-0">
                 <h5 className="font-bold text-slate-900 text-sm truncate uppercase tracking-tight">{member.name}</h5>

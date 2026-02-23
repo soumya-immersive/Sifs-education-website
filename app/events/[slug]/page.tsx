@@ -1,8 +1,6 @@
 import { notFound } from "next/navigation";
 import { API_BASE_URL, BASE_URL } from "@/lib/config";
 import EventDetailClient from "./EventDetailClient";
-import UpcomingEvents from "@/components/events-inner/UpcomingEvents";
-import Participatory from "@/components/events-inner/Participatory";
 
 async function getEventData(slug: string) {
   try {
@@ -54,12 +52,6 @@ export default async function EventDetailPage({ params }: Props) {
   return (
     <main className="min-h-screen bg-slate-50">
       <EventDetailClient data={data} />
-
-      <div className="mt-20 mb-20">
-        <UpcomingEvents events={upcomingEvents || []} />
-      </div>
-
-      {/* <Participatory /> */}
     </main>
   );
 }

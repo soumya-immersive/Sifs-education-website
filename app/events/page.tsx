@@ -1,6 +1,7 @@
 import { API_BASE_URL, BASE_URL } from "@/lib/config";
 import EventsHero from "../../components/events/EventsHero";
-import UpcomingEvents from "../../components/events/UpcomingEvents";
+// import UpcomingEvents from "../../components/events/UpcomingEvents";
+import EventsSection from "../../components/home/EventsSection";
 import JourneyStats from "../../components/events/JourneyStats";
 import ArchiveProgram from "../../components/events/ArchiveProgram";
 import ExpertTeam from "../../components/common/ExpertTeam";
@@ -128,7 +129,8 @@ export default async function EventsPage() {
   return (
     <main>
       <EventsHero sliders={data?.sliders || []} />
-      <UpcomingEvents events={data?.upcomingEvents || []} />
+      {/* <UpcomingEvents events={data?.upcomingEvents || []} /> */}
+      <EventsSection />
       <DownloadCertificate />
       <JourneyStats statistics={data?.statistics || []} />
       <ArchiveProgram archiveEvents={data?.archiveEvents || []} />
