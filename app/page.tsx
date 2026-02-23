@@ -53,14 +53,14 @@ export default function HomePage() {
       <ExploreCourses />
       <OnlineCoursesSection />
       <AdmissionStepper />
-      <CoursesFeeSection />
-      <FeeStructureSection />
       <TrainingInternshipSection />
+      <FeeStructureSection />
+      <CoursesFeeSection />
       <CapturedMomentsSection />
-      <TestimonialsSection />
       <Partners />
       <DownloadSection />
       <ForensicInsightsSection />
+      <TestimonialsSection />
     </>
   );
 }

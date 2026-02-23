@@ -231,7 +231,7 @@ export default function GlobalInfluence() {
         >
           {/* Bottom layers */}
           <div className="absolute inset-x-4 -bottom-5 h-5 rounded-2xl bg-white/80 shadow-md" />
-          <div className="absolute inset-x-8 -bottom-10 h-5 rounded-2xl bg-white/60 shadow-sm" />
+          {/* <div className="absolute inset-x-8 -bottom-10 h-5 rounded-2xl bg-white/60 shadow-sm" /> */}
 
           {/* Main card */}
           <div className="relative rounded-3xl bg-white px-6 py-10 shadow-xl md:px-10">

@@ -151,7 +151,7 @@ export default function Banner() {
             </div>
 
             {/* FLOATING TAG SKELETON - Top Right */}
-            <div className="absolute -top-6 right-10 bg-white p-4 rounded-xl shadow-xl">
+            {/* <div className="absolute -top-6 right-10 bg-white p-4 rounded-xl shadow-xl">
               <div className="flex items-center gap-2">
                 <div className="w-5 h-5 bg-gray-200 rounded-full animate-pulse"></div>
                 <div className="space-y-1">
@@ -159,10 +159,10 @@ export default function Banner() {
                   <div className="h-3 w-16 bg-gray-200 rounded animate-pulse"></div>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* LEFT STAT SKELETON */}
-            <div className="absolute top-1/2 -left-10 bg-white py-3 px-4 rounded-xl shadow-xl">
+            {/* <div className="absolute top-1/2 -left-10 bg-white py-3 px-4 rounded-xl shadow-xl">
               <div className="flex items-center gap-3">
                 <div className="w-6 h-6 bg-gray-200 rounded-full animate-pulse"></div>
                 <div className="space-y-1">
@@ -170,10 +170,10 @@ export default function Banner() {
                   <div className="h-3 w-24 bg-gray-200 rounded animate-pulse"></div>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* RIGHT STAT SKELETON */}
-            <div className="absolute bottom-4 right-0 bg-white py-3 px-4 rounded-xl shadow-xl">
+            {/* <div className="absolute bottom-4 right-0 bg-white py-3 px-4 rounded-xl shadow-xl">
               <div className="flex items-center gap-2">
                 <div className="w-5 h-5 bg-gray-200 rounded-full animate-pulse"></div>
                 <div className="space-y-1">
@@ -181,7 +181,7 @@ export default function Banner() {
                   <div className="h-3 w-16 bg-gray-200 rounded animate-pulse"></div>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -301,7 +301,7 @@ export default function Banner() {
             </motion.div>
 
             {/* ZIGZAG */}
-            <motion.div variants={slideUpItem} className="mt-10">
+            {/* <motion.div variants={slideUpItem} className="mt-10">
               <svg width="65" height="24">
                 <path
                   d="M2 20C12 10 22 10 32 20C42 10 52 10 62 20"
@@ -310,7 +310,7 @@ export default function Banner() {
                   strokeLinecap="round"
                 />
               </svg>
-            </motion.div>
+            </motion.div> */}
           </div>
 
           {/* ---------------- RIGHT IMAGE ---------------- */}
@@ -333,7 +333,7 @@ export default function Banner() {
             </motion.div>
 
             {/* FLOATING TAG - "Learn at your own pace" */}
-            <motion.div
+            {/* <motion.div
               className="absolute -top-6 right-10 bg-white p-4 rounded-xl shadow-xl"
               animate={{
                 y: [-8, 8, -8],
@@ -351,10 +351,10 @@ export default function Banner() {
                   Learn at your <br /> own pace
                 </span>
               </div>
-            </motion.div>
+            </motion.div> */}
 
             {/* LEFT STAT - "36k+ Enrolled Students" */}
-            <motion.div
+            {/* <motion.div
               className="absolute top-1/2 -left-10 bg-white py-3 px-4 rounded-xl shadow-xl"
               animate={{
                 y: [-10, 10, -10],
@@ -374,10 +374,10 @@ export default function Banner() {
                   <span className="text-xs text-black">Enrolled Students</span>
                 </div>
               </div>
-            </motion.div>
+            </motion.div> */}
 
             {/* RIGHT STAT - "99% Satisfied" */}
-            <motion.div
+            {/* <motion.div
               className="absolute bottom-4 right-0 bg-white py-3 px-4 rounded-xl shadow-xl"
               animate={{
                 y: [-6, 6, -6],
@@ -396,7 +396,7 @@ export default function Banner() {
                   <span className="text-xs font-normal text-black">Satisfied</span>
                 </span>
               </div>
-            </motion.div>
+            </motion.div> */}
           </div>
         </motion.div>
       </AnimatePresence>

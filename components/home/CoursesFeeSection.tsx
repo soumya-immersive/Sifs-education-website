@@ -67,7 +67,7 @@ export default function CoursePricing() {
   // Show loading skeleton while fetching categories
   if (loading) {
     return (
-      <section className="py-20 bg-gradient-to-b from-white to-[#fbfcff] relative bg-[url('/fee-structure/bg.png')] bg-cover bg-center bg-no-repeat">
+      <section className="py-16 pt-32 px-4 sm:px-6 lg:px-8 bg-white overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-4"></div>
@@ -130,7 +130,7 @@ export default function CoursePricing() {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-[#fbfcff] relative bg-[url('/fee-structure/bg.png')] bg-cover bg-center bg-no-repeat">
+    <section className="py-16 pt-32 px-4 sm:px-6 lg:px-8 bg-white overflow-hidden">
       <motion.div
         className="max-w-6xl mx-auto px-6 text-center"
         initial="hidden"

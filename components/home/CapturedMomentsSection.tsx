@@ -117,7 +117,7 @@ const MomentCard: React.FC<MomentCardProps> = ({ moment }) => {
       <div className="p-4 md:p-6">
         <p className="text-sm font-semibold text-orange-500 mb-1">{moment.category_name}</p>
         <h3 className="text-xl font-bold text-gray-900 leading-snug group-hover:text-[#008DD2] transition-colors">
-          {moment.title}
+          {moment.title.length > 20 ? `${moment.title.substring(0, 20)}...` : moment.title}
         </h3>
       </div>
     </div>
@@ -208,7 +208,7 @@ const CapturedMomentsSection: React.FC = () => {
           <div className="flex space-x-4 mt-8">
             <button
               onClick={() => swiperRef.current?.slidePrev()}
-              className="w-12 h-12 bg-white text-[#008DD2] rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 hover:bg-gray-50 cursor-pointer"
+              className="w-12 h-12 bg-white/90 hover:bg-white text-gray-800 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 shadow-lg cursor-pointer"
               aria-label="Previous Moment"
             >
               <ChevronLeft className="w-6 h-6" />
@@ -216,7 +216,7 @@ const CapturedMomentsSection: React.FC = () => {
 
             <button
               onClick={() => swiperRef.current?.slideNext()}
-              className="w-12 h-12 bg-[#008DD2] text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 hover:bg-[#008DD2] cursor-pointer"
+              className="w-12 h-12 bg-white/90 hover:bg-white text-gray-800 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 shadow-lg cursor-pointer"
               aria-label="Next Moment"
             >
               <ChevronRight className="w-6 h-6" />
