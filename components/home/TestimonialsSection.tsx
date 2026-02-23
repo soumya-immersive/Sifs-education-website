@@ -156,7 +156,7 @@ const TestimonialsSection: React.FC = () => {
         </motion.div>
 
         {/* -------- Swiper Carousel -------- */}
-        <motion.div className="relative" variants={itemSlideUpVariants}>
+        <motion.div className="relative pb-12" variants={itemSlideUpVariants}>
           <Swiper
             onSwiper={(swiper) => {
               swiperRef.current = swiper;
@@ -240,16 +240,18 @@ const TestimonialsSection: React.FC = () => {
           <div className="hidden lg:block">
             <button
               onClick={() => swiperRef.current?.slidePrev()}
-              className=" cursor-pointer absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-12 w-12 h-12 shadow-lg bg-[#008DD2] text-white rounded-full flex items-center justify-center hover:scale-105 transition"
+              className=" cursor-pointer absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-12 w-12 h-12 shadow-lg bg-white/90 text-gray-800 rounded-full flex items-center justify-center hover:scale-110 hover:bg-white transition"
+              aria-label="Previous testimonial"
             >
-              <ChevronLeft />
+              <ChevronLeft className="w-6 h-6" />
             </button>
 
             <button
               onClick={() => swiperRef.current?.slideNext()}
-              className=" cursor-pointer absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-12 w-12 h-12 bg-[#008DD2] text-white rounded-full flex items-center justify-center hover:scale-105 transition"
+              className=" cursor-pointer absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-12 w-12 h-12 shadow-lg bg-white/90 text-gray-800 rounded-full flex items-center justify-center hover:scale-110 hover:bg-white transition"
+              aria-label="Next testimonial"
             >
-              <ChevronRight />
+              <ChevronRight className="w-6 h-6" />
             </button>
           </div>
 

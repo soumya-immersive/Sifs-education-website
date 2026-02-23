@@ -367,7 +367,7 @@ export default function EventsSection() {
         <div className="mx-auto max-w-7xl px-4">
           {/* Header */}
           <div className="mb-8">
-            <p className="text-sm font-normal text-[#3A58EE]">{headerData.subtitle}</p>
+
             <h2 className="mt-1 text-2xl font-semibold text-black">
               <span className="relative inline-block">
                 <span className="relative z-10">
@@ -382,6 +382,7 @@ export default function EventsSection() {
                 />
               </span>
             </h2>
+            <p className="text-sm text-gray-500 md:text-base">{headerData.subtitle}</p>
           </div>
 
           <div className="flex items-center justify-center py-20">
@@ -406,7 +407,7 @@ export default function EventsSection() {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between gap-4">
           <motion.div variants={headerItemVariants}>
-            <p className="text-sm font-normal text-[#3A58EE]">{headerData.subtitle}</p>
+
             <h2 className="mt-1 text-2xl font-semibold text-black">
               <span className="relative inline-block">
                 <span className="relative z-10">
@@ -421,6 +422,7 @@ export default function EventsSection() {
                 />
               </span>
             </h2>
+            <p className="text-sm text-gray-500 md:text-base mt-2">{headerData.subtitle}</p>
           </motion.div>
 
           <Link href="/events">

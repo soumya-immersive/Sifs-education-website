@@ -254,7 +254,7 @@ const TrainingInternshipSection: React.FC = () => {
           ))}
         </motion.div>
 
-        <motion.div className="relative pb-12" variants={itemSlideUpVariants}>
+        <motion.div className="relative " variants={itemSlideUpVariants}>
           <AnimatePresence mode="wait">
             <motion.div key={activeCategory} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               {activeTrainings.length > 0 ? (
@@ -294,15 +294,17 @@ const TrainingInternshipSection: React.FC = () => {
             <>
               <button
                 onClick={() => swiperRef.current?.slidePrev()}
-                className="absolute -left-4 md:-left-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full hidden xl:flex items-center justify-center text-[#008DD2] hover:scale-110 cursor-pointer transition-all border border-gray-50"
+                className="absolute -left-4 md:-left-8 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/90 shadow-lg rounded-full hidden xl:flex items-center justify-center text-gray-800 hover:scale-110 hover:bg-white cursor-pointer transition-all border border-gray-100"
+                aria-label="Previous slide"
               >
-                <ChevronLeft size={24} />
+                <ChevronLeft className="w-6 h-6" />
               </button>
               <button
                 onClick={() => swiperRef.current?.slideNext()}
-                className="absolute -right-4 md:-right-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-[#008DD2] shadow-lg rounded-full hidden xl:flex items-center justify-center text-white hover:scale-110 cursor-pointer transition-all"
+                className="absolute -right-4 md:-right-8 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white/90 shadow-lg rounded-full hidden xl:flex items-center justify-center text-gray-800 hover:scale-110 hover:bg-white cursor-pointer transition-all border border-gray-100"
+                aria-label="Next slide"
               >
-                <ChevronRight size={24} />
+                <ChevronRight className="w-6 h-6" />
               </button>
             </>
           )}

@@ -162,7 +162,7 @@ const StepItem: React.FC<StepItemProps> = ({ step, isLast, isFirst }) => {
 // Main AdmissionStepper Component
 const AdmissionStepper: React.FC = () => {
   return (
-    <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white overflow-hidden">
+    <section className="py-20 bg-gradient-to-b from-white to-[#fbfcff] relative bg-[url('/fee-structure/bg.png')] bg-cover bg-center bg-no-repeat">
       <motion.div
         className="max-w-7xl mx-auto"
         initial="hidden"

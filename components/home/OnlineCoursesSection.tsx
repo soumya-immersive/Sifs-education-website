@@ -378,7 +378,7 @@ const OnlineCoursesSection: React.FC = () => {
           ))}
         </motion.div>
 
-        <motion.div className="relative pt-4 pb-12" variants={itemSlideUpVariants}>
+        <motion.div className="relative pt-4" variants={itemSlideUpVariants}>
           <AnimatePresence mode="wait">
             <motion.div
               key={activeCategory?.id}
@@ -430,14 +430,16 @@ const OnlineCoursesSection: React.FC = () => {
             <>
               <button
                 onClick={() => swiperRef.current?.slidePrev()}
-                className="cursor-pointer absolute -left-4 md:-left-8 top-1/2 -translate-y-1/2 w-10 h-10 bg-white text-[#008DD2] rounded-full shadow-lg z-20 flex items-center justify-center transition hover:scale-110 border border-gray-100"
+                className="cursor-pointer absolute -left-4 md:-left-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 text-gray-800 rounded-full shadow-lg z-20 flex items-center justify-center transition hover:scale-110 hover:bg-white border border-gray-100"
+                aria-label="Previous slide"
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
 
               <button
                 onClick={() => swiperRef.current?.slideNext()}
-                className="cursor-pointer absolute -right-4 md:-right-8 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#008DD2] text-white rounded-full shadow-lg z-20 flex items-center justify-center transition hover:scale-110"
+                className="cursor-pointer absolute -right-4 md:-right-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 text-gray-800 rounded-full shadow-lg z-20 flex items-center justify-center transition hover:scale-110 hover:bg-white border border-gray-100"
+                aria-label="Next slide"
               >
                 <ChevronRight className="w-6 h-6" />
               </button>
