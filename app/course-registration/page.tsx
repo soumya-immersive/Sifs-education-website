@@ -44,6 +44,11 @@ function RegistrationForm() {
     const courseLevel = searchParams.get("level") || "1";
     const coursePrice = searchParams.get("price") || "";
     const courseId = searchParams.get("id") || "";
+    const courseSlug = searchParams.get("slug") || "";
+
+    // Add state for course details
+    const [courseDetails, setCourseDetails] = useState<any>(null);
+    const [isLoadingCourse, setIsLoadingCourse] = useState(true);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -82,6 +87,31 @@ function RegistrationForm() {
         const day = String(today.getDate()).padStart(2, '0');
         setMaxDate(`${year}-${month}-${day}`);
     }, []);
+
+    // Fetch course details
+    useEffect(() => {
+        const fetchCourseDetails = async () => {
+            if (!courseSlug) return;
+
+            try {
+                setIsLoadingCourse(true);
+                const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/courses/course-details/${courseSlug}`);
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data?.course) {
+                        setCourseDetails(result.data.course);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch course details:", error);
+            } finally {
+                setIsLoadingCourse(false);
+            }
+        };
+
+        fetchCourseDetails();
+    }, [courseSlug]);
 
     useEffect(() => {
         const fetchCountries = async () => {
@@ -254,12 +284,6 @@ function RegistrationForm() {
             </div>
         );
     }
-
-
-
-
-
-
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-8 lg:py-12">
@@ -467,7 +491,7 @@ function RegistrationForm() {
                                 </div>
                                 <div className="text-sm text-gray-600 leading-relaxed">
                                     <span className="font-semibold text-gray-900 block mb-1">I agree to the Terms & Conditions</span>
-                                    By checking this box, I confirm that the information provided is accurate and I agree to the <Link href="/terms" className="text-indigo-600 hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-indigo-600 hover:underline">Privacy Policy</Link> of SIFS INDIA.
+                                    By checking this box, I confirm that the information provided is accurate and I agree to the <Link href="/terms-and-conditions" className="text-indigo-600 hover:underline">Terms of Service</Link> and <Link href="/privacy-policey" className="text-indigo-600 hover:underline">Privacy Policy</Link> of SIFS INDIA.
                                 </div>
                             </label>
                         </div>
@@ -524,11 +548,15 @@ function RegistrationForm() {
                                 <span className="font-semibold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full text-sm">{displayLevel}</span>
                             </div>
 
-
-
                             <div className="flex items-center justify-between py-4 border-t border-gray-100">
                                 <span className="text-gray-600">Mode</span>
-                                <span className="font-medium text-gray-900">Online / Hybrid</span>
+                                <span className="font-medium text-gray-900">
+                                    {isLoadingCourse ? (
+                                        <span className="text-gray-400 italic">Loading...</span>
+                                    ) : (
+                                        courseDetails?.mode_of_study || "Online / Hybrid"
+                                    )}
+                                </span>
                             </div>
 
                             <div className="mt-6 pt-4 border-t-2 border-dashed border-gray-200">
@@ -567,7 +595,7 @@ function RegistrationForm() {
                     </div>
 
                     {/* Help Card */}
-                    <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl p-6 border border-indigo-100 shadow-sm">
+                    {/* <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl p-6 border border-indigo-100 shadow-sm">
                         <h4 className="font-bold text-indigo-900 mb-2">Need Help?</h4>
                         <p className="text-sm text-indigo-700 mb-4 leading-relaxed">
                             If you have any questions about the registration process, please contact our support team.
@@ -578,7 +606,7 @@ function RegistrationForm() {
                             </div>
                             <span>011-47074263</span>
                         </a>
-                    </div>
+                    </div> */}
 
                 </div>
 
@@ -589,7 +617,7 @@ function RegistrationForm() {
 
 export default function CourseRegistrationPage() {
     return (
-        <div className="min-h-screen bg-[#F8F9FB] pb-24 pt-24">
+        <div className="min-h-screen bg-[#F8F9FB] pb-24 ">
             <Suspense fallback={
                 <div className="flex flex-col items-center justify-center min-h-[60vh]">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
@@ -598,11 +626,6 @@ export default function CourseRegistrationPage() {
             }>
                 <RegistrationForm />
             </Suspense>
-
-            {/* Simple Footer for the Registration Page */}
-            <div className="text-center text-gray-400 text-sm mt-12">
-                &copy; {new Date().getFullYear()} SIFS INDIA. All rights reserved.
-            </div>
         </div>
     );
 }

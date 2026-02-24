@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { motion, Variants } from "framer-motion";
-import { Plus, Trash2 } from "lucide-react";
 import EditableText from "../editable/EditableText";
 import EditableImage from "../editable/EditableImage";
 import { AboutHeroData } from "@/types/about-page";
@@ -59,19 +58,8 @@ export default function AboutHero({ data, editMode, updateData }: AboutHeroProps
     updateData(next);
   };
 
-  const addParagraph = () => {
-    updateAndSave({ ...content, paragraphs: [...content.paragraphs, "New paragraph..."] });
-  };
-
-  const removeParagraph = (index: number) => {
-    if (confirm("Delete this paragraph?")) {
-      const newParagraphs = content.paragraphs.filter((_, i) => i !== index);
-      updateAndSave({ ...content, paragraphs: newParagraphs });
-    }
-  };
-
   return (
-    <section className="py-20 bg-white overflow-hidden relative">
+    <section className="py-20 pb-10 bg-white overflow-hidden relative">
       <div className="max-w-7xl mx-auto px-6 text-center">
 
         {/* Heading */}
@@ -129,39 +117,16 @@ export default function AboutHero({ data, editMode, updateData }: AboutHeroProps
               />
             </motion.div>
 
-            {content.paragraphs.map((p: string, idx: number) => (
-              <motion.div variants={fadeUp} className="text-gray-600 text-sm leading-relaxed mb-4 group relative" key={idx}>
-                <div className="flex-1">
-                  <EditableText
-                    html={p}
-                    editMode={editMode}
-                    onChange={(h) => {
-                      const next = [...content.paragraphs];
-                      next[idx] = h;
-                      updateAndSave({ ...content, paragraphs: next });
-                    }}
-                  />
-                </div>
-                {editMode && (
-                  <button
-                    onClick={() => removeParagraph(idx)}
-                    className="absolute -right-6 top-0 text-red-500 opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 rounded transition-opacity"
-                    title="Remove Paragraph"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                )}
-              </motion.div>
-            ))}
-
-            {editMode && (
-              <button
-                onClick={addParagraph}
-                className="flex items-center gap-2 mt-4 text-sm text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 transition-colors"
-              >
-                <Plus size={16} /> Add Paragraph
-              </button>
-            )}
+            <motion.div variants={fadeUp} className="text-gray-600 text-sm leading-relaxed mb-4">
+              <EditableText
+                html={content.paragraphs.join('')}
+                editMode={editMode}
+                onChange={(h) => {
+                  updateAndSave({ ...content, paragraphs: [h] });
+                }}
+                as="div"
+              />
+            </motion.div>
 
           </motion.div>
         </div>

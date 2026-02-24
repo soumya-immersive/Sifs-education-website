@@ -47,7 +47,7 @@ export default function TrainingAccordionBlocks({ training }: Props) {
 
   if (training.caseStudies) {
     blocks.push({
-      title: "Requirements & Essentials",
+      title: "Training Essentials ",
       content: (
         <div
           className="prose prose-sm max-w-none text-gray-600 space-y-2"
@@ -59,7 +59,7 @@ export default function TrainingAccordionBlocks({ training }: Props) {
 
   if (training.faqs && training.faqs.length > 0) {
     blocks.push({
-      title: "Frequently Asked Questions",
+      title: "FAQ",
       content: (
         <div className="space-y-4">
           {training.faqs.map((faq) => (
@@ -76,28 +76,28 @@ export default function TrainingAccordionBlocks({ training }: Props) {
     });
   }
 
-  if (training.comments && training.comments.length > 0) {
-    blocks.push({
-      title: "Community Q&A",
-      content: (
-        <div className="space-y-4">
-          {training.comments.map((comment) => (
-            <div key={comment.id} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
-              <h4 className="font-semibold text-gray-800 mb-1">Q: {comment.query}</h4>
-              <div className="text-gray-600 text-sm">
-                <span className="font-semibold text-indigo-600">A: </span>
-                <span dangerouslySetInnerHTML={{ __html: comment.reply }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      ),
-    });
-  }
+  // if (training.comments && training.comments.length > 0) {
+  //   blocks.push({
+  //     title: "Community Q&A",
+  //     content: (
+  //       <div className="space-y-4">
+  //         {training.comments.map((comment) => (
+  //           <div key={comment.id} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+  //             <h4 className="font-semibold text-gray-800 mb-1">Q: {comment.query}</h4>
+  //             <div className="text-gray-600 text-sm">
+  //               <span className="font-semibold text-indigo-600">A: </span>
+  //               <span dangerouslySetInnerHTML={{ __html: comment.reply }} />
+  //             </div>
+  //           </div>
+  //         ))}
+  //       </div>
+  //     ),
+  //   });
+  // }
 
   if (training.reviews && training.reviews.length > 0) {
     blocks.push({
-      title: "Student Reviews",
+      title: "Reviews",
       content: (
         <div className="space-y-4">
           {training.reviews.map((review) => (
@@ -122,21 +122,21 @@ export default function TrainingAccordionBlocks({ training }: Props) {
   }
 
   // Always add Certification Details as a static block if needed, or maybe dependent on something
-  blocks.push({
-    title: "Certification Details",
-    content: (
-      <div className="text-sm text-gray-600 leading-relaxed space-y-2">
-        <p>
-          Upon successful completion of the {training.title} training, participants will receive an
-          industry-recognized certificate from SIFS India.
-        </p>
-        <p>
-          This certification validates your practical skills and knowledge in {training.overview.toLowerCase()}.
-          It is valuable for career advancement in forensic science labs, law enforcement agencies, and private security firms.
-        </p>
-      </div>
-    )
-  });
+  // blocks.push({
+  //   title: "Certification Details",
+  //   content: (
+  //     <div className="text-sm text-gray-600 leading-relaxed space-y-2">
+  //       <p>
+  //         Upon successful completion of the {training.title} training, participants will receive an
+  //         industry-recognized certificate from SIFS India.
+  //       </p>
+  //       <p>
+  //         This certification validates your practical skills and knowledge in {training.overview.toLowerCase()}.
+  //         It is valuable for career advancement in forensic science labs, law enforcement agencies, and private security firms.
+  //       </p>
+  //     </div>
+  //   )
+  // });
 
   return (
     <div className="space-y-3 pt-4">

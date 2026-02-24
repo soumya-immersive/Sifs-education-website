@@ -51,13 +51,26 @@ export default function TrainingInfo({ training }: Props) {
           Training Overview
         </h2>
 
-        <div className="text-xs text-gray-500 text-right">
-          <span className="ml-2 block font-semibold text-md text-black">
-            Upcoming Batch: Jan 2026
-          </span>
-          <span className="text-xs font-normal text-black block">
-            Enrollment Deadline: 31st Dec 2025
-          </span>
+        <div className="text-right space-y-1">
+          {training.created_at && (
+            <span className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider">
+              Published: {new Date(training.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+            </span>
+          )}
+          {training.updated_at ? (
+            <span className="block font-bold text-[11px] text-blue-600 uppercase tracking-tight">
+              Updated: {new Date(training.updated_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+            </span>
+          ) : (
+            <div className="text-xs text-gray-500 text-right">
+              <span className="ml-2 block font-semibold text-md text-black">
+                Upcoming Batch: Jan 2026
+              </span>
+              <span className="text-xs font-normal text-black block">
+                Enrollment Deadline: 31st Dec 2025
+              </span>
+            </div>
+          )}
         </div>
       </motion.div>
 

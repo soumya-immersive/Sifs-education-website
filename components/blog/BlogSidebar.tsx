@@ -12,6 +12,7 @@ export default function BlogSidebar() {
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [recentPosts, setRecentPosts] = useState<BlogPost[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [categorySearchTerm, setCategorySearchTerm] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -22,7 +23,7 @@ export default function BlogSidebar() {
         if (res.ok) {
           const json: CategoriesResponse = await res.json();
           if (json.success && json.data.categories) {
-            setCategories(json.data.categories.slice(0, 10)); // Limit to 10
+            setCategories(json.data.categories);
           }
         }
       } catch (err) {
@@ -59,55 +60,59 @@ export default function BlogSidebar() {
   return (
     <div className="space-y-10 sticky top-24">
       {/* Search Box */}
-      <div className="bg-white p-6 rounded-2xl border border-gray-200">
+      <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
         <h4 className="font-bold mb-4 text-gray-900 text-lg">Search blog</h4>
-        <hr className="border-gray-200 mb-6" />
-        <div className="relative">
+        <div className="relative group">
           <form onSubmit={handleSearch}>
             <input
               type="text"
               placeholder="Search here..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-4 pr-10 py-3 bg-gray-50 text-gray-900 placeholder-gray-400 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-[#4559ED]/20 focus:border-[#4559ED]/30 transition-all"
+              className="w-full bg-[#FBFCFF] border border-gray-200 rounded-xl py-3 px-4 pr-10 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#3E58EE]/20 focus:border-[#3E58EE] transition-all group-hover:border-gray-300 placeholder:text-gray-400"
             />
-            <button type="submit" className="absolute right-3 top-3">
-              <Search className="w-4 h-4 text-gray-400 hover:text-[#4559ED] transition-colors" />
+            <button type="submit" className="absolute right-3 top-3 text-gray-400 group-focus-within:text-[#3E58EE] transition-colors">
+              <Search size={18} />
             </button>
           </form>
         </div>
       </div>
 
       {/* Categories */}
-      <div className="bg-white p-6 rounded-2xl border border-gray-200">
-        <h4 className="font-bold mb-6 text-gray-900 text-lg">Categories</h4>
-        <hr className="border-gray-200 mb-6" />
-        <div className="space-y-2.5">
+      <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+        <h4 className="font-bold text-gray-900 text-lg mb-4">Categories</h4>
+
+        <div className="relative mb-4 group">
+          <input
+            type="text"
+            placeholder="Search categories..."
+            value={categorySearchTerm}
+            onChange={(e) => setCategorySearchTerm(e.target.value)}
+            className="w-full bg-[#FBFCFF] border border-gray-200 rounded-xl py-2 px-3 pr-9 text-xs text-gray-900 outline-none focus:ring-1 focus:ring-[#3E58EE]/20 focus:border-[#3E58EE] transition-all placeholder:text-gray-400"
+          />
+          <Search className="absolute right-3 top-2.5 text-gray-400" size={14} />
+        </div>
+
+        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
           <Link
             href="/blog"
-            className="w-full flex items-center justify-between p-3.5 rounded-xl text-sm transition-all duration-200 font-medium bg-gray-50 text-gray-800 hover:bg-gray-100 hover:text-[#4559ED]"
+            className="w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all bg-[#FBFCFF] text-gray-600 hover:bg-[#F3F6FF] hover:text-[#3E58EE]"
           >
             All Posts
-            <ChevronRight className="w-4 h-4 text-gray-400" />
+            <ChevronRight size={14} />
           </Link>
-          {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              href={`/blog?category=${cat.id}`} // We'll need to handle this in standard blog page if possible, or pass state if using context. For now query param is safest.
-              // Logic in main blog page needs to consume category query param? 
-              // Wait, the main blog page uses `selectedCategoryId` state. 
-              // We should probably update the main blog page to read from URL params too, but the user asked to fix sidebar first.
-              // Let's assume /blog?category=ID is the way to go.
-              className="w-full flex items-center justify-between p-3.5 rounded-xl text-sm transition-all duration-200 font-medium bg-gray-50 text-gray-800 hover:bg-gray-100 hover:text-[#4559ED]"
-            >
-              <span>{cat.name}</span>
-              {/* {cat.blog_count ? (
-                <span className="text-xs bg-gray-200 text-gray-600 py-0.5 px-2 rounded-full">{cat.blog_count}</span>
-              ) : (
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-              )} */}
-            </Link>
-          ))}
+          {categories
+            .filter(cat => cat.name.toLowerCase().includes(categorySearchTerm.toLowerCase()))
+            .map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/blog?category=${cat.id}`}
+                className="w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all bg-[#FBFCFF] text-gray-600 hover:bg-[#F3F6FF] hover:text-[#3E58EE]"
+              >
+                <span>{cat.name}</span>
+                <ChevronRight size={14} />
+              </Link>
+            ))}
         </div>
       </div>
 

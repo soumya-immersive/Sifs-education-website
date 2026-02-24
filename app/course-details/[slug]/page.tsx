@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { API_BASE_URL } from "@/lib/config";
+import { API_BASE_URL, BASE_URL } from "@/lib/config";
 import type { ApiCourseDetailsResponse } from "@/types/course";
 import { courses, type Course } from "../../../data/courses";
 import { coursePrograms } from "../../../data/coursePrograms";
@@ -68,12 +68,20 @@ async function getApiCourseDetails(slug: string): Promise<Course | null> {
                 instructors: json.data.instructors,
                 courseFaqs: json.data.faq,
                 reviewsList: json.data.reviews,
-                prospectus: json.data.prospectus,
+                prospectus: json.data.prospectus ? {
+                    ...json.data.prospectus,
+                    image_url: json.data.prospectus.prospectus_image
+                        ? `${BASE_URL}/uploads/${json.data.prospectus.prospectus_image}`
+                        : json.data.prospectus.image_url
+                } : undefined,
 
                 // Defaults
                 rating: 5.0,
                 reviewsCount: 120,
                 bannerImage: "/course/hero-bg.png",
+
+                created_at: apiCourse.created_at,
+                updated_at: apiCourse.updated_at,
             };
         }
         return null;
@@ -107,7 +115,7 @@ export default async function CourseDetailsPage({ params }: PageProps) {
         <section className="bg-white">
             <CourseHero course={course} />
 
-            <div className="max-w-7xl mx-auto px-4 pb-16 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="max-w-7xl mx-auto px-4 pb-16 grid grid-cols-1 lg:grid-cols-3 gap-8 pb-32">
                 <div className="lg:col-span-2 space-y-6">
                     <CourseInfo course={course} />
 

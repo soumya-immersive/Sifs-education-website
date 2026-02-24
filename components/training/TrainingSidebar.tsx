@@ -6,6 +6,7 @@ import { Linkedin, Twitter, Play, Phone, Facebook, Instagram, Award, X } from "l
 import { motion, Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Training } from "@/data/trainings";
+import Link from "next/link";
 
 interface Props {
   training: Training;
@@ -32,6 +33,7 @@ const itemVariants: Variants = {
 
 export default function TrainingSidebar({ training }: Props) {
   const router = useRouter();
+
   // Determine available levels
   const availableLevels = [
     { level: 1, price: training.priceLevel1 },
@@ -95,28 +97,17 @@ export default function TrainingSidebar({ training }: Props) {
   };
 
   const handleRegister = () => {
-    const price = getPrice();
-    // Use training.slug if available, otherwise fallback to title-based slug
+    const priceValue = getPrice();
     const slug = training.slug || training.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
-
-    console.log("Training Registration Data:", {
-      id: training.id,
-      slug: slug,
-      originalSlug: training.slug,
-      title: training.title,
-      level: selectedLevel
-    });
 
     const query = new URLSearchParams({
       id: training.id.toString(),
       slug: slug,
       title: training.title,
-      price: price,
+      price: priceValue,
       level: selectedLevel.toString()
     }).toString();
 
-    // Use the generic registration page
-    // We could add 'type=training' param if needed by frontend analytics or logic
     router.push(`/internship-registration?${query}&type=training`);
   };
 
@@ -140,7 +131,6 @@ export default function TrainingSidebar({ training }: Props) {
     setQueryMessage(null);
 
     try {
-      // Reuse existing endpoint logic
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/courses/${training.id}/comment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -152,13 +142,11 @@ export default function TrainingSidebar({ training }: Props) {
         setQueryMessage({ text: "Query submitted successfully!", type: "success" });
         setQueryForm({ name: "", mobile: "", email: "", query: "" });
       } else {
-        setQueryMessage({ text: "Query submitted successfully!", type: "success" });
-        setQueryForm({ name: "", mobile: "", email: "", query: "" });
+        setQueryMessage({ text: "Something went wrong. Please try again.", type: "error" });
       }
     } catch (error) {
       console.error("Query submission error:", error);
-      setQueryMessage({ text: "Query submitted successfully!", type: "success" });
-      setQueryForm({ name: "", mobile: "", email: "", query: "" });
+      setQueryMessage({ text: "Something went wrong. Please try again.", type: "error" });
     } finally {
       setIsQuerySubmitting(false);
     }
@@ -199,7 +187,7 @@ export default function TrainingSidebar({ training }: Props) {
           <div className="p-6 space-y-8">
 
             {/* SELECT LEVEL - Only show if levels are available */}
-            {availableLevels.length > 0 && (
+            {/* {availableLevels.length > 0 && (
               <div className="space-y-4">
                 <h3 className="text-gray-700 font-semibold text-center">Select Level</h3>
                 <div className="space-y-3">
@@ -230,10 +218,30 @@ export default function TrainingSidebar({ training }: Props) {
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
+
+            {/* DURATION & FEE SECTION */}
+            <div className="space-y-4">
+              {/* {training.duration && (
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-gray-700">Duration</span>
+                  <span className="text-xl font-bold text-gray-900">
+                    {training.duration}
+                  </span>
+                </div>
+              )} */}
+
+              {/* FEE SECTION */}
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-gray-700">Fee</span>
+                <span className="text-2xl font-bold text-blue-600">
+                  {getPrice()}
+                </span>
+              </div>
+            </div>
 
             {/* CALL FOR ASSISTANCE */}
-            <div className="text-center space-y-3">
+            <div className="text-center space-y-3 pt-4 border-t border-gray-100">
               <div className="flex items-center justify-center gap-2 text-gray-600">
                 <div className="p-1 rounded-full border border-gray-400">
                   <span className="text-xs font-serif italic w-3 h-3 flex items-center justify-center font-bold">i</span>
@@ -242,10 +250,12 @@ export default function TrainingSidebar({ training }: Props) {
               </div>
 
               <div className="bg-white border border-gray-200 rounded-full py-2 px-6 flex items-center justify-center gap-2 shadow-sm">
-                <span className="text-gray-800 font-semibold tracking-wide">
-                  {training.callForAssistance || "7303913002"}
-                </span>
-                <Phone className="w-4 h-4 text-black fill-current" />
+                <Link href={`tel:${training.callForAssistance || "7303913002"}`} className="flex items-center gap-2">
+                  <span className="text-gray-800 font-semibold tracking-wide">
+                    {training.callForAssistance || "7303913002"}
+                  </span>
+                  <Phone className="w-4 h-4 text-black fill-current" />
+                </Link>
               </div>
             </div>
 

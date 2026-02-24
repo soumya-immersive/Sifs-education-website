@@ -6,6 +6,7 @@ import { Linkedin, Twitter, Play, Phone, Facebook, Instagram, Award, X } from "l
 import { motion, Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Internship } from "../../data/internships";
+import Link from "next/link";
 
 interface Props {
   internship: Internship;
@@ -259,8 +260,28 @@ export default function InternshipSidebar({ internship }: Props) {
               </div>
             </div>
 
+            {/* DURATION & FEE SECTION */}
+            <div className="space-y-4">
+              {/* {internship.duration && (
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-gray-700">Duration</span>
+                  <span className="text-xl font-bold text-gray-900">
+                    {internship.duration}
+                  </span>
+                </div>
+              )} */}
+
+              {/* FEE SECTION */}
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-gray-700">Fee</span>
+                <span className="text-2xl font-bold text-blue-600">
+                  {getPrice()}
+                </span>
+              </div>
+            </div>
+
             {/* CALL FOR ASSISTANCE */}
-            <div className="text-center space-y-3">
+            <div className="text-center space-y-3 pt-4 border-t border-gray-100">
               <div className="flex items-center justify-center gap-2 text-gray-600">
                 <div className="p-1 rounded-full border border-gray-400">
                   <span className="text-xs font-serif italic w-3 h-3 flex items-center justify-center font-bold">i</span>
@@ -269,10 +290,12 @@ export default function InternshipSidebar({ internship }: Props) {
               </div>
 
               <div className="bg-white border border-gray-200 rounded-full py-2 px-6 flex items-center justify-center gap-2 shadow-sm">
-                <span className="text-gray-800 font-semibold tracking-wide">
-                  {internship.callForAssistance || "7303913002"}
-                </span>
-                <Phone className="w-4 h-4 text-black fill-current" />
+                <Link href={`tel:${internship.callForAssistance || "7303913002"}`} className="flex items-center gap-2">
+                  <span className="text-gray-800 font-semibold tracking-wide">
+                    {internship.callForAssistance || "7303913002"}
+                  </span>
+                  <Phone className="w-4 h-4 text-black fill-current" />
+                </Link>
               </div>
             </div>
 

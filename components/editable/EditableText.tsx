@@ -64,6 +64,13 @@ export default function EditableText({
         }
     }, [editMode, editor]);
 
+    // Update editor content if html prop changes externally
+    useEffect(() => {
+        if (editor && html !== editor.getHTML()) {
+            editor.commands.setContent(html);
+        }
+    }, [html, editor]);
+
     if (!editor) {
         return null;
     }
@@ -75,7 +82,14 @@ export default function EditableText({
                     <FloatingToolbar editor={editor} visible={editMode} />
                 </div>
             )}
-            <EditorContent editor={editor} />
+            {editMode ? (
+                <EditorContent editor={editor} />
+            ) : (
+                <div
+                    className={className}
+                    dangerouslySetInnerHTML={{ __html: html }}
+                />
+            )}
         </div>
     );
 }

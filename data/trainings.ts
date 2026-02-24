@@ -50,6 +50,8 @@ export interface Training {
   reviews?: TrainingReview[];
   faqs?: TrainingFAQ[];
   comments?: TrainingComment[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 

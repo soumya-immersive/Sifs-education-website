@@ -46,6 +46,8 @@ export interface Internship {
   seo_title?: string;
   meta_keywords?: string;
   meta_description?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export const internships: Internship[] = [

@@ -119,6 +119,7 @@ export interface ApiProspectus {
     level_four: string | null;
     body_four: string | null;
     image_url: string;
+    prospectus_image?: string;
 }
 
 export interface ApiComment {

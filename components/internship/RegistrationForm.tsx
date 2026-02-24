@@ -45,6 +45,10 @@ export default function RegistrationForm() {
     const price = searchParams.get("price") || "Calculated at Checkout";
     const levelParam = searchParams.get("level") || "1";
 
+    // Add state for training details
+    const [trainingDetails, setTrainingDetails] = useState<any>(null);
+    const [isLoadingTraining, setIsLoadingTraining] = useState(true);
+
     const [formData, setFormData] = useState({
         name: "",
         contactNumber: "",
@@ -75,6 +79,31 @@ export default function RegistrationForm() {
         const day = String(today.getDate()).padStart(2, '0');
         setMaxDate(`${year}-${month}-${day}`);
     }, []);
+
+    // Fetch training details
+    useEffect(() => {
+        const fetchTrainingDetails = async () => {
+            if (!internshipSlug) return;
+
+            try {
+                setIsLoadingTraining(true);
+                const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/training/training-details/${internshipSlug}`);
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success && result.data?.training) {
+                        setTrainingDetails(result.data.training);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch training details:", error);
+            } finally {
+                setIsLoadingTraining(false);
+            }
+        };
+
+        fetchTrainingDetails();
+    }, [internshipSlug]);
 
     useEffect(() => {
         const fetchCountries = async () => {
@@ -126,13 +155,12 @@ export default function RegistrationForm() {
 
         setIsSubmitting(true);
 
-        // Generate slug from title if not provided
         const finalSlug = internshipSlug || internshipTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
         const payload = {
             training_id: internshipId,
-            training_slug: finalSlug, // Use actual slug from URL params or generate from title
-            level: `Level-${levelParam}`, // Dynamic Level
+            training_slug: finalSlug,
+            level: `Level-${levelParam}`,
             name: formData.name,
             phone_number: formData.contactNumber,
             email: formData.email,
@@ -141,16 +169,16 @@ export default function RegistrationForm() {
             address: formData.address,
             post_code: formData.postalCode,
             country: formData.country,
-            designation: "Student", // Defaulting to Student
+            designation: "Student",
             college_name: formData.institution,
             gender: formData.gender,
             term: formData.agreeToTerms ? "1" : "0"
         };
 
-        console.log("Registration Payload:", payload); // Debug log
+        console.log("Registration Payload:", payload);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/training/register-for-training-process`, {
+            const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/training/register-for-training-process`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -159,12 +187,10 @@ export default function RegistrationForm() {
             });
 
             const result = await response.json();
-            console.log("API Response:", result); // Debug log
 
             if (response.ok && result.success) {
                 console.log("Registration Success:", result);
 
-                // Handle response to get registration number - Updated to match API response deeply
                 const registrationNo = result.registration_number ||
                     result.registration_no ||
                     (result.data && result.data.registration && result.data.registration.registration_number) ||
@@ -172,14 +198,12 @@ export default function RegistrationForm() {
                     (result.data && result.data.registration_no);
 
                 if (registrationNo) {
-                    // Redirect to payment page with training type
                     router.push(`/payment?registration_no=${registrationNo}&type=training`);
                 } else {
                     console.warn("No registration number found in response:", result);
                     alert("Registration successful but no ID returned. Please contact support.");
                 }
             } else {
-                // Show API error message if available
                 const errorMessage = result.message || response.statusText || "Registration failed";
                 console.error("Registration failed:", errorMessage, result);
                 alert(`Registration failed: ${errorMessage}. Please check the details and try again.`);
@@ -199,7 +223,6 @@ export default function RegistrationForm() {
     const [appliedCouponData, setAppliedCouponData] = useState<any>(null);
     const [finalPrice, setFinalPrice] = useState<number | null>(null);
 
-    // Helper to get Roman numeral for level
     const getLevelDisplay = (level: string) => {
         if (level === '1') return 'Level-I';
         if (level === '2') return 'Level-II';
@@ -215,28 +238,20 @@ export default function RegistrationForm() {
         setIsApplyingCoupon(true);
         setCouponMessage({ type: '', text: '' });
 
-        const type = registrationType === "Training" ? "training" : "internship"; // assuming internship needs similar handling, or verify API expectations for 'internship'. 
-        // User prompt usually said 'course' or 'training'.
-        // If it is 'internship', verify what 'course_type' should be.
-        // Based on previous issues, 'training' covers internships usually in this system (TrainingPaymentController). 
-        // But for safety, I will stick to what the form implies: 'course_type' -> 'training' for Training/Internship if API supports it.
-        // Actually, let's use lowercase of registrationType. 
-        // User example was "course_type": "course".
-        // If this is training or internship...
+        const type = registrationType === "Training" ? "training" : "internship";
+
         const apiType = registrationType === "Training" ? "training" : "internship";
-        // Wait, does 'internship' exist as a type?  Usually it's 'training' or 'course'. 
-        // Let's assume 'course' | 'training' are the main ones. If it's internship, it's likely 'training' in the backend based on other controllers (TrainingPaymentController handles internships).
-        // Let's try sending 'training' if likely. Or just lowercase.
+
 
         try {
             const payload = {
                 coupon_code: couponCode,
-                course_type: "training", // Most likely 'training' covers both training and internship in this system based on file names.
+                course_type: "training",
                 course_type_id: internshipId,
-                level: getLevelDisplay(levelParam) // Ensure it sends "Level-I", etc.
+                level: getLevelDisplay(levelParam)
             };
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/EducationAndInternship/Website/front/apply-coupon`, {
+            const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/apply-coupon`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
@@ -521,14 +536,21 @@ export default function RegistrationForm() {
                                 <p className="font-bold text-gray-900 text-lg leading-tight">{internshipTitle || "No Selection"}</p>
                             </div>
 
-                            <div className="flex items-center justify-between py-4 border-t border-gray-100">
+                            {/* <div className="flex items-center justify-between py-4 border-t border-gray-100">
                                 <span className="text-gray-600">Duration</span>
                                 <span className="font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full text-sm">4-6 Weeks</span>
-                            </div>
+                            </div> */}
+
 
                             <div className="flex items-center justify-between py-4 border-t border-gray-100">
                                 <span className="text-gray-600">Mode</span>
-                                <span className="font-medium text-gray-900">Online / Offline</span>
+                                <span className="font-medium text-gray-900">
+                                    {isLoadingTraining ? (
+                                        <span className="text-gray-400">Loading...</span>
+                                    ) : (
+                                        trainingDetails?.mode_of_study || "Online / Offline"
+                                    )}
+                                </span>
                             </div>
 
                             <div className="mt-6 pt-4 border-t-2 border-dashed border-gray-200">
@@ -580,7 +602,6 @@ export default function RegistrationForm() {
                         </a>
                     </div>
                 </div>
-
             </div>
         </div>
     );
