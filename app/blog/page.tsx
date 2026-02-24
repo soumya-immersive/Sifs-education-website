@@ -30,6 +30,7 @@ export default function BlogPage() {
     const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
     const [isPageEnabled, setIsPageEnabled] = useState(true);
     const [disabledMessage, setDisabledMessage] = useState("");
+    const [categorySearchTerm, setCategorySearchTerm] = useState("");
     const [pageMeta, setPageMeta] = useState({
         title: "Blog",
         subtitle: "Explore our latest insights, news, and articles on forensic science and criminal investigation.",
@@ -115,7 +116,7 @@ export default function BlogPage() {
                 let apiUrl = "";
 
                 if (selectedCategoryId) {
-                    apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front/blog-categories/${selectedCategoryId}/blogs?page=${currentPage}&limit=10${searchQuery}`;
+                    apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front/blog-categories/${selectedCategoryId}/blogs?page=${currentPage}&limit=100${searchQuery}`;
                 } else {
                     apiUrl = `${API_BASE_URL}/EducationAndInternship/Website/front/blogs?page=${currentPage}&limit=10${searchQuery}`;
                 }
@@ -357,7 +358,7 @@ export default function BlogPage() {
                                         placeholder="Search here..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full bg-[#FBFCFF] border border-gray-200 rounded-xl py-3 px-4 pr-10 text-sm outline-none focus:ring-2 focus:ring-[#3E58EE]/20 focus:border-[#3E58EE] transition-all group-hover:border-gray-300"
+                                        className="w-full bg-[#FBFCFF] border border-gray-200 rounded-xl py-3 px-4 pr-10 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-[#3E58EE]/20 focus:border-[#3E58EE] transition-all group-hover:border-gray-300 placeholder:text-gray-400"
                                     />
                                     <Search className="absolute right-3 top-3 text-gray-400 group-focus-within:text-[#3E58EE] transition-colors" size={18} />
                                 </div>
@@ -366,7 +367,19 @@ export default function BlogPage() {
                             {/* CATEGORIES */}
                             <motion.div variants={fadeUp} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                                 <h4 className="font-bold text-gray-900 text-lg mb-4">Categories</h4>
-                                <div className="space-y-2">
+
+                                <div className="relative mb-4">
+                                    <input
+                                        type="text"
+                                        placeholder="Search categories..."
+                                        value={categorySearchTerm}
+                                        onChange={(e) => setCategorySearchTerm(e.target.value)}
+                                        className="w-full bg-[#FBFCFF] border border-gray-100 rounded-xl py-2 px-3 pr-9 text-xs text-gray-900 outline-none focus:ring-1 focus:ring-[#3E58EE]/20 focus:border-[#3E58EE] transition-all placeholder:text-gray-400"
+                                    />
+                                    <Search className="absolute right-3 top-2.5 text-gray-400" size={14} />
+                                </div>
+
+                                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
                                     <button
                                         onClick={() => {
                                             setSelectedCategoryId(null);
@@ -380,22 +393,24 @@ export default function BlogPage() {
                                         All Posts
                                         <ChevronRight size={14} />
                                     </button>
-                                    {categories.slice(0, 10).map((cat) => (
-                                        <button
-                                            key={cat.id}
-                                            onClick={() => {
-                                                setSelectedCategoryId(cat.id);
-                                                setCurrentPage(1);
-                                            }}
-                                            className={`w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all ${selectedCategoryId === cat.id
-                                                ? "bg-[#3E58EE] text-white shadow-md shadow-blue-200"
-                                                : "bg-[#FBFCFF] text-gray-600 hover:bg-[#F3F6FF] hover:text-[#3E58EE]"
-                                                }`}
-                                        >
-                                            {cat.name}
-                                            {/* {cat.blog_count ? <span className="ml-auto text-xs bg-gray-200 text-gray-600 py-0.5 px-2 rounded-full group-hover:bg-[#3E58EE] group-hover:text-white transition-colors">{cat.blog_count}</span> : <ChevronRight size={14} />} */}
-                                        </button>
-                                    ))}
+                                    {categories
+                                        .filter(cat => cat.name.toLowerCase().includes(categorySearchTerm.toLowerCase()))
+                                        .map((cat) => (
+                                            <button
+                                                key={cat.id}
+                                                onClick={() => {
+                                                    setSelectedCategoryId(cat.id);
+                                                    setCurrentPage(1);
+                                                }}
+                                                className={`w-full flex items-center justify-between p-3.5 rounded-lg text-sm font-medium transition-all ${selectedCategoryId === cat.id
+                                                    ? "bg-[#3E58EE] text-white shadow-md shadow-blue-200"
+                                                    : "bg-[#FBFCFF] text-gray-600 hover:bg-[#F3F6FF] hover:text-[#3E58EE]"
+                                                    }`}
+                                            >
+                                                {cat.name}
+                                                <ChevronRight size={14} />
+                                            </button>
+                                        ))}
                                 </div>
                             </motion.div>
 

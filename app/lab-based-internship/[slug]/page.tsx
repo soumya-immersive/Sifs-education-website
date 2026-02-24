@@ -70,6 +70,8 @@ export default async function Page({ params }: Props) {
         reviews: apiData.reviews || [],
         comments: apiData.comments || [],
         prospectus: apiData.prospectus,
+        created_at: training.created_at,
+        updated_at: training.updated_at,
 
         ...training // Spread remaining fields if needed by other components
     };

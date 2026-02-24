@@ -89,6 +89,8 @@ export default async function Page({ params }: Props) {
         meta_keywords: training.meta_keywords,
         meta_description: training.meta_description,
         seo_title: training.seo_title,
+        created_at: training.created_at,
+        updated_at: training.updated_at,
 
         // Map highlights from meta_keywords if explicit highlights aren't there
         highlights: training.meta_keywords ? training.meta_keywords.split(',').map((k: string) => k.trim()) : [],

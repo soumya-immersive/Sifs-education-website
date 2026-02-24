@@ -57,13 +57,18 @@ export default function CourseInfo({ course }: Props) {
           </h2>
         </div>
 
-        <div className="text-right">
-          <span className="block font-bold text-sm text-blue-600 uppercase tracking-tight">
-            2025 Edition
-          </span>
-          <span className="text-xs font-medium text-gray-400 block">
-            Professional Program
-          </span>
+        <div className="text-right space-y-1">
+          {course.created_at && (
+            <span className="block text-[10px] font-medium text-gray-400 uppercase tracking-wider">
+              Published: {new Date(course.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+            </span>
+          )}
+          {course.updated_at && (
+            <span className="block font-bold text-[11px] text-blue-600 uppercase tracking-tight">
+              Updated: {new Date(course.updated_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+            </span>
+          )}
+
         </div>
       </motion.div>
 

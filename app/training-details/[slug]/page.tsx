@@ -6,7 +6,7 @@ import { API_BASE_URL } from "@/lib/config";
 import TrainingHero from "../../../components/training/TrainingHero";
 import TrainingSidebar from "../../../components/training/TrainingSidebar";
 import TrainingInfo from "../../../components/training/TrainingInfo";
-import TrainingHighlights from "../../../components/training/TrainingHighlights";
+// import TrainingHighlights from "../../../components/training/TrainingHighlights";
 import TrainingAccordionBlocks from "../../../components/training/TrainingAccordionBlocks";
 import TrainingEnquiriesSection from "../../../components/training/TrainingEnquiriesSection";
 
@@ -26,6 +26,8 @@ interface ApiTrainingDetail {
     training_outline: string;
     case_studies: string;
     mode_of_study: string;
+    created_at: string;
+    updated_at: string;
 }
 
 async function getApiTrainingDetails(slug: string): Promise<Training | null> {
@@ -73,7 +75,9 @@ async function getApiTrainingDetails(slug: string): Promise<Training | null> {
 
                 reviews: reviews,
                 faqs: faqs,
-                comments: comments
+                comments: comments,
+                created_at: t.created_at,
+                updated_at: t.updated_at
             };
         }
         return null;
@@ -117,7 +121,7 @@ export default async function TrainingDetailsPage({ params }: Props) {
                 {/* MAIN CONTENT */}
                 <div className="lg:col-span-2 space-y-6">
                     <TrainingInfo training={trainingData} />
-                    <TrainingHighlights training={trainingData} />
+                    {/* <TrainingHighlights training={trainingData} /> */}
                     <TrainingAccordionBlocks training={trainingData} />
                 </div>
 

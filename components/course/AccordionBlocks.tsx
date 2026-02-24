@@ -88,6 +88,15 @@ export default function AccordionBlocks({ course }: Props) {
                     {title === "Curriculum" ? (
                       course.prospectus ? (
                         <div className="space-y-6 not-prose">
+                          {course.prospectus.image_url && (
+                            <div className="mb-6 rounded-xl overflow-hidden border border-gray-100 shadow-sm">
+                              <img
+                                src={course.prospectus.image_url}
+                                alt="Course Prospectus"
+                                className="w-full h-auto object-contain bg-gray-50"
+                              />
+                            </div>
+                          )}
                           {[
                             { level: course.prospectus.level_one, body: course.prospectus.body_one },
                             { level: course.prospectus.level_two, body: course.prospectus.body_two },

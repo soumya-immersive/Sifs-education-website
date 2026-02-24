@@ -6,6 +6,7 @@ import { Linkedin, Twitter, Play, Phone, Facebook, Instagram, Award, X } from "l
 import { motion, Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Course } from "../../data/courses";
+import Link from "next/link";
 
 interface Props {
   course: Course;
@@ -84,6 +85,7 @@ export default function CourseSidebar({ course }: Props) {
     const price = getPrice();
     const query = new URLSearchParams({
       id: course.id.toString(),
+      slug: course.slug,
       title: course.title,
       level: selectedLevel.toString(),
       price: price
@@ -217,7 +219,24 @@ export default function CourseSidebar({ course }: Props) {
               </div>
             </div>
 
-            {/* CALL FOR ASSISTANCE */}
+            {/* DURATION & FEE SECTION */}
+            <div className="space-y-4 pt-4 border-t border-dashed border-gray-200">
+              {course.duration && (
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-gray-700">Duration</span>
+                  <span className="text-xl font-bold text-gray-900">
+                    {course.duration}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-gray-700">Fee</span>
+                <span className="text-2xl font-bold text-blue-600">
+                  {getPrice()}
+                </span>
+              </div>
+            </div>
             <div className="text-center space-y-3">
               <div className="flex items-center justify-center gap-2 text-gray-600">
                 <div className="p-1 rounded-full border border-gray-400">
@@ -227,10 +246,12 @@ export default function CourseSidebar({ course }: Props) {
               </div>
 
               <div className="bg-white border border-gray-200 rounded-full py-2 px-6 flex items-center justify-center gap-2 shadow-sm">
-                <span className="text-gray-800 font-semibold tracking-wide">
-                  {course.callForAssistance || "7303913002"}
-                </span>
-                <Phone className="w-4 h-4 text-black fill-current" />
+                <Link href={`tel:${course.callForAssistance || "7303913002"}`} className="flex items-center gap-2">
+                  <span className="text-gray-800 font-semibold tracking-wide">
+                    {course.callForAssistance || "7303913002"}
+                  </span>
+                  <Phone className="w-4 h-4 text-black fill-current" />
+                </Link>
               </div>
             </div>
 

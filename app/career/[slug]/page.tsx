@@ -257,9 +257,9 @@ export default async function JobDetailsPage({ params }: PageProps) {
                                     title={job.title}
                                     isExpired={job.is_expired}
                                 />
-                                <p className="text-xs text-center text-gray-400 mt-3">
+                                {/* <p className="text-xs text-center text-gray-400 mt-3">
                                     Send your resume to <span className="text-gray-800 font-medium">{job.email}</span>
-                                </p>
+                                </p> */}
                             </div>
 
                         </div>

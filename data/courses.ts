@@ -35,6 +35,9 @@ export interface Course {
   courseFaqs?: import("@/types/course").ApiFaq[];
   reviewsList?: import("@/types/course").ApiReview[];
   prospectus?: import("@/types/course").ApiProspectus;
+
+  created_at?: string;
+  updated_at?: string;
 }
 
 export const courses: Course[] = [
@@ -50,7 +53,8 @@ export const courses: Course[] = [
     rating: 4.8,
     reviewsCount: 150,
     bannerImage: "/course/hero-bg.png",
-    description: "An advanced program covering latent print development and identification techniques."
+    description: "An advanced program covering latent print development and identification techniques.",
+    created_at: "2020-07-22T02:46:48.000Z",
+    updated_at: "2026-01-27T06:48:45.000Z"
   },
-
 ];
