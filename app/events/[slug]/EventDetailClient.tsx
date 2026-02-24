@@ -101,8 +101,9 @@ interface EventData {
         end_date: string;
         month_year: string;
         countdown: string;
-        explore: EventExplore;
+        explore?: EventExplore;
     };
+    eventExplore?: EventExplore; // Fallback location
     supportiveBody: Member[];
     scientificCommittee: Member[];
     volunteers: Member[];
@@ -125,6 +126,12 @@ export default function EventDetailClient({ data }: Props) {
 
     // Extract with robust fallback to prevent "null" property errors
     const event = data?.event || ({} as any);
+
+    // Merge in top-level eventExplore if missing from event.explore
+    if (!event.explore && data?.eventExplore) {
+        event.explore = data.eventExplore;
+    }
+
     const speakers = data?.speakers || [];
     const supportiveBody = data?.supportiveBody || [];
     const scientificCommittee = data?.scientificCommittee || [];

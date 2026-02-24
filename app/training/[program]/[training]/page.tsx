@@ -45,6 +45,7 @@ async function getApiTrainingDetails(slug: string, program: string): Promise<Tra
       const reviews = json.data.reviews || [];
       const faqs = json.data.faq || [];
       const comments = json.data.comments || [];
+      const prospectus = json.data.prospectus || null;
 
       const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL.slice(0, -4) : API_BASE_URL;
       // Fixed Folder Name as per User Request
@@ -77,7 +78,8 @@ async function getApiTrainingDetails(slug: string, program: string): Promise<Tra
 
         reviews: reviews,
         faqs: faqs,
-        comments: comments
+        comments: comments,
+        prospectus: prospectus
       };
     }
     return null;

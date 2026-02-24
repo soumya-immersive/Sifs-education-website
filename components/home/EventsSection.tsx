@@ -66,17 +66,55 @@ const generateSlug = (title: string): string => {
 };
 
 // Helper to calculate time remaining
-const calculateTimeLeft = (targetDate: string) => {
-  const difference = +new Date(targetDate) - +new Date();
-  if (difference > 0) {
-    return {
-      days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-      hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-      minutes: Math.floor((difference / 1000 / 60) % 60),
-      seconds: Math.floor((difference / 1000) % 60),
+const calculateTimeLeft = (startDate: string, endDate: string) => {
+  try {
+    const parseDate = (str: string) => {
+      if (!str) return null;
+      // Format: MM/DD/YYYY h:mm A (e.g., "02/24/2026 9:00 AM")
+      const match = str.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{1,2}):(\d{2})\s+(AM|PM)/i);
+      if (match) {
+        const [, month, day, year, hour, minute, ampm] = match;
+        let h = parseInt(hour, 10);
+        if (ampm.toUpperCase() === "PM" && h < 12) h += 12;
+        if (ampm.toUpperCase() === "AM" && h === 12) h = 0;
+        // Create date in local time
+        return new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10), h, parseInt(minute, 10)).getTime();
+      }
+      const fallback = new Date(str).getTime();
+      return isNaN(fallback) ? null : fallback;
     };
+
+    const start = parseDate(startDate);
+    const end = parseDate(endDate);
+    const now = new Date().getTime();
+
+    if (!start) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+
+    let target = start;
+    // If event has started, count down to end_date
+    if (now > start) {
+      if (end && now < end) {
+        target = end;
+      } else {
+        // Event has fully ended
+        return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+      }
+    }
+
+    const difference = target - now;
+    if (difference > 0) {
+      return {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60),
+      };
+    }
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  } catch (error) {
+    console.error("Error calculating time:", error);
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
   }
-  return null;
 };
 
 const timerTitles = ["Days", "Hours", "Min", "Sec"];
@@ -204,8 +242,36 @@ export default function EventsSection() {
         const result: APIResponse = await response.json();
 
         if (result.success && result.data?.data && result.data.data.length > 0) {
+          // Fetch extreme details for each event to get the explore image
+          const topEvents = result.data.data.slice(0, 4);
+
+          const detailedEvents = await Promise.all(
+            topEvents.map(async (apiEvent) => {
+              try {
+                const detailRes = await fetch(`${API_BASE_URL}/EventManagement/Website/events/${apiEvent.slug}?_t=${Date.now()}`, {
+                  cache: 'no-store'
+                });
+                if (detailRes.ok) {
+                  const detailData = await detailRes.json();
+                  if (detailData.success && detailData.data) {
+                    const eventDetail = detailData.data.event;
+                    // Some APIs return it in 'explore', some in 'eventExplore'
+                    const exploreObj = eventDetail?.explore || detailData.data.eventExplore;
+                    return {
+                      ...apiEvent,
+                      explore: exploreObj
+                    };
+                  }
+                }
+              } catch (err) {
+                console.error(`Error fetching detail for ${apiEvent.slug}:`, err);
+              }
+              return apiEvent;
+            })
+          );
+
           // Transform API data to match our Event type
-          const transformedEvents: Event[] = result.data.data.slice(0, 4).map((apiEvent, index) => ({
+          const transformedEvents: Event[] = detailedEvents.map((apiEvent, index) => ({
             id: apiEvent.id,
             slug: apiEvent.slug,
             title: apiEvent.title,
@@ -237,44 +303,55 @@ export default function EventsSection() {
     fetchEvents();
   }, []);
 
-
-  // Initialize timers on mount
+  // Initialize timers when events are loaded
   useEffect(() => {
     if (events && events.length > 0) {
       const initialTimers: any = {};
       events.forEach((ev) => {
-        const targetDate = ev.start_date || ev.end_date;
-        if (targetDate) {
-          const tl = calculateTimeLeft(targetDate);
-          if (tl) initialTimers[ev.id] = tl;
+        if (ev.start_date) {
+          const tl = calculateTimeLeft(ev.start_date, ev.end_date);
+          if (tl) {
+            initialTimers[ev.id] = tl;
+          }
         }
       });
       setTimeLefts(initialTimers);
     }
   }, [events]);
 
-  // Timer Interval
+  // Update timers every second
   useEffect(() => {
+    if (!events || events.length === 0) return;
+
     const timer = setInterval(() => {
-      if (events && events.length > 0) {
-        const updates: any = {};
-        let changed = false;
-        events.forEach((ev) => {
-          const targetDate = ev.start_date || ev.end_date;
-          if (targetDate) {
-            const tl = calculateTimeLeft(targetDate);
-            if (tl) {
+      const updates: any = {};
+      let hasUpdates = false;
+
+      events.forEach((ev) => {
+        if (ev.start_date) {
+          const tl = calculateTimeLeft(ev.start_date, ev.end_date);
+          if (tl) {
+            // Only update if values have changed
+            const current = timeLefts[ev.id];
+            if (!current ||
+              current.days !== tl.days ||
+              current.hours !== tl.hours ||
+              current.minutes !== tl.minutes ||
+              current.seconds !== tl.seconds) {
               updates[ev.id] = tl;
-              changed = true;
+              hasUpdates = true;
             }
           }
-        });
-        if (changed) setTimeLefts((prev) => ({ ...prev, ...updates }));
+        }
+      });
+
+      if (hasUpdates) {
+        setTimeLefts(prev => ({ ...prev, ...updates }));
       }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [events]);
+  }, [events, timeLefts]);
 
   const handleExploreClick = () => {
     router.push("/events");
@@ -366,28 +443,37 @@ export default function EventsSection() {
       <section className="bg-gradient-to-r from-white via-white to-violet-50 py-16">
         <div className="mx-auto max-w-7xl px-4">
           {/* Header */}
-          <div className="mb-8">
-
-            <h2 className="mt-1 text-2xl font-semibold text-black">
-              <span className="relative inline-block">
-                <span className="relative z-10">
-                  {headerData.title}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            variants={sectionContainerVariants}
+            viewport={{ once: true, amount: 0.3 }}
+          >
+            <div className="mb-8">
+              <motion.h2 className="mt-1 text-2xl font-semibold text-black" variants={headerItemVariants}>
+                <span className="relative inline-block">
+                  <span className="relative z-10">
+                    {headerData.title}
+                  </span>
+                  <Image
+                    src="/yellow-underline.png"
+                    alt=""
+                    width={200}
+                    height={14}
+                    className="absolute left-1/2 -translate-x-1/2 -bottom-1 z-0"
+                  />
                 </span>
-                <Image
-                  src="/yellow-underline.png"
-                  alt=""
-                  width={200}
-                  height={14}
-                  className="absolute left-1/2 -translate-x-1/2 -bottom-1 z-0"
-                />
-              </span>
-            </h2>
-            <p className="text-sm text-gray-500 md:text-base">{headerData.subtitle}</p>
-          </div>
+              </motion.h2>
+              <motion.p className="text-sm text-gray-500 md:text-base" variants={headerItemVariants}>
+                {headerData.subtitle}
+              </motion.p>
+            </div>
+          </motion.div>
 
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <h3 className="text-2xl font-semibold text-gray-800 mb-2">Coming Soon</h3>
+              <p className="text-gray-600">Check back later for upcoming events</p>
             </div>
           </div>
         </div>
@@ -407,7 +493,6 @@ export default function EventsSection() {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between gap-4">
           <motion.div variants={headerItemVariants}>
-
             <h2 className="mt-1 text-2xl font-semibold text-black">
               <span className="relative inline-block">
                 <span className="relative z-10">
@@ -444,17 +529,19 @@ export default function EventsSection() {
           {events.map((event) => {
             const slug = event.slug || generateSlug(event.title);
 
-            // Get timer values for this event
-            const timerVal = timeLefts[event.id];
-            // Convert timer to array format matched with labels
-            const timerValues = timerVal
-              ? [
-                String(timerVal.days).padStart(2, "0"),
-                String(timerVal.hours).padStart(2, "0"),
-                String(timerVal.minutes).padStart(2, "0"),
-                String(timerVal.seconds).padStart(2, "0"),
-              ]
-              : ["00", "00", "00", "00"];
+            // Get timer values for this event with a default if not available
+            const timerVal = timeLefts[event.id] || { days: 0, hours: 0, minutes: 0, seconds: 0 };
+
+            // Format timer values with leading zeros
+            const timerValues = [
+              String(timerVal.days).padStart(2, "0"),
+              String(timerVal.hours).padStart(2, "0"),
+              String(timerVal.minutes).padStart(2, "0"),
+              String(timerVal.seconds).padStart(2, "0"),
+            ];
+
+            // Check if event is still upcoming (has time remaining)
+            const isUpcoming = timerVal.days > 0 || timerVal.hours > 0 || timerVal.minutes > 0 || timerVal.seconds > 0;
 
             return (
               <motion.article
@@ -472,6 +559,7 @@ export default function EventsSection() {
                       fill
                       className="object-cover rounded-lg hover:scale-105 transition-transform duration-300"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                      unoptimized={event.image.startsWith("http")}
                     />
                   </motion.div>
 
@@ -507,7 +595,7 @@ export default function EventsSection() {
                     <motion.div className="mt-auto flex items-center justify-between" variants={subItemVariants}>
                       <div className="flex gap-1 text-[10px] font-semibold">
                         {timerTitles.map((title, i) => {
-                          const style = timerStyles[i];
+                          const style = timerStyles[i % timerStyles.length]; // Use modulo to avoid index issues
                           return (
                             <div key={title} className={`rounded-md px-2 py-1 ${style.container}`}>
                               <div className={`text-sm font-bold ${style.number}`}>
@@ -520,7 +608,7 @@ export default function EventsSection() {
                       </div>
 
                       <div className="text-[11px] text-gray-500 hover:text-[#3A58EE] font-medium transition-colors group">
-                        Read More →
+                        {isUpcoming ? "Read More →" : "View Details →"}
                         <span className="block h-0.5 w-0 bg-[#3A58EE] transition-all duration-300 group-hover:w-full"></span>
                       </div>
                     </motion.div>

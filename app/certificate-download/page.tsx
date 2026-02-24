@@ -258,37 +258,18 @@ function CertificateDownloadContent() {
         <section className="relative bg-gray-50 min-h-screen">
             {/* Header Section */}
             {!certificateData && (
-                <div className="relative bg-[#1a237e] py-12 px-4 shadow-xl overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
-                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+                <div className="relative bg-[#1a237e] py-12 px-4 shadow-xl overflow-hidde">
+                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-center gap-8">
                         <div className="flex items-center gap-6">
-                            <div className="w-20 h-20 bg-white rounded-2xl p-3 shadow-2xl transform hover:scale-105 transition-transform">
-                                <Image
-                                    src="/logo.png"
-                                    alt="SIFS Logo"
-                                    width={80}
-                                    height={80}
-                                    className="w-full h-full object-contain"
-                                />
-                            </div>
                             <div className="text-left">
                                 <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-2">
                                     Certificate Verification
                                 </h1>
-                                <div className="flex items-center gap-2 text-sm text-blue-100/80">
+                                <div className="flex items-center justify-center gap-2 text-sm text-blue-100/80">
                                     <span>HOME</span>
                                     <span className="w-1 h-1 bg-blue-100/50 rounded-full" />
                                     <span className="text-yellow-400 font-bold uppercase tracking-wider">Download Certificate</span>
                                 </div>
-                            </div>
-                        </div>
-                        <div className="hidden lg:flex items-center gap-4">
-                            <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20">
-                                <FileCheck className="w-10 h-10 text-white" />
-                            </div>
-                            <div className="text-white">
-                                <p className="text-sm font-medium text-blue-100/60 uppercase">System Status</p>
-                                <p className="text-lg font-bold">Secure Gateway Active</p>
                             </div>
                         </div>
                     </div>
@@ -296,10 +277,10 @@ function CertificateDownloadContent() {
             )}
 
             {/* Main Content */}
-            <div className={`relative z-10 ${certificateData ? "w-full" : "max-w-4xl mx-auto px-4 py-20"}`}>
+            <div className={`relative z-10 ${certificateData ? "w-full" : "max-w-4xl mx-auto px-4 py-20 pt-40"}`}>
                 {/* Verify Certificate Section */}
                 {!certificateData && (
-                    <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-16 border border-gray-100 transform -translate-y-8">
+                    <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-16 border border-gray-100 transform -translate-y-8 ">
                         <div className="text-center mb-12">
                             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-3xl mb-6 shadow-xl transform rotate-3">
                                 <Shield className="w-10 h-10 text-white" />

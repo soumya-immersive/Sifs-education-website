@@ -3,7 +3,7 @@ import RegistrationForm from "../../components/internship/RegistrationForm";
 
 export default function InternshipRegistrationPage() {
     return (
-        <div className="min-h-screen bg-[#F8F9FB] pb-24 pt-24">
+        <div className="min-h-screen bg-[#F8F9FB] pb-24">
             <Suspense fallback={
                 <div className="flex flex-col items-center justify-center min-h-[60vh]">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
@@ -13,9 +13,9 @@ export default function InternshipRegistrationPage() {
                 <RegistrationForm />
             </Suspense>
 
-            <div className="text-center text-gray-400 text-sm mt-12">
+            {/* <div className="text-center text-gray-400 text-sm mt-12">
                 &copy; {new Date().getFullYear()} SIFS INDIA. All rights reserved.
-            </div>
+            </div> */}
         </div>
     );
 }

@@ -625,14 +625,14 @@ export default function GalleryPage() {
             </div>
 
             {/* 🔹 Footer */}
-            <div className="p-4 bg-gray-50 border-t flex justify-end sticky bottom-0 z-10">
+            {/* <div className="p-4 bg-gray-50 border-t flex justify-end sticky bottom-0 z-10">
               <button
                 onClick={() => setSelectedItem(null)}
                 className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold transition-all text-sm"
               >
                 Close
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
       )}

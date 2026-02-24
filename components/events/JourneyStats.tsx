@@ -90,7 +90,7 @@ export default function JourneyStats({ statistics }: JourneyStatsProps) {
           Enthusiasts dedicated to building remarkable program!
         </motion.p>
 
-        <div className="grid md:grid-cols-4 gap-8">
+        <div className="flex flex-wrap justify-center gap-8 md:gap-48">
           {statistics && statistics.length > 0 ? (
             statistics.map((stat) => (
               <Stat key={stat.id} value={formatValue(stat)} label={stat.title} />
