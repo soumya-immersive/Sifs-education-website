@@ -222,14 +222,14 @@ export default function TrainingSidebar({ training }: Props) {
 
             {/* DURATION & FEE SECTION */}
             <div className="space-y-4">
-              {/* {training.duration && (
+              {training.duration && (
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-gray-700">Duration</span>
                   <span className="text-xl font-bold text-gray-900">
                     {training.duration}
                   </span>
                 </div>
-              )} */}
+              )}
 
               {/* FEE SECTION */}
               <div className="flex items-center justify-between">

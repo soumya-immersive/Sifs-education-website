@@ -8,7 +8,9 @@ import "swiper/css";
 import "swiper/css/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { API_BASE_URL } from "../../lib/config";
+import { ensureHttps } from "../../lib/imageUtils";
 
 /* ----------------------
         Types
@@ -22,6 +24,9 @@ interface ArchiveEvent {
   formatted_date?: string;
   start_date?: string;
   end_date?: string;
+  explore?: {
+    image_url: string;
+  };
 }
 
 interface ArchiveProgramProps {
@@ -52,24 +57,25 @@ const itemVariants = {
         Card
 ---------------------- */
 const ProgramCard = ({ program }: { program: ArchiveEvent }) => {
+  const imageSrc = ensureHttps(program.explore?.image_url) || "/event/1.png";
+
   return (
     <motion.div
       variants={itemVariants}
       className="group h-full flex flex-col rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300"
     >
       {/* Visual Header / Banner */}
-      <div className="relative h-44 overflow-hidden bg-gradient-to-br from-[#EEF2FF] to-[#F5F3FF]">
-        {/* Abstract Background pattern */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none"
-          style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #4F46E5 1px, transparent 0)', backgroundSize: '24px 24px' }} />
-
-        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-          <span className="text-[10px] font-bold tracking-widest uppercase text-indigo-500 mb-2">
-            {program.banner_title || "Archive"}
-          </span>
-          <h4 className="text-sm md:text-base font-bold text-gray-800 line-clamp-2 px-2">
-            {program.banner_subtitle || program.title}
-          </h4>
+      <div className="relative h-44 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <Image
+            src={imageSrc}
+            alt={program.title}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-110"
+            unoptimized={imageSrc.startsWith("http")}
+          />
+          <div className="absolute inset-0 bg-black/40 transition-opacity duration-300 group-hover:opacity-50" />
         </div>
 
         {/* Date Badge */}
@@ -126,7 +132,34 @@ export default function ArchiveProgram({ archiveEvents = [] }: ArchiveProgramPro
       const result = await response.json();
 
       if (result.success && result.data) {
-        setEvents(result.data.data || []);
+        const rawEvents = result.data.data || [];
+
+        // Fetch extreme details for each event to get the explore image
+        const detailedEvents = await Promise.all(
+          rawEvents.map(async (apiEvent: any) => {
+            try {
+              const detailRes = await fetch(`${API_BASE_URL}/EventManagement/Website/events/${apiEvent.slug}?_t=${Date.now()}`, {
+                cache: 'no-store'
+              });
+              if (detailRes.ok) {
+                const detailData = await detailRes.json();
+                if (detailData.success && detailData.data) {
+                  const eventDetail = detailData.data.event;
+                  const exploreObj = eventDetail?.explore || detailData.data.eventExplore;
+                  return {
+                    ...apiEvent,
+                    explore: exploreObj
+                  };
+                }
+              }
+            } catch (err) {
+              console.error(`Error fetching detail for ${apiEvent.slug}:`, err);
+            }
+            return apiEvent;
+          })
+        );
+
+        setEvents(detailedEvents);
         if (result.data.available_years) {
           setAvailableYears(result.data.available_years);
         }
@@ -182,34 +215,22 @@ export default function ArchiveProgram({ archiveEvents = [] }: ArchiveProgramPro
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="flex flex-wrap items-center gap-3 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100"
+              className="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-gray-100 max-w-full lg:max-w-[480px] overflow-x-auto scrollbar-hide scroll-smooth"
             >
-              {availableYears.slice(0, 6).map((year) => (
-                <button
-                  key={year}
-                  onClick={() => handleYearChange(year)}
-                  className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${selectedYear === year
-                    ? "bg-gradient-to-r from-[#3E58EE] to-[#B565E7] text-white shadow-lg shadow-indigo-100 scale-105"
-                    : "text-gray-500 hover:text-[#3E58EE] hover:bg-indigo-50"
-                    }`}
-                >
-                  {year}
-                </button>
-              ))}
-
-              {/* Year Dropdown for more years if needed */}
-              {availableYears.length > 6 && (
-                <select
-                  onChange={(e) => handleYearChange(Number(e.target.value))}
-                  value={availableYears.includes(selectedYear) && availableYears.indexOf(selectedYear) >= 6 ? selectedYear : ""}
-                  className="bg-transparent text-sm font-bold text-gray-500 px-3 border-l border-gray-100 outline-none cursor-pointer"
-                >
-                  <option value="" disabled>More...</option>
-                  {availableYears.slice(6).map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              )}
+              <div className="flex items-center gap-3 min-w-max px-2">
+                {availableYears.map((year) => (
+                  <button
+                    key={year}
+                    onClick={() => handleYearChange(year)}
+                    className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap ${selectedYear === year
+                      ? "bg-gradient-to-r from-[#3E58EE] to-[#B565E7] text-white shadow-lg shadow-indigo-100 scale-105"
+                      : "text-gray-500 hover:text-[#3E58EE] hover:bg-indigo-50"
+                      }`}
+                  >
+                    {year}
+                  </button>
+                ))}
+              </div>
             </motion.div>
 
             <Link href="/events">

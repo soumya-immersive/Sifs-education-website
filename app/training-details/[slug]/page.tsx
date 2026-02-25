@@ -44,6 +44,7 @@ async function getApiTrainingDetails(slug: string): Promise<Training | null> {
             const reviews = json.data.reviews || [];
             const faqs = json.data.faq || [];
             const comments = json.data.comments || [];
+            const prospectus = json.data.prospectus || null;
 
             const baseUrl = API_BASE_URL.endsWith('/api') ? API_BASE_URL.slice(0, -4) : API_BASE_URL;
             const imageUrl = t.image ? `${baseUrl}/uploads/Education-And-Internship-Admin-Training-Image/${t.image}` : "/training/training.png";
@@ -76,6 +77,7 @@ async function getApiTrainingDetails(slug: string): Promise<Training | null> {
                 reviews: reviews,
                 faqs: faqs,
                 comments: comments,
+                prospectus: prospectus,
                 created_at: t.created_at,
                 updated_at: t.updated_at
             };

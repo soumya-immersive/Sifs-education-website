@@ -126,9 +126,56 @@ async function getEventsPageData() {
 export default async function EventsPage() {
   const data = await getEventsPageData();
 
+  // Handle "latest single event" request
+  let heroEvent = null;
+
+  try {
+    // We prioritize upcomingEvents from the main data response to find the slug
+    if (data?.upcomingEvents && data.upcomingEvents.length > 0) {
+      const latest = data.upcomingEvents[0];
+
+      // Fetch the most detailed info to get the "explore" object with its unique image_url
+      const detailResponse = await fetch(`${API_BASE_URL}/EventManagement/Website/events/${latest.slug}?_t=${Date.now()}`, {
+        cache: 'no-store'
+      });
+
+      if (detailResponse.ok) {
+        const detailResult = await detailResponse.json();
+        if (detailResult.success && detailResult.data) {
+          const detailEvent = detailResult.data.event;
+          // Robust check for the explore object location
+          const exploreData = detailEvent?.explore || detailResult.data.eventExplore;
+
+          heroEvent = {
+            id: detailEvent?.id || latest.id,
+            title: detailEvent?.banner_subtitle || detailEvent?.title || latest.title,
+            text: detailEvent?.banner_title || detailEvent?.title || latest.banner_title || latest.title,
+            event_date: detailEvent?.formatted_date || detailEvent?.start_date || latest.formatted_date,
+            end_date: detailEvent?.end_date || latest.end_date,
+            location: detailEvent?.location || "New Delhi, India",
+            button_text: "Read More",
+            button_url: `/events/${detailEvent?.slug || latest.slug}`,
+            image: detailEvent?.image || latest.image,
+            image_url: exploreData?.image_url || detailEvent?.image_url || latest.image_url,
+            explore: exploreData
+          };
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Critical error fetching hero event extreme details:", err);
+  }
+
+  // Fallback to slider only if we couldn't resolve a valid upcoming hero event
+  if (!heroEvent && data?.sliders && data.sliders.length > 0) {
+    heroEvent = data.sliders[0];
+  }
+
+  // If we still have no event, heroEvent remains null and component returns null
+
   return (
     <main>
-      <EventsHero sliders={data?.sliders || []} />
+      <EventsHero event={heroEvent} />
       {/* <UpcomingEvents events={data?.upcomingEvents || []} /> */}
       <EventsSection />
       <DownloadCertificate />

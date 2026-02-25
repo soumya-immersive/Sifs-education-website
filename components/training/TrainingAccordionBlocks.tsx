@@ -57,24 +57,7 @@ export default function TrainingAccordionBlocks({ training }: Props) {
     });
   }
 
-  if (training.faqs && training.faqs.length > 0) {
-    blocks.push({
-      title: "FAQ",
-      content: (
-        <div className="space-y-4">
-          {training.faqs.map((faq) => (
-            <div key={faq.id} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
-              <h4 className="font-semibold text-gray-800 mb-1">{faq.question}</h4>
-              <div
-                className="text-gray-600 text-sm"
-                dangerouslySetInnerHTML={{ __html: faq.answer }}
-              />
-            </div>
-          ))}
-        </div>
-      ),
-    });
-  }
+
 
   // if (training.comments && training.comments.length > 0) {
   //   blocks.push({
@@ -94,6 +77,66 @@ export default function TrainingAccordionBlocks({ training }: Props) {
   //     ),
   //   });
   // }
+
+  if (training.prospectus) {
+    const p = training.prospectus;
+    const levels = [
+      { title: p.level_one, content: p.body_one },
+      { title: p.level_two, content: p.body_two },
+      { title: p.level_three, content: p.body_three },
+      { title: p.level_four, content: p.body_four },
+    ].filter((l) => l.title || l.content);
+
+    if (levels.length > 0) {
+      blocks.push({
+        title: "Prospectus",
+        content: (
+          <div className="space-y-6">
+            {p.image_url && (
+              <div className="mb-6 rounded-xl overflow-hidden border border-indigo-50 shadow-sm">
+                <img
+                  src={p.image_url}
+                  alt="Prospectus"
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+            )}
+            {levels.map((item, idx) => (
+              <div key={idx} className="relative pl-6 border-l-2 border-indigo-100 pb-2 last:border-0 last:pb-0">
+                <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-indigo-500 border-4 border-white shadow-sm" />
+                {item.title && <h4 className="font-bold text-gray-800 mb-2">{item.title}</h4>}
+                {item.content && (
+                  <div
+                    className="text-gray-600 text-sm leading-relaxed prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: item.content }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        ),
+      });
+    }
+  }
+
+  if (training.faqs && training.faqs.length > 0) {
+    blocks.push({
+      title: "FAQ",
+      content: (
+        <div className="space-y-4">
+          {training.faqs.map((faq) => (
+            <div key={faq.id} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+              <h4 className="font-semibold text-gray-800 mb-1">{faq.question}</h4>
+              <div
+                className="text-gray-600 text-sm"
+                dangerouslySetInnerHTML={{ __html: faq.answer }}
+              />
+            </div>
+          ))}
+        </div>
+      ),
+    });
+  }
 
   if (training.reviews && training.reviews.length > 0) {
     blocks.push({

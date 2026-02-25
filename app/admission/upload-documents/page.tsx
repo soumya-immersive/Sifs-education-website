@@ -134,17 +134,13 @@ export default function AdmissionHero() {
 
 
   return (
-    <section className="relative bg-white pt-16 pb-24 px-4 overflow-hidden min-h-screen">
+    <section className="relative bg-white px-4 overflow-hidden h-[700px] flex items-center justify-center">
       {/* Background Decoration */}
       <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-50" />
       <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-72 h-72 bg-indigo-50 rounded-full blur-3xl opacity-50" />
 
       <div className="max-w-7xl mx-auto relative z-10 text-center mb-12">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-[#0056B3] px-4 py-2 rounded-full mb-6">
-          <FileCheck className="w-4 h-4" />
-          <span className="text-sm font-semibold uppercase tracking-wider">Admission Portal 2025</span>
-        </div>
+
 
         {/* Title */}
         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
@@ -203,10 +199,6 @@ export default function AdmissionHero() {
             </button>
           </div>
 
-          {/* Quick Help */}
-          <p className="mt-4 text-sm text-gray-400">
-            Having trouble? <button className="text-[#0056B3] font-semibold underline underline-offset-4"><Link to="/contact">Contact Support</Link></button>
-          </p>
         </div>
       </div>
     </section>

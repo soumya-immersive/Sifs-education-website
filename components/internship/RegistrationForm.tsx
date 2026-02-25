@@ -283,9 +283,13 @@ export default function RegistrationForm() {
         <div className="max-w-6xl mx-auto px-4 py-8 lg:py-12">
 
             {/* Back Button */}
+            {/* <button onClick={() => router.back()} className="flex items-center text-gray-500 hover:text-indigo-600 transition-colors mb-6 font-medium">
+                <ChevronLeft className="w-5 h-5 mr-1" />
+                Back to Internship Details
+            </button> */}
             <button onClick={() => router.back()} className="flex items-center text-gray-500 hover:text-indigo-600 transition-colors mb-6 font-medium">
                 <ChevronLeft className="w-5 h-5 mr-1" />
-                Back to {registrationType} Details
+                Back to Internship Details
             </button>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -296,7 +300,7 @@ export default function RegistrationForm() {
                     {/* Form Header */}
                     <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-8 text-white relative overflow-hidden">
                         <div className="relative z-10">
-                            <h1 className="text-3xl font-bold mb-2">{registrationType} Application</h1>
+                            <h1 className="text-3xl font-bold mb-2">Internship Application</h1>
                             <p className="text-blue-100">Fill in your details to apply for the {registrationType.toLowerCase()}.</p>
                         </div>
                         {/* Decorative Pattern */}
@@ -538,7 +542,7 @@ export default function RegistrationForm() {
 
                             {/* <div className="flex items-center justify-between py-4 border-t border-gray-100">
                                 <span className="text-gray-600">Duration</span>
-                                <span className="font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full text-sm">4-6 Weeks</span>
+                                <span className="font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full text-sm"></span>
                             </div> */}
 
 
@@ -589,7 +593,7 @@ export default function RegistrationForm() {
                     </div>
 
                     {/* Help Card */}
-                    <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-100 shadow-sm">
+                    {/* <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-100 shadow-sm">
                         <h4 className="font-bold text-blue-900 mb-2">Need Help?</h4>
                         <p className="text-sm text-blue-700 mb-4 leading-relaxed">
                             For any queries regarding the internship or application process, enable us to guide you.
@@ -600,7 +604,7 @@ export default function RegistrationForm() {
                             </div>
                             <span>011-47074263</span>
                         </a>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>
