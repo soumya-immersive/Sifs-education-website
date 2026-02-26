@@ -58,12 +58,7 @@ export default function BooksHero({ category }: Props) {
             {category.label}
           </motion.h1>
 
-          <motion.p
-            variants={fadeUp}
-            className="text-sm text-gray-600 mt-1"
-          >
-            Explore our {category.label.toLowerCase()}
-          </motion.p>
+
         </motion.div>
 
         {/* RIGHT IMAGE / BOOK MOCKUP */}
