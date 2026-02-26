@@ -75,7 +75,7 @@ export default function QuizZonePage() {
         return pages;
     };
 
-    // Update form data when active quiz changes
+    // Update form data and selected year when data changes
     useEffect(() => {
         if (data?.activeQuiz) {
             setFormData(prev => ({
@@ -84,7 +84,14 @@ export default function QuizZonePage() {
                 event_id: data.activeQuiz?.event_id || data.activeQuiz?.event?.id || 0,
             }));
         }
-    }, [data?.activeQuiz]);
+
+        // If current selected year is not in available years, default to the latest available year
+        if (data?.availableYears && data.availableYears.length > 0) {
+            if (!data.availableYears.includes(selectedYear)) {
+                setSelectedYear(data.availableYears[0]);
+            }
+        }
+    }, [data, selectedYear]);
 
     // Animation Variants
     const fadeUp = {
@@ -221,9 +228,6 @@ export default function QuizZonePage() {
             <motion.div variants={fadeUp}>
                 <PageBanner
                     title="Quiz Zone"
-                    subtitle={
-                        <>Explore our forensic quizzes and test your knowledge</>
-                    }
                     bgImage="/quiz-gradient-bg.png"
                 />
             </motion.div>
@@ -232,15 +236,11 @@ export default function QuizZonePage() {
 
                 {/* HERO SECTION: ACTIVE QUIZ */}
                 {data?.activeQuiz && (
-                    <motion.div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16" variants={fadeUp}>
-                        <div className="relative">
-                            <img src="/quiz.png" alt="Quiz" className="w-full object-cover rounded-2xl shadow-sm" />
-                        </div>
-
+                    <motion.div className="grid grid-cols-1 gap-12 items-center justify-center  mb-16" variants={fadeUp}>
                         <div className="space-y-6">
-                            <span className="inline-block mb-4 rounded-full border border-[#067CB6] px-8 py-2 text-sm font-semibold text-black bg-[#E7ECEF]">
+                            {/* <span className="inline-block mb-4 rounded-full border border-[#067CB6] px-8 py-2 text-sm font-semibold text-black bg-[#E7ECEF]">
                                 Quiz {data.activeQuiz.id}
-                            </span>
+                            </span> */}
                             <h2 className="text-3xl font-bold text-gray-900 mt-4">
                                 Welcome{" "}
                                 <span className="relative inline-block">
@@ -257,7 +257,7 @@ export default function QuizZonePage() {
                             </h2>
 
                             <h3 className="text-xl font-semibold text-gray-800">
-                                {data.activeQuiz.title}
+                                {data.activeQuiz.event?.title || data.activeQuiz.title}
                             </h3>
 
                             <div
@@ -265,7 +265,7 @@ export default function QuizZonePage() {
                                 dangerouslySetInnerHTML={{ __html: data.activeQuiz.description || "<p>No description available.</p>" }}
                             />
 
-                            <div className="grid grid-cols-2 gap-4 pt-4 border-t text-sm">
+                            <div className="grid grid-cols-2 gap-0 pt-4 border-t text-sm">
                                 <div className="flex items-center gap-2 text-gray-700">
                                     <Calendar size={18} className="text-[#3E58EE]" />
                                     <div>
@@ -293,9 +293,9 @@ export default function QuizZonePage() {
                         <motion.div variants={fadeUp}>
                             <p className="text-[#3E58EE] text-sm font-bold tracking-wide uppercase mb-2">Explore our all of the quizzes!</p>
                             <h3 className="text-3xl font-bold text-black mb-8">
-                                Foren{" "}
+                                Forensic{" "}
                                 <span className="relative inline-block">
-                                    <span className="relative z-10">sic Quiz</span>
+                                    <span className="relative z-10">Quiz</span>
                                     <Image
                                         src="/yellow-underline.png"
                                         alt=""
@@ -339,7 +339,7 @@ export default function QuizZonePage() {
                                                     }`}
                                             >
                                                 <span className="pr-4">
-                                                    Quiz {quiz.id}: {quiz.title}
+                                                    {quiz.event?.title || quiz.title}
                                                 </span>
                                                 <span className={`shrink-0 transition-transform duration-300 ${openQuiz === quiz.id ? 'rotate-180' : ''}`}>
                                                     <ChevronDown size={20} className={openQuiz === quiz.id ? "text-white" : "text-gray-500"} />
@@ -355,17 +355,7 @@ export default function QuizZonePage() {
                                                     <div className="p-6 text-[14px] text-[#6B7385] space-y-4 leading-relaxed border-t border-gray-100 bg-white">
                                                         <div dangerouslySetInnerHTML={{ __html: quiz.description }} className="prose prose-sm max-w-none text-gray-600" />
 
-                                                        {/* Static Instructional Content matching the image */}
-                                                        <div className="pt-4 mt-2 border-t border-gray-50">
-                                                            <p className="font-bold text-black mb-2">What You Have to Do?</p>
-                                                            <ul className="list-none space-y-1 ml-0">
-                                                                <li>A. Participate & successfully complete the quiz!</li>
-                                                                <li>B. Claim your eCertificate of Achievement and post on Social Media...</li>
-                                                            </ul>
-                                                        </div>
-                                                        <button className="text-[#3E58EE] font-bold text-xs mt-2 hover:underline">
-                                                            Check on Download Certificate and search your certificate by entering registered Email ID.
-                                                        </button>
+
                                                     </div>
                                                 </motion.div>
                                             )}

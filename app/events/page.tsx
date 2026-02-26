@@ -1,11 +1,10 @@
 import { API_BASE_URL, BASE_URL } from "@/lib/config";
 import EventsHero from "../../components/events/EventsHero";
-// import UpcomingEvents from "../../components/events/UpcomingEvents";
 import EventsSection from "../../components/home/EventsSection";
 import JourneyStats from "../../components/events/JourneyStats";
 import ArchiveProgram from "../../components/events/ArchiveProgram";
 import ExpertTeam from "../../components/common/ExpertTeam";
-import Participatory from "../../components/events/Participatory";
+import GlobalInfluence from "@/components/home/GlobalInfluence";
 import ForensicInsightsSection from '../../components/events/ForensicInsightsSection';
 import DownloadCertificate from "../../components/events/DownloadCertificate";
 
@@ -182,8 +181,9 @@ export default async function EventsPage() {
       <JourneyStats statistics={data?.statistics || []} />
       <ArchiveProgram archiveEvents={data?.archiveEvents || []} />
       <ExpertTeam organizers={data?.organizers || []} />
-      <Participatory partners={data?.partners || []} testimonials={data?.testimonials || []} />
-      <ForensicInsightsSection blogs={data?.blogs || []} />
+      {/* <Participatory partners={data?.partners || []} testimonials={data?.testimonials || []} /> */}
+      <GlobalInfluence />
+      <ForensicInsightsSection />
     </main>
   );
 }
