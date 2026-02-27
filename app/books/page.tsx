@@ -9,12 +9,10 @@ import BooksGrid from "@/components/books/BooksGrid";
 import Learning from "@/components/books/Learning";
 
 interface Props {
-    params: Promise<{ category: string }>;
     searchParams: Promise<{ page?: string; sb?: string }>;
 }
 
-export default async function BookCategoryPage({ params, searchParams }: Props) {
-    const { category } = await params;
+export default async function BooksPage({ searchParams }: Props) {
     const { page, sb } = await searchParams;
     const currentPage = page ? parseInt(page) : 1;
     const searchTerm = sb || "";
@@ -22,22 +20,22 @@ export default async function BookCategoryPage({ params, searchParams }: Props) 
     let data: BooksResponse["data"];
     try {
         const res = await fetchJSON<BooksResponse>(
-            `${API_BASE_URL}/EducationAndInternship/Website/book/forensic-books/${category}?page=${currentPage}&sb=${searchTerm}`
+            `${API_BASE_URL}/EducationAndInternship/Website/book/forensic-books?page=${currentPage}&sb=${searchTerm}`
         );
         if (!res.success) {
             notFound();
         }
         data = res.data;
     } catch (error) {
-        console.error("Failed to fetch Category Books:", error);
+        console.error("Failed to fetch books:", error);
         notFound();
     }
 
     const allBooks = data.books || [];
 
     const categoryData = {
-        slug: category,
-        label: data.cat_name || category.replace(/-/g, ' '),
+        slug: "all",
+        label: searchTerm ? `Search: ${searchTerm}` : "Forensic Books",
         image: "/books/hero.png",
     };
 
@@ -48,15 +46,15 @@ export default async function BookCategoryPage({ params, searchParams }: Props) 
             <div className="max-w-7xl mx-auto px-4 py-8">
                 <BooksFilterBar
                     categories={data.categories}
-                    activeCategory={category}
-                    baseUrl={`/books/${category}`}
+                    activeCategory="all"
+                    baseUrl="/books"
                 />
 
                 <section className="mt-8">
                     <BooksGrid
                         books={allBooks}
                         pagination={data.pageSection}
-                        baseUrl={`/books/${category}`}
+                        baseUrl={`/books`}
                         searchTerm={searchTerm}
                     />
                 </section>

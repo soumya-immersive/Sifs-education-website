@@ -61,7 +61,7 @@ const defaultNavItems = [
       { label: "Visual Gallery", path: "/video" },
     ],
   },
-  { label: "Books", path: "/onilne-courses" },
+  { label: "Books", path: "/books" },
   { label: "Reach Us", path: "/contact" },
 ];
 

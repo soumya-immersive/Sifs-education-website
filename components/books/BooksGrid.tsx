@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
 import { motion, Variants } from "framer-motion";
-import BookCard from "./BookCard"; // Ensure you create this component
-import { Book } from "../../data/books"; // Ensure this type exists
+import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import BookCard from "./BookCard";
+import { Book, BooksResponse } from "@/types/book";
 
 /* ---------------- Props ---------------- */
 
 interface Props {
   books: Book[];
+  pagination?: BooksResponse["data"]["pageSection"];
+  baseUrl: string;
+  searchTerm?: string;
 }
-
-const ITEMS_PER_LOAD = 3;
 
 /* ---------------- Animations ---------------- */
 
@@ -35,29 +37,20 @@ const fadeUp: Variants = {
 
 /* ---------------- Component ---------------- */
 
-export default function BooksGrid({ books }: Props) {
-  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
-  const [loading, setLoading] = useState(false);
-
-  const handleLoadMore = () => {
-    setLoading(true);
-    // Simulate a small delay for better UX feel
-    setTimeout(() => {
-      setVisibleCount((prev) => prev + ITEMS_PER_LOAD);
-      setLoading(false);
-    }, 600);
-  };
-
-  const handleLoadLess = () => {
-    setVisibleCount(ITEMS_PER_LOAD);
-    // Optional: Scroll back to top of grid when resetting
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+export default function BooksGrid({ books, pagination, baseUrl, searchTerm }: Props) {
+  const getPageUrl = (pageNum: string | number) => {
+    const url = new URL(baseUrl, window.location.origin);
+    url.searchParams.set("page", pageNum.toString());
+    if (searchTerm) {
+      url.searchParams.set("sb", searchTerm);
+    }
+    return `${url.pathname}${url.search}`;
   };
 
   if (!books || books.length === 0) {
     return (
-      <section className="max-w-7xl mx-auto px-4 mt-16 text-center">
-        <p className="text-gray-500 text-lg italic">
+      <section className="mt-16 text-center py-24 bg-white/50 rounded-2xl border-2 border-dashed border-gray-100">
+        <p className="text-gray-400 text-lg italic">
           No books found in this collection.
         </p>
       </section>
@@ -65,66 +58,99 @@ export default function BooksGrid({ books }: Props) {
   }
 
   return (
-    <section className="max-w-7xl mx-auto px-4 mt-10">
-      {/* BOOKS GRID */}
+    <section className="mt-10 px-1">
+      {/* BOOKS GRID - 3 Columns */}
       <motion.div
-        className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+        className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 xl:gap-10"
         variants={container}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
       >
-        {books.slice(0, visibleCount).map((book) => (
-          <motion.div key={book.id} variants={fadeUp}>
+        {books.map((book) => (
+          <motion.div key={`${book.id}-${book.slug}`} variants={fadeUp}>
             <BookCard book={book} />
           </motion.div>
         ))}
       </motion.div>
 
-      {/* ACTIONS */}
-      <motion.div
-        variants={fadeUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        className="flex justify-center mt-12 mb-20"
-      >
-        {visibleCount < books.length ? (
-          <button
-            onClick={handleLoadMore}
-            disabled={loading}
-            className="
-              bg-gradient-to-r from-blue-600 to-cyan-500
-              text-white px-8 py-3 rounded-full
-              text-sm font-semibold flex items-center gap-2
-              hover:shadow-lg transition-all active:scale-95
-              disabled:opacity-70 disabled:cursor-not-allowed
-            "
-          >
-            {loading ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Browsing Library...
-              </>
-            ) : (
-              <>View More Books ↓</>
-            )}
-          </button>
-        ) : (
-          books.length > ITEMS_PER_LOAD && (
-            <button
-              onClick={handleLoadLess}
-              className="
-                border-2 border-blue-600 text-blue-600 
-                px-8 py-3 rounded-full text-sm font-semibold
-                hover:bg-blue-50 transition-colors
-              "
+      {/* PAGINATION CONTROLS */}
+      {pagination && pagination.last_page > 1 && (
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="flex justify-center items-center gap-3 mt-20"
+        >
+          {/* Previous Button */}
+          {pagination.current_page > 1 ? (
+            <Link
+              href={getPageUrl(pagination.current_page - 1)}
+              className="p-3.5 rounded-xl border border-gray-100 bg-white hover:border-indigo-200 hover:text-indigo-600 transition-all text-gray-400 shadow-sm"
             >
-              Show Less
-            </button>
-          )
-        )}
-      </motion.div>
+              <ChevronLeft size={20} />
+            </Link>
+          ) : (
+            <div className="p-3.5 rounded-xl border border-gray-50 bg-gray-50/50 text-gray-200 cursor-not-allowed">
+              <ChevronLeft size={20} />
+            </div>
+          )}
+
+          {/* Page Numbers */}
+          <div className="flex items-center gap-2.5 mx-2">
+            {pagination.links && pagination.links.map((link, idx) => {
+              const cleanLabel = link.label
+                .replace(/&laquo;/g, '')
+                .replace(/&raquo;/g, '')
+                .replace(/&lsaquo;/g, '')
+                .replace(/&rsaquo;/g, '')
+                .replace(/Prev/g, '')
+                .replace(/Next/g, '')
+                .trim();
+
+              if (!cleanLabel || (isNaN(Number(cleanLabel)) && cleanLabel !== "...")) return null;
+
+              const isPageNumber = !isNaN(Number(cleanLabel));
+              const isActive = link.active;
+
+              return isPageNumber ? (
+                <Link
+                  key={idx}
+                  href={getPageUrl(cleanLabel)}
+                  className={`
+                    w-11 h-11 flex items-center justify-center rounded-xl font-bold text-sm transition-all
+                    ${isActive
+                      ? "bg-[#6366f1] text-white shadow-xl shadow-indigo-100 scale-110"
+                      : "bg-white border border-gray-100 text-gray-500 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/30 shadow-sm"
+                    }
+                  `}
+                >
+                  {cleanLabel}
+                </Link>
+              ) : (
+                <span key={idx} className="w-11 h-11 flex items-center justify-center text-gray-400 italic">
+                  {cleanLabel}
+                </span>
+              );
+            })}
+          </div>
+
+          {/* Next Button */}
+          {pagination.current_page < pagination.last_page ? (
+            <Link
+              href={getPageUrl(pagination.current_page + 1)}
+              className="p-3.5 rounded-xl border border-gray-100 bg-white hover:border-indigo-200 hover:text-indigo-600 transition-all text-gray-400 shadow-sm"
+            >
+              <ChevronRight size={20} />
+            </Link>
+          ) : (
+            <div className="p-3.5 rounded-xl border border-gray-50 bg-gray-50/50 text-gray-200 cursor-not-allowed">
+              <ChevronRight size={20} />
+            </div>
+          )}
+        </motion.div>
+      )}
     </section>
   );
 }

@@ -10,6 +10,8 @@ interface HeroEvent {
   id: number;
   title: string;
   text: string;
+  banner_subtitle: string;
+  banner_title?: string;
   event_date: string;
   end_date?: string;
   location: string;
@@ -67,12 +69,21 @@ export default function EventsHero({ event }: EventsHeroProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <span className="inline-block mb-4 rounded-full border border-[#067CB6] px-8 py-2 text-sm font-semibold text-black bg-[#E7ECEF]">
-              {event.title}
-            </span>
 
-            <h1 className="text-4xl md:text-5xl font-bold text-black mb-6 mt-4 leading-tight break-words">
-              {event.text}
+
+
+            <h1 className="text-4xl md:text-5xl font-bold text-black mb-2 leading-tight break-words">
+              {event.title || event.title}
+            </h1>
+            <h1 className="text-2xl md:text-2xl font-bold text-black mb-6 leading-tight break-words">
+              {event.banner_title || event.text}
+              <div className="flex flex-col gap-2 mt-2">
+                {event.banner_subtitle && (
+                  <p className="text-[#067CB6] font-bold uppercase tracking-[0.2em] text-xs">
+                    {event.banner_subtitle}
+                  </p>
+                )}
+              </div>
             </h1>
 
             <ul className="space-y-4 mb-8">

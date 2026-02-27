@@ -375,7 +375,7 @@ export default function EventRegistrationPage({ params }: { params: Promise<{ sl
             </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-32">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
                     {/* Left Column - Event Details */}
@@ -459,9 +459,7 @@ export default function EventRegistrationPage({ params }: { params: Promise<{ sl
                                         <h2 className="text-2xl font-bold text-white">
                                             Applicant Details
                                         </h2>
-                                        <p className="text-blue-100 text-sm">
-                                            Fill in your information to register
-                                        </p>
+
                                     </div>
                                 </div>
                             </div>
@@ -586,11 +584,6 @@ export default function EventRegistrationPage({ params }: { params: Promise<{ sl
                                         )}
                                     </button>
                                 </div>
-
-                                {/* Info Text */}
-                                <p className="text-center text-white/80 text-sm pt-2">
-                                    By registering, you agree to our terms and conditions
-                                </p>
                             </form>
                         </div>
                     </div>

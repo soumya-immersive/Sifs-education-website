@@ -16,6 +16,7 @@ type Event = {
   date: string;
   mode: string;
   description: string;
+  subtitle: string;
   image: string;
   start_date: string;
   end_date: string;
@@ -277,7 +278,8 @@ export default function EventsSection() {
             title: apiEvent.title,
             date: apiEvent.formatted_date,
             mode: "Online Zoom", // Default mode
-            description: `${apiEvent.banner_title} ${apiEvent.banner_subtitle}`,
+            description: `${apiEvent.banner_title}`,
+            subtitle: `${apiEvent.banner_subtitle}`,
             image: ensureHttps(apiEvent.explore?.image_url) || defaultImages[index % defaultImages.length],
             start_date: apiEvent.start_date,
             end_date: apiEvent.end_date,
@@ -561,6 +563,11 @@ export default function EventsSection() {
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                       unoptimized={event.image.startsWith("http")}
                     />
+                    <div className="absolute top-3 right-3 z-10">
+                      <span className="backdrop-blur-sm text-[#fff] text-[8px] font-black px-3 py-1.5 rounded-full shadow-sm uppercase tracking-wider border border-white/50">
+                        {event.subtitle?.length > 19 ? event.subtitle.substring(0, 20) + "..." : event.subtitle}
+                      </span>
+                    </div>
                   </motion.div>
 
                   {/* Content */}

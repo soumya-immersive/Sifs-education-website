@@ -66,6 +66,16 @@ interface Scene {
     image_url: string;
 }
 
+interface Venue {
+    id: number;
+    name: string;
+    email: string;
+    address: string;
+    phone: string;
+    venue_details: string;
+    image_url: string;
+}
+
 interface Package {
     id: number;
     title: string;
@@ -103,7 +113,9 @@ interface EventData {
         countdown: string;
         explore?: EventExplore;
     };
-    eventExplore?: EventExplore; // Fallback location
+    eventExplore?: EventExplore;
+    venue?: Venue;
+    isArchiveEvent?: boolean;
     supportiveBody: Member[];
     scientificCommittee: Member[];
     volunteers: Member[];
@@ -123,6 +135,17 @@ interface Props {
 export default function EventDetailClient({ data }: Props) {
     const router = useRouter();
     const [timeLeft, setTimeLeft] = useState<{ days: number, hours: number, minutes: number, seconds: number } | null>(null);
+    const [currentSpeakerPage, setCurrentSpeakerPage] = useState(0);
+    const [currentScientificPage, setCurrentScientificPage] = useState(0);
+    const [currentSupportivePage, setCurrentSupportivePage] = useState(0);
+    const [currentScenesPage, setCurrentScenesPage] = useState(0);
+    const [currentSponsorsPage, setCurrentSponsorsPage] = useState(0);
+    const [currentHotelsPage, setCurrentHotelsPage] = useState(0);
+    const speakersPerPage = 4;
+    const committeePerPage = 2;
+    const scenesPerPage = 4;
+    const sponsorsPerPage = 4;
+    const hotelsPerPage = 2;
 
     // Extract with robust fallback to prevent "null" property errors
     const event = data?.event || ({} as any);
@@ -193,13 +216,13 @@ export default function EventDetailClient({ data }: Props) {
                 </div>
 
                 <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <button
+                    {/* <button
                         onClick={() => router.back()}
                         className="flex items-center gap-2 text-blue-400 hover:text-blue-300 mb-8 transition-colors group"
                     >
                         <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                         <span className="font-semibold uppercase tracking-wider text-sm">Back to Events</span>
-                    </button>
+                    </button> */}
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <motion.div
@@ -207,12 +230,13 @@ export default function EventDetailClient({ data }: Props) {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.8 }}
                         >
-                            <h2 className="text-blue-500 font-bold uppercase tracking-widest text-sm mb-4">
-                                {event.banner_subtitle || event.month_year}
+                            <h2 className="text-4xl md:text-5xl font-bold mb-2 leading-tight break-words">
+                                {event.title}
                             </h2>
-                            <h1 className="text-4xl md:text-6xl font-extrabold mb-8 leading-tight">
+                            <h1 className="text-2xl md:text-2xl font-bold mb-6 leading-tight break-words">
                                 {event.banner_title || event.title}
                             </h1>
+
 
                             {/* Countdown Timer */}
                             {timeLeft && (
@@ -249,22 +273,23 @@ export default function EventDetailClient({ data }: Props) {
                                     </div>
                                     <div>
                                         <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest mb-1">Venue</p>
-                                        <p className="font-bold text-lg">New Delhi, India</p>
+                                        <p className="font-bold text-lg">{data.venue?.name || "New Delhi, India"}</p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="flex flex-wrap gap-4">
-                                <button
+                                {/* <button
                                     onClick={() => router.push(`/events/register/${event.slug}`)}
                                     className="px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black transition-all shadow-xl shadow-blue-600/30 flex items-center gap-2 transform hover:scale-105"
                                 >
                                     REGISTER NOW <ArrowRight className="w-5 h-5" />
-                                </button>
+                                </button> */}
                                 {event.explore?.schedule_pdf_url && (
                                     <a
                                         href={ensureHttps(event.explore.schedule_pdf_url)}
                                         target="_blank"
+                                        rel="noopener noreferrer"
                                         className="px-10 py-5 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-black transition-all backdrop-blur-md flex items-center gap-2 border border-white/20"
                                     >
                                         <Download className="w-5 h-5" /> VIEW PDF
@@ -290,9 +315,9 @@ export default function EventDetailClient({ data }: Props) {
 
                             {/* Decorative accent */}
                             <div className="absolute bottom-8 left-8 p-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl">
-                                <p className="text-white text-sm font-bold flex items-center gap-2">
+                                <p className="text-white text-md font-bold flex items-center gap-2">
                                     <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-                                    LIVE EVENT EXPERIENCE
+                                    {event.banner_subtitle?.length > 20 ? event.banner_subtitle.substring(0, 20) + "..." : event.banner_subtitle}
                                 </p>
                             </div>
                         </motion.div>
@@ -326,10 +351,21 @@ export default function EventDetailClient({ data }: Props) {
                                     </div>
                                 </div>
                                 <div className="hidden md:block h-12 w-px bg-slate-100"></div>
-                                <div className="flex gap-2">
-                                    <Facebook className="w-5 h-5 text-slate-400 cursor-pointer hover:text-blue-600 transition-colors" />
-                                    <Twitter className="w-5 h-5 text-slate-400 cursor-pointer hover:text-sky-500 transition-colors" />
-                                    <Linkedin className="w-5 h-5 text-slate-400 cursor-pointer hover:text-blue-700 transition-colors" />
+                                <div className="flex gap-4">
+                                    {event.explore?.facebook_url && (
+                                        <a href={ensureHttps(event.explore.facebook_url)} target="_blank" rel="noopener noreferrer">
+                                            <Facebook className="w-6 h-6 text-slate-400 hover:text-blue-600 transition-colors" />
+                                        </a>
+                                    )}
+                                    {event.explore?.zoom_link && (
+                                        <a href={ensureHttps(event.explore.zoom_link)} target="_blank" rel="noopener noreferrer">
+                                            {event.explore.zoom_link.includes('linkedin') ? (
+                                                <Linkedin className="w-6 h-6 text-slate-400 hover:text-blue-700 transition-colors" />
+                                            ) : (
+                                                <Video className="w-6 h-6 text-slate-400 hover:text-emerald-500 transition-colors" />
+                                            )}
+                                        </a>
+                                    )}
                                 </div>
                             </div>
 
@@ -340,29 +376,65 @@ export default function EventDetailClient({ data }: Props) {
                         </motion.section>
 
                         {/* Elite Speakers */}
-                        {speakers?.length > 0 && (
-                            <section className="space-y-10">
-                                <div className="flex items-end justify-between">
-                                    <div className="space-y-2">
-                                        <p className="text-blue-600 font-black uppercase tracking-[0.2em] text-xs">Featured Experts</p>
-                                        <h2 className="text-5xl font-black text-slate-900 tracking-tighter">Elite Speakers</h2>
-                                    </div>
-                                    <div className="hidden sm:flex gap-4">
-                                        <div className="p-3 bg-white rounded-full border border-slate-200 shadow-sm cursor-pointer hover:bg-slate-50 transition-colors">
-                                            <ArrowLeft className="w-5 h-5 text-slate-600" />
+                        {speakers?.length > 0 && (() => {
+                            const totalPages = Math.ceil(speakers.length / speakersPerPage);
+                            const startIndex = currentSpeakerPage * speakersPerPage;
+                            const currentSpeakers = speakers.slice(startIndex, startIndex + speakersPerPage);
+
+                            return (
+                                <section className="space-y-10">
+                                    <div className="flex items-end justify-between">
+                                        <div className="space-y-2">
+                                            {/* <p className="text-blue-600 font-black uppercase tracking-[0.2em] text-xs">Featured Experts</p> */}
+                                            <h2 className="text-5xl font-black text-slate-900 tracking-tighter">Speakers</h2>
                                         </div>
-                                        <div className="p-3 bg-white rounded-full border border-slate-200 shadow-sm cursor-pointer hover:bg-slate-50 transition-colors">
-                                            <ArrowRight className="w-5 h-5 text-slate-600" />
+                                        <div className="hidden sm:flex gap-4">
+                                            <button
+                                                onClick={() => setCurrentSpeakerPage(prev => Math.max(0, prev - 1))}
+                                                disabled={currentSpeakerPage === 0}
+                                                className={`p-3 bg-white rounded-full border border-slate-200 shadow-sm cursor-pointer transition-all ${currentSpeakerPage === 0 ? "opacity-30 cursor-not-allowed" : "hover:bg-slate-50 active:scale-95"}`}
+                                            >
+                                                <ArrowLeft className="w-5 h-5 text-slate-600" />
+                                            </button>
+                                            <button
+                                                onClick={() => setCurrentSpeakerPage(prev => Math.min(totalPages - 1, prev + 1))}
+                                                disabled={currentSpeakerPage === totalPages - 1}
+                                                className={`p-3 bg-white rounded-full border border-slate-200 shadow-sm cursor-pointer transition-all ${currentSpeakerPage === totalPages - 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-slate-50 active:scale-95"}`}
+                                            >
+                                                <ArrowRight className="w-5 h-5 text-slate-600" />
+                                            </button>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    {speakers.map((speaker) => (
-                                        <MemberCard key={speaker.id} member={speaker} variant="blue" />
-                                    ))}
-                                </div>
-                            </section>
-                        )}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <AnimatePresence mode="wait">
+                                            {currentSpeakers.map((speaker, idx) => (
+                                                <motion.div
+                                                    key={speaker.id}
+                                                    initial={{ opacity: 0, x: 20 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    exit={{ opacity: 0, x: -20 }}
+                                                    transition={{ duration: 0.3, delay: idx * 0.1 }}
+                                                >
+                                                    <MemberCard member={speaker} variant="blue" />
+                                                </motion.div>
+                                            ))}
+                                        </AnimatePresence>
+                                    </div>
+
+                                    {/* Pagination Info Indicators */}
+                                    {totalPages > 1 && (
+                                        <div className="flex justify-center gap-2 mt-6">
+                                            {Array.from({ length: totalPages }).map((_, i) => (
+                                                <div
+                                                    key={i}
+                                                    className={`h-1.5 rounded-full transition-all duration-300 ${currentSpeakerPage === i ? "w-8 bg-blue-600" : "w-1.5 bg-slate-200"}`}
+                                                ></div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </section>
+                            );
+                        })()}
 
                         {/* Interactive Gallery */}
                         {gallery_images?.length > 0 && (
@@ -388,32 +460,100 @@ export default function EventDetailClient({ data }: Props) {
 
                         {/* Committees */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                            {scientificCommittee?.length > 0 && (
-                                <section className="space-y-8">
-                                    <h3 className="text-2xl font-black text-slate-900 flex items-center gap-3">
-                                        <div className="w-1.5 h-8 bg-purple-600 rounded-full"></div>
-                                        Scientific Committee
-                                    </h3>
-                                    <div className="space-y-4">
-                                        {scientificCommittee.map((member) => (
-                                            <MemberRow key={member.id} member={member} />
-                                        ))}
-                                    </div>
-                                </section>
-                            )}
-                            {supportiveBody?.length > 0 && (
-                                <section className="space-y-8">
-                                    <h3 className="text-2xl font-black text-slate-900 flex items-center gap-3">
-                                        <div className="w-1.5 h-8 bg-indigo-600 rounded-full"></div>
-                                        Supportive Body
-                                    </h3>
-                                    <div className="space-y-4">
-                                        {supportiveBody.map((member) => (
-                                            <MemberRow key={member.id} member={member} />
-                                        ))}
-                                    </div>
-                                </section>
-                            )}
+                            {scientificCommittee?.length > 0 && (() => {
+                                const totalPages = Math.ceil(scientificCommittee.length / committeePerPage);
+                                const startIndex = currentScientificPage * committeePerPage;
+                                const currentMembers = scientificCommittee.slice(startIndex, startIndex + committeePerPage);
+
+                                return (
+                                    <section className="space-y-8">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+                                                <div className="w-1.5 h-8 bg-purple-600 rounded-full"></div>
+                                                Scientific Committee
+                                            </h3>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => setCurrentScientificPage(prev => Math.max(0, prev - 1))}
+                                                    disabled={currentScientificPage === 0}
+                                                    className={`p-2 bg-white rounded-full border border-slate-200 shadow-sm cursor-pointer transition-all ${currentScientificPage === 0 ? "opacity-30 cursor-not-allowed" : "hover:bg-slate-50 active:scale-95"}`}
+                                                >
+                                                    <ArrowLeft className="w-4 h-4 text-slate-600" />
+                                                </button>
+                                                <button
+                                                    onClick={() => setCurrentScientificPage(prev => Math.min(totalPages - 1, prev + 1))}
+                                                    disabled={currentScientificPage === totalPages - 1}
+                                                    className={`p-2 bg-white rounded-full border border-slate-200 shadow-sm cursor-pointer transition-all ${currentScientificPage === totalPages - 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-slate-50 active:scale-95"}`}
+                                                >
+                                                    <ArrowRight className="w-4 h-4 text-slate-600" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <AnimatePresence mode="wait">
+                                                {currentMembers.map((member, idx) => (
+                                                    <motion.div
+                                                        key={member.id}
+                                                        initial={{ opacity: 0, x: 20 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        exit={{ opacity: 0, x: -20 }}
+                                                        transition={{ duration: 0.3, delay: idx * 0.05 }}
+                                                    >
+                                                        <MemberRow member={member} />
+                                                    </motion.div>
+                                                ))}
+                                            </AnimatePresence>
+                                        </div>
+                                    </section>
+                                );
+                            })()}
+                            {supportiveBody?.length > 0 && (() => {
+                                const totalPages = Math.ceil(supportiveBody.length / committeePerPage);
+                                const startIndex = currentSupportivePage * committeePerPage;
+                                const currentMembers = supportiveBody.slice(startIndex, startIndex + committeePerPage);
+
+                                return (
+                                    <section className="space-y-8">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+                                                <div className="w-1.5 h-8 bg-indigo-600 rounded-full"></div>
+                                                Supportive Body
+                                            </h3>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => setCurrentSupportivePage(prev => Math.max(0, prev - 1))}
+                                                    disabled={currentSupportivePage === 0}
+                                                    className={`p-2 bg-white rounded-full border border-slate-200 shadow-sm cursor-pointer transition-all ${currentSupportivePage === 0 ? "opacity-30 cursor-not-allowed" : "hover:bg-slate-50 active:scale-95"}`}
+                                                >
+                                                    <ArrowLeft className="w-4 h-4 text-slate-600" />
+                                                </button>
+                                                <button
+                                                    onClick={() => setCurrentSupportivePage(prev => Math.min(totalPages - 1, prev + 1))}
+                                                    disabled={currentSupportivePage === totalPages - 1}
+                                                    className={`p-2 bg-white rounded-full border border-slate-200 shadow-sm cursor-pointer transition-all ${currentSupportivePage === totalPages - 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-slate-50 active:scale-95"}`}
+                                                >
+                                                    <ArrowRight className="w-4 h-4 text-slate-600" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <AnimatePresence mode="wait">
+                                                {currentMembers.map((member, idx) => (
+                                                    <motion.div
+                                                        key={member.id}
+                                                        initial={{ opacity: 0, x: 20 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        exit={{ opacity: 0, x: -20 }}
+                                                        transition={{ duration: 0.3, delay: idx * 0.05 }}
+                                                    >
+                                                        <MemberRow member={member} />
+                                                    </motion.div>
+                                                ))}
+                                            </AnimatePresence>
+                                        </div>
+                                    </section>
+                                );
+                            })()}
                         </div>
 
                         {/* Coordination Volunteers */}
@@ -421,10 +561,10 @@ export default function EventDetailClient({ data }: Props) {
                             <section className="bg-slate-900 rounded-[3rem] p-12 text-white overflow-hidden relative">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[100px]"></div>
                                 <div className="relative z-10 mb-10 text-center">
-                                    <h2 className="text-3xl font-black">Coordinating Volunteers</h2>
+                                    <h2 className="text-3xl font-black">Volunteers</h2>
                                     <p className="text-slate-400 text-sm mt-2">The engine behind our successful organization</p>
                                 </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
                                     {volunteers.map((v) => (
                                         <div key={v.id} className="text-center group">
                                             <div className="relative w-28 h-28 mx-auto mb-4 rounded-[2rem] overflow-hidden group-hover:-translate-y-2 transition-transform duration-500 ring-2 ring-white/10 group-hover:ring-blue-500/50">
@@ -480,7 +620,7 @@ export default function EventDetailClient({ data }: Props) {
                                                 <div className="flex justify-between items-start mb-2">
                                                     <h4 className="font-black text-slate-800 group-hover:text-blue-700 transition-colors uppercase tracking-tight text-sm">{pkg.title}</h4>
                                                     <span className="text-blue-600 font-black text-sm">
-                                                        {pkg.price === 0 ? "FREE" : `₹${pkg.price}`}
+                                                        {pkg.price === 0 ? "FREE" : `${pkg.currency === 'Free' ? '₹' : pkg.currency}${pkg.price}`}
                                                     </span>
                                                 </div>
                                                 <p className="text-slate-500 text-[10px] leading-tight font-medium uppercase tracking-wider">{pkg.description}</p>
@@ -492,78 +632,216 @@ export default function EventDetailClient({ data }: Props) {
                                         onClick={() => router.push(`/events/register/${event.slug}`)}
                                         className="w-full py-5 bg-[#0F172A] hover:bg-blue-600 text-white rounded-3xl font-black transition-all shadow-xl shadow-slate-900/20 active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
                                     >
-                                        Checkout Now <ArrowRight className="w-5 h-5" />
+                                        REGISTER NOW <ArrowRight className="w-5 h-5" />
                                     </button>
                                 </div>
                             </motion.div>
 
                             {/* Event Sponsors */}
-                            {sponsors && Object.keys(sponsors).length > 0 && (
-                                <div className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-100 border border-slate-50">
-                                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-8 text-center">Major Global Sponsors</h4>
-                                    <div className="space-y-8">
-                                        {Object.entries(sponsors).map(([cat, list]) => (
-                                            <div key={cat} className="space-y-3">
-                                                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 py-1 px-3 rounded-full inline-block">{cat}</p>
-                                                <div className="flex flex-wrap gap-4">
-                                                    {list.map((s) => (
-                                                        <a key={s.id} href={s.url} target="_blank" className="p-4 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-lg transition-all border border-transparent hover:border-blue-100 group">
-                                                            <Image src={ensureHttps(s.image_url)} alt={s.website_name} width={120} height={60} className="object-contain max-h-10 grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" unoptimized={s.image_url?.startsWith('http')} />
-                                                        </a>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                            {sponsors && Object.keys(sponsors).length > 0 && (() => {
+                                const allSponsors = Object.entries(sponsors).flatMap(([cat, list]) =>
+                                    list.map(s => ({ ...s, category: cat }))
+                                );
+                                const totalPages = Math.ceil(allSponsors.length / sponsorsPerPage);
+                                const startIndex = currentSponsorsPage * sponsorsPerPage;
+                                const currentSponsors = allSponsors.slice(startIndex, startIndex + sponsorsPerPage);
 
-                            {/* Nearest Stays */}
-                            {hotels?.length > 0 && (
-                                <div className="space-y-6">
-                                    <h4 className="text-sm font-black text-slate-900 pl-2 border-l-4 border-blue-600 leading-none">Accommodation Partners</h4>
-                                    {hotels.slice(0, 2).map((h) => (
-                                        <div key={h.id} className="bg-white rounded-3xl overflow-hidden shadow-lg border border-slate-50 group">
-                                            <div className="relative h-44">
-                                                <Image src={ensureHttps(h.image_url)} alt={h.name} fill className="object-cover group-hover:scale-110 transition-transform duration-700" unoptimized={h.image_url?.startsWith('http')} />
-                                                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[10px] font-black text-slate-900 shadow-sm">
-                                                    PARTNER HOTEL
-                                                </div>
-                                            </div>
-                                            <div className="p-6">
-                                                <h5 className="font-black text-slate-900 leading-tight mb-2 truncate">{h.name}</h5>
-                                                <div className="flex items-start gap-2 text-xs text-slate-500 mb-4">
-                                                    <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                                                    <span className="line-clamp-1">{h.address}</span>
-                                                </div>
-                                                <a href={h.url} target="_blank" className="flex items-center justify-center gap-2 w-full py-3 bg-blue-50 text-blue-600 rounded-2xl font-bold text-xs hover:bg-blue-600 hover:text-white transition-all transform active:scale-95">
-                                                    View Details <ArrowRight className="w-4 h-4" />
-                                                </a>
+                                return (
+                                    <div className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-100 border border-slate-50">
+                                        <div className="flex items-center justify-between mb-8">
+                                            <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-center flex-1">Major Global Sponsors</h4>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => setCurrentSponsorsPage(prev => Math.max(0, prev - 1))}
+                                                    disabled={currentSponsorsPage === 0}
+                                                    className={`p-1.5 bg-white rounded-full border border-slate-200 shadow-sm cursor-pointer transition-all ${currentSponsorsPage === 0 ? "opacity-30 cursor-not-allowed" : "hover:bg-slate-50 active:scale-95"}`}
+                                                >
+                                                    <ArrowLeft className="w-4 h-4 text-slate-600" />
+                                                </button>
+                                                <button
+                                                    onClick={() => setCurrentSponsorsPage(prev => Math.min(totalPages - 1, prev + 1))}
+                                                    disabled={currentSponsorsPage === totalPages - 1}
+                                                    className={`p-1.5 bg-white rounded-full border border-slate-200 shadow-sm cursor-pointer transition-all ${currentSponsorsPage === totalPages - 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-slate-50 active:scale-95"}`}
+                                                >
+                                                    <ArrowRight className="w-4 h-4 text-slate-600" />
+                                                </button>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <AnimatePresence mode="wait">
+                                                {currentSponsors.map((s, idx) => (
+                                                    <motion.div
+                                                        key={`${s.category}-${s.id}`}
+                                                        initial={{ opacity: 0, scale: 0.95 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        exit={{ opacity: 0, scale: 0.95 }}
+                                                        transition={{ duration: 0.3, delay: idx * 0.05 }}
+                                                    >
+                                                        <a
+                                                            href={s.url}
+                                                            target="_blank"
+                                                            className="p-4 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-lg transition-all border border-transparent hover:border-blue-100 group flex flex-col items-center gap-2 h-full justify-center"
+                                                        >
+                                                            <div className="relative w-full h-10">
+                                                                <Image
+                                                                    src={ensureHttps(s.image_url)}
+                                                                    alt={s.website_name}
+                                                                    fill
+                                                                    className="object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all"
+                                                                    unoptimized={s.image_url?.startsWith('http')}
+                                                                />
+                                                            </div>
+                                                            <p className="text-[8px] font-black text-blue-600 uppercase tracking-widest bg-blue-50/50 py-0.5 px-2 rounded-full opacity-60 group-hover:opacity-100 transition-opacity whitespace-nowrap overflow-hidden text-ellipsis w-full text-center">
+                                                                {s.category}
+                                                            </p>
+                                                        </a>
+                                                    </motion.div>
+                                                ))}
+                                            </AnimatePresence>
+                                        </div>
+
+                                        {/* Pagination Dots */}
+                                        {totalPages > 1 && (
+                                            <div className="flex justify-center gap-1.5 mt-6">
+                                                {Array.from({ length: totalPages }).map((_, i) => (
+                                                    <div
+                                                        key={i}
+                                                        className={`h-1 rounded-full transition-all duration-300 ${currentSponsorsPage === i ? "w-4 bg-blue-600" : "w-1 bg-slate-200"}`}
+                                                    ></div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })()}
+
+                            {/* Nearest Stays */}
+                            {hotels?.length > 0 && (() => {
+                                const totalPages = Math.ceil(hotels.length / hotelsPerPage);
+                                const startIndex = currentHotelsPage * hotelsPerPage;
+                                const currentHotels = hotels.slice(startIndex, startIndex + hotelsPerPage);
+
+                                return (
+                                    <div className="space-y-6">
+                                        <div className="flex items-center justify-between pl-2 border-l-4 border-blue-600">
+                                            <h4 className="text-sm font-black text-slate-900 leading-none">Hotels</h4>
+                                            {totalPages > 1 && (
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => setCurrentHotelsPage(prev => Math.max(0, prev - 1))}
+                                                        disabled={currentHotelsPage === 0}
+                                                        className={`p-1.5 bg-white rounded-full border border-slate-200 shadow-sm cursor-pointer transition-all ${currentHotelsPage === 0 ? "opacity-30 cursor-not-allowed" : "hover:bg-slate-50 active:scale-95"}`}
+                                                    >
+                                                        <ArrowLeft className="w-4 h-4 text-slate-600" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setCurrentHotelsPage(prev => Math.min(totalPages - 1, prev + 1))}
+                                                        disabled={currentHotelsPage === totalPages - 1}
+                                                        className={`p-1.5 bg-white rounded-full border border-slate-200 shadow-sm cursor-pointer transition-all ${currentHotelsPage === totalPages - 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-slate-50 active:scale-95"}`}
+                                                    >
+                                                        <ArrowRight className="w-4 h-4 text-slate-600" />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="space-y-6">
+                                            <AnimatePresence mode="wait">
+                                                {currentHotels.map((h, idx) => (
+                                                    <motion.div
+                                                        key={h.id}
+                                                        initial={{ opacity: 0, x: 20 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        exit={{ opacity: 0, x: -20 }}
+                                                        transition={{ duration: 0.3, delay: idx * 0.1 }}
+                                                        className="bg-white rounded-3xl overflow-hidden shadow-lg border border-slate-50 group"
+                                                    >
+                                                        <div className="relative h-44">
+                                                            <Image src={ensureHttps(h.image_url)} alt={h.name} fill className="object-cover group-hover:scale-110 transition-transform duration-700" unoptimized={h.image_url?.startsWith('http')} />
+                                                            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[10px] font-black text-slate-900 shadow-sm">
+                                                                PARTNER HOTEL
+                                                            </div>
+                                                        </div>
+                                                        <div className="p-6">
+                                                            <h5 className="font-black text-slate-900 leading-tight mb-2 truncate">{h.name}</h5>
+                                                            <div className="flex items-start gap-2 text-xs text-slate-500 mb-4">
+                                                                <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                                                                <span className="line-clamp-1">{h.address}</span>
+                                                            </div>
+                                                            <a href={h.url} target="_blank" className="flex items-center justify-center gap-2 w-full py-3 bg-blue-50 text-blue-600 rounded-2xl font-bold text-xs hover:bg-blue-600 hover:text-white transition-all transform active:scale-95">
+                                                                View Details <ArrowRight className="w-4 h-4" />
+                                                            </a>
+                                                        </div>
+                                                    </motion.div>
+                                                ))}
+                                            </AnimatePresence>
+                                        </div>
+                                        {/* Pagination Dots */}
+                                        {totalPages > 1 && (
+                                            <div className="flex justify-center gap-1.5 mt-2">
+                                                {Array.from({ length: totalPages }).map((_, i) => (
+                                                    <div
+                                                        key={i}
+                                                        className={`h-1 rounded-full transition-all duration-300 ${currentHotelsPage === i ? "w-4 bg-blue-600" : "w-1 bg-slate-200"}`}
+                                                    ></div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })()}
 
                             {/* Nearby Scenes */}
-                            {scenes?.length > 0 && (
-                                <div className="space-y-6">
-                                    <h4 className="text-sm font-black text-slate-900 pl-2 border-l-4 border-emerald-600 leading-none">Local Attractions</h4>
-                                    <div className="grid grid-cols-1 gap-4">
-                                        {scenes.map((scene) => (
-                                            <div key={scene.id} className="bg-white p-4 rounded-[2rem] border border-slate-100 flex items-center gap-4 hover:shadow-lg transition-all">
-                                                <div className="relative w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0">
-                                                    <Image src={ensureHttps(scene.image_url)} alt={scene.title} fill className="object-cover" unoptimized={scene.image_url?.startsWith('http')} />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <h5 className="font-bold text-slate-900 text-sm truncate">{scene.title}</h5>
-                                                    <p className="text-[10px] text-slate-500 truncate">{scene.address}</p>
-                                                </div>
+                            {scenes?.length > 0 && (() => {
+                                const totalPages = Math.ceil(scenes.length / scenesPerPage);
+                                const startIndex = currentScenesPage * scenesPerPage;
+                                const currentScenes = scenes.slice(startIndex, startIndex + scenesPerPage);
+
+                                return (
+                                    <div className="space-y-6">
+                                        <div className="flex items-center justify-between pl-2 border-l-4 border-emerald-600">
+                                            <h4 className="text-sm font-black text-slate-900 leading-none">Scenes</h4>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => setCurrentScenesPage(prev => Math.max(0, prev - 1))}
+                                                    disabled={currentScenesPage === 0}
+                                                    className={`p-1.5 bg-white rounded-full border border-slate-200 shadow-sm cursor-pointer transition-all ${currentScenesPage === 0 ? "opacity-30 cursor-not-allowed" : "hover:bg-slate-50 active:scale-95"}`}
+                                                >
+                                                    <ArrowLeft className="w-4 h-4 text-slate-600" />
+                                                </button>
+                                                <button
+                                                    onClick={() => setCurrentScenesPage(prev => Math.min(totalPages - 1, prev + 1))}
+                                                    disabled={currentScenesPage === totalPages - 1}
+                                                    className={`p-1.5 bg-white rounded-full border border-slate-200 shadow-sm cursor-pointer transition-all ${currentScenesPage === totalPages - 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-slate-50 active:scale-95"}`}
+                                                >
+                                                    <ArrowRight className="w-4 h-4 text-slate-600" />
+                                                </button>
                                             </div>
-                                        ))}
+                                        </div>
+                                        <div className="grid grid-cols-1 gap-4">
+                                            <AnimatePresence mode="wait">
+                                                {currentScenes.map((scene, idx) => (
+                                                    <motion.div
+                                                        key={scene.id}
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        exit={{ opacity: 0, y: -10 }}
+                                                        transition={{ duration: 0.3, delay: idx * 0.05 }}
+                                                        className="bg-white p-4 rounded-[2rem] border border-slate-100 flex items-center gap-4 hover:shadow-lg transition-all"
+                                                    >
+                                                        <div className="relative w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0">
+                                                            <Image src={ensureHttps(scene.image_url)} alt={scene.title} fill className="object-cover" unoptimized={scene.image_url?.startsWith('http')} />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <h5 className="font-bold text-slate-900 text-sm truncate">{scene.title}</h5>
+                                                            <p className="text-[10px] text-slate-500 truncate">{scene.address}</p>
+                                                        </div>
+                                                    </motion.div>
+                                                ))}
+                                            </AnimatePresence>
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                );
+                            })()}
                         </section>
                     </div>
                 </div>
