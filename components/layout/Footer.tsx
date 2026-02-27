@@ -443,7 +443,7 @@ const Footer: React.FC = () => {
                     <img
                       src={`${BASE_URL}/uploads/Education-And-Internship-Admin-FooterLogo/${data.footer_logo}`}
                       alt="SIFS Logo"
-                      className="max-h-20 w-auto mb-6"
+                      className="max-h-12 w-auto mb-6"
                     />
                   ) : (
                     <div className="text-2xl font-black text-gray-900 mb-4">
