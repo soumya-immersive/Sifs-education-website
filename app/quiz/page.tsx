@@ -236,8 +236,8 @@ export default function QuizZonePage() {
 
                 {/* HERO SECTION: ACTIVE QUIZ */}
                 {data?.activeQuiz && (
-                    <motion.div className="grid grid-cols-1 gap-12 items-center justify-center  mb-16" variants={fadeUp}>
-                        <div className="space-y-6">
+                    <motion.div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center justify-center  mb-16" variants={fadeUp}>
+                        <div className="space-y-6 lg:col-span-8">
                             {/* <span className="inline-block mb-4 rounded-full border border-[#067CB6] px-8 py-2 text-sm font-semibold text-black bg-[#E7ECEF]">
                                 Quiz {data.activeQuiz.id}
                             </span> */}
@@ -282,11 +282,85 @@ export default function QuizZonePage() {
                                 </div>
                             </div>
                         </div>
+                        <div className="lg:col-span-4">
+                            <motion.div variants={fadeUp}>
+                                <div className="bg-white rounded-2xl border border-gray-200 sticky top-24 shadow-sm overflow-hidden">
+                                    <h3 className="text-lg font-bold text-black p-5 border-b border-gray-100 bg-white">Applicant Details</h3>
+                                    <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                                        <div>
+                                            <label className="text-[14px] font-medium text-black mb-1.5 block">Name as printed on certificate</label>
+                                            <input
+                                                type="text"
+                                                name="name"
+                                                value={formData.name}
+                                                onChange={handleInputChange}
+                                                required
+                                                className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#3E58EE] focus:ring-2 focus:ring-[#3E58EE]/10 transition-all"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[14px] font-medium text-black mb-1.5 block">E-mail</label>
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                value={formData.email}
+                                                onChange={handleInputChange}
+                                                required
+                                                className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#3E58EE] focus:ring-2 focus:ring-[#3E58EE]/10 transition-all"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[14px] font-medium text-black mb-1.5 block">Organization/Institution name</label>
+                                            <input
+                                                type="text"
+                                                name="organisation_name"
+                                                value={formData.organisation_name}
+                                                onChange={handleInputChange}
+                                                required
+                                                className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#3E58EE] focus:ring-2 focus:ring-[#3E58EE]/10 transition-all"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[14px] font-medium text-black mb-1.5 block">Mobile number</label>
+                                            <input
+                                                type="tel"
+                                                name="mobile"
+                                                value={formData.mobile}
+                                                onChange={handleInputChange}
+                                                required
+                                                className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#3E58EE] focus:ring-2 focus:ring-[#3E58EE]/10 transition-all"
+                                            />
+                                        </div>
+
+                                        {formMessage && (
+                                            <div className={`p-3 rounded-lg text-xs font-medium ${formMessage.type === 'success'
+                                                ? 'bg-green-50 text-green-700 border border-green-200'
+                                                : 'bg-red-50 text-red-700 border border-red-200'
+                                                }`}>
+                                                {formMessage.text}
+                                            </div>
+                                        )}
+
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                            className="w-full mt-2 bg-gradient-to-r from-[#3E58EE] to-[#B565E7] text-white py-3.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:shadow-lg hover:opacity-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed transform active:scale-[0.98]"
+                                        >
+                                            {isSubmitting ? (
+                                                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                            ) : (
+                                                <>Attempt Quiz Now <ChevronRight size={16} /></>
+                                            )}
+                                        </button>
+                                    </form>
+                                </div>
+                            </motion.div>
+                        </div>
                     </motion.div>
                 )}
 
                 {/* MAIN CONTENT GRID */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div className="grid grid-cols-1  gap-8 items-start">
 
                     {/* LEFT: QUIZ HUB */}
                     <div className="lg:col-span-2">
@@ -430,93 +504,9 @@ export default function QuizZonePage() {
                     </div>
 
                     {/* RIGHT: APPLICANT FORM */}
-                    <div className="lg:col-span-1">
-                        <motion.div variants={fadeUp}>
-                            <div className="bg-white rounded-2xl border border-gray-200 sticky top-24 shadow-sm overflow-hidden">
-                                <h3 className="text-lg font-bold text-black p-5 border-b border-gray-100 bg-white">Applicant Details</h3>
-                                <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                                    <div>
-                                        <label className="text-[14px] font-medium text-black mb-1.5 block">Name as printed on certificate</label>
-                                        <input
-                                            type="text"
-                                            name="name"
-                                            value={formData.name}
-                                            onChange={handleInputChange}
-                                            required
-                                            className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#3E58EE] focus:ring-2 focus:ring-[#3E58EE]/10 transition-all"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[14px] font-medium text-black mb-1.5 block">E-mail</label>
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            value={formData.email}
-                                            onChange={handleInputChange}
-                                            required
-                                            className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#3E58EE] focus:ring-2 focus:ring-[#3E58EE]/10 transition-all"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[14px] font-medium text-black mb-1.5 block">Organization/Institution name</label>
-                                        <input
-                                            type="text"
-                                            name="organisation_name"
-                                            value={formData.organisation_name}
-                                            onChange={handleInputChange}
-                                            required
-                                            className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#3E58EE] focus:ring-2 focus:ring-[#3E58EE]/10 transition-all"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[14px] font-medium text-black mb-1.5 block">Mobile number</label>
-                                        <input
-                                            type="tel"
-                                            name="mobile"
-                                            value={formData.mobile}
-                                            onChange={handleInputChange}
-                                            required
-                                            className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#3E58EE] focus:ring-2 focus:ring-[#3E58EE]/10 transition-all"
-                                        />
-                                    </div>
 
-                                    {formMessage && (
-                                        <div className={`p-3 rounded-lg text-xs font-medium ${formMessage.type === 'success'
-                                            ? 'bg-green-50 text-green-700 border border-green-200'
-                                            : 'bg-red-50 text-red-700 border border-red-200'
-                                            }`}>
-                                            {formMessage.text}
-                                        </div>
-                                    )}
-
-                                    <button
-                                        type="submit"
-                                        disabled={isSubmitting}
-                                        className="w-full mt-2 bg-gradient-to-r from-[#3E58EE] to-[#B565E7] text-white py-3.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:shadow-lg hover:opacity-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed transform active:scale-[0.98]"
-                                    >
-                                        {isSubmitting ? (
-                                            <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                        ) : (
-                                            <>Attempt Quiz Now <ChevronRight size={16} /></>
-                                        )}
-                                    </button>
-                                </form>
-                            </div>
-                        </motion.div>
-                    </div>
 
                 </div>
-
-
-                {data?.activeQuiz && (
-                    <motion.div className="mt-20 text-center" variants={fadeUp}>
-                        <div className="bg-[#E7ECEF] border border-[#d7dde9] inline-block p-4 rounded-xl">
-                            <p className="text-[#6B7385] text-sm">
-                                <b>Note:</b> You have to send your Post Screenshot at <span className="text-[#3E58EE]">sifs.forensicquiz@gmail.com</span> to win the competition.
-                            </p>
-                        </div>
-                    </motion.div>
-                )}
 
             </div>
         </motion.div>
