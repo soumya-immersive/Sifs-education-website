@@ -62,23 +62,27 @@ export default function BookRegistrationPage() {
         try {
             const payload = {
                 book_id: data.book.id,
-                book_slug: data.book.slug,
-                ...formData,
-                amount: data.book.price,
+                name: formData.name,
+                email: formData.email,
+                phone_number: formData.phone_number,
+                address: formData.address,
+                city: formData.city,
+                post_code: formData.post_code,
+                country: formData.country,
+                currency_code: "INR", // Default to INR as per example
+                amount: parseFloat(data.book.price) || 0,
             };
 
-            const res = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/book/register-for-book-process/`, {
+            const res = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/book-payment/book-registrations`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
 
-            const result: RegistrationProcessResponse = await res.json();
-            if (result.success) {
-                alert(result.message || "Registration successful!");
-                if (result.data.redirect_url) {
-                    window.location.href = result.data.redirect_url;
-                }
+            const result = await res.json();
+            if (result.success && result.data?.registration?.id) {
+                // Redirect to the new book payment page
+                router.push(`/book-payment?registration_id=${result.data.registration.id}`);
             } else {
                 alert(result.message || "Something went wrong.");
             }

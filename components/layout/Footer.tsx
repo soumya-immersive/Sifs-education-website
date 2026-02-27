@@ -84,6 +84,7 @@ interface FooterDataAttributes {
   socials: Social[];
   newsletter_title?: string;
   newsletter_subtitle?: string;
+  newsletter_text?: string;
 }
 
 // Helper to determine if link is external or internal
@@ -191,7 +192,8 @@ const Footer: React.FC = () => {
             footer_logo: bs?.footer_logo || "",
             socials: json.socials || json.data?.socials || [],
             newsletter_title: bs?.newsl_section_title || "",
-            newsletter_subtitle: bs?.newsl_section_subtitle || ""
+            newsletter_subtitle: bs?.newsl_section_subtitle || "",
+            newsletter_text: bs?.newsletter_text || ""
           });
         }
       } catch (error) {
@@ -308,6 +310,55 @@ const Footer: React.FC = () => {
     backgroundPosition: "center",
   };
 
+  const renderContactInfo = (html: string) => {
+    if (!html) return null;
+
+    // Split by paragraph tags and filter out empty strings/br tags
+    const paragraphs = html
+      .split(/<p>|<\/p>/)
+      .map((s) => s.trim())
+      .filter((s) => s !== "" && s !== "<br>" && s !== "&nbsp;");
+
+    if (paragraphs.length === 0) {
+      return (
+        <div
+          className="text-sm text-gray-700"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      );
+    }
+
+    return (
+      <ul className="flex flex-col space-y-4 text-sm text-gray-700">
+        {paragraphs.map((content, idx) => {
+          let icon = "📍";
+          const lower = content.toLowerCase();
+
+          if (
+            lower.includes("tel") ||
+            lower.includes("call") ||
+            lower.includes("mobile") ||
+            lower.includes("+91")
+          ) {
+            icon = "📞";
+          } else if (lower.includes("mail") || lower.includes("@")) {
+            icon = "📧";
+          }
+
+          return (
+            <li key={idx} className="flex items-start">
+              <span className="mr-2 text-blue-600">{icon}</span>
+              <span
+                className="[&_strong]:font-bold"
+                dangerouslySetInnerHTML={{ __html: content }}
+              />
+            </li>
+          );
+        })}
+      </ul>
+    );
+  };
+
   return (
     <footer className="relative w-full">
       <motion.div
@@ -392,7 +443,7 @@ const Footer: React.FC = () => {
                     <img
                       src={`${BASE_URL}/uploads/Education-And-Internship-Admin-FooterLogo/${data.footer_logo}`}
                       alt="SIFS Logo"
-                      className="max-h-20 w-auto mb-6"
+                      className="max-h-12 w-auto mb-6"
                     />
                   ) : (
                     <div className="text-2xl font-black text-gray-900 mb-4">
@@ -491,30 +542,34 @@ const Footer: React.FC = () => {
               {/* Contact (Col 5) */}
               <div>
                 <h3 className="text-gray-900 font-bold mb-4">Contact Us</h3>
-                <ul className="flex flex-col space-y-4 text-sm text-gray-700">
-                  <li className="flex items-start mb-4">
-                    <span className="mr-2 text-blue-600">📍</span>
-                    <span>
-                      A-14, Mahendru Enclave <br /> Model Town, Delhi-110033
-                    </span>
-                  </li>
+                {data?.newsletter_text ? (
+                  renderContactInfo(data.newsletter_text)
+                ) : (
+                  <ul className="flex flex-col space-y-4 text-sm text-gray-700">
+                    <li className="flex items-start mb-4">
+                      <span className="mr-2 text-blue-600">📍</span>
+                      <span>
+                        A-14, Mahendru Enclave <br /> Model Town, Delhi-110033
+                      </span>
+                    </li>
 
-                  <li className="flex items-start mb-4">
-                    <span className="mr-2 text-blue-600">📞</span>
-                    <span>
-                      Call Us: <strong>011-47074263</strong>
-                      <br />
-                      Mobile: <strong>{data?.support_phone || "91-7303913002"}</strong>
-                    </span>
-                  </li>
+                    <li className="flex items-start mb-4">
+                      <span className="mr-2 text-blue-600">📞</span>
+                      <span>
+                        Call Us: <strong>011-47074263</strong>
+                        <br />
+                        Mobile: <strong>{data?.support_phone || "91-7303913002"}</strong>
+                      </span>
+                    </li>
 
-                  <li className="flex items-start mb-2">
-                    <span className="mr-2 text-blue-600">📧</span>
-                    <span>
-                      E-Mail: <strong>{data?.contact_mail || "info@sifs.in"}</strong>
-                    </span>
-                  </li>
-                </ul>
+                    <li className="flex items-start mb-2">
+                      <span className="mr-2 text-blue-600">📧</span>
+                      <span>
+                        E-Mail: <strong>{data?.contact_mail || "info@sifs.in"}</strong>
+                      </span>
+                    </li>
+                  </ul>
+                )}
               </div>
             </div>
           </div>
@@ -528,7 +583,7 @@ const Footer: React.FC = () => {
           {data?.copyright_text ? (
             <div dangerouslySetInnerHTML={{ __html: data.copyright_text }} className="flex gap-1 items-center justify-center flex-wrap [&_p]:inline [&_p]:m-0 [&_a]:underline" />
           ) : (
-            <span>Copyright © 2025 SIFS INDIA. All Rights Reserved</span>
+            <span>Copyright © 20256 SIFS INDIA. All Rights Reserved</span>
           )}
         </motion.div>
       </motion.div>
