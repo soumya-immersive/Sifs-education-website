@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ArrowLeft, Calendar, MapPin, Users } from "lucide-react";
 import { API_BASE_URL } from "@/lib/config";
 import Script from "next/script";
+import PhoneInputAdapter from "@/components/ui/PhoneInputAdapter";
 
 interface EventData {
     id: number;
@@ -519,15 +520,13 @@ export default function EventRegistrationPage({ params }: { params: Promise<{ sl
                                     <label className="block text-white font-medium mb-2">
                                         Mobile Number
                                     </label>
-                                    <input
-                                        type="tel"
+                                    <PhoneInputAdapter
                                         name="mobile"
                                         value={formData.mobile}
                                         onChange={handleInputChange}
-                                        required
-                                        pattern="[0-9]{10}"
-                                        className="w-full px-4 py-3 rounded-lg bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 text-gray-900 placeholder-gray-400"
-                                        placeholder="10-digit mobile number"
+                                        required={true}
+                                        className="w-full !pl-12 px-4 py-3 rounded-lg bg-white/95 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 text-gray-900 placeholder-gray-400"
+                                        placeholder="Mobile number"
                                     />
                                 </div>
 

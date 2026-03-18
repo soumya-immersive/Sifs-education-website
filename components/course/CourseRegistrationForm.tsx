@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { Course } from "../../data/courses";
+import PhoneInputAdapter from "@/components/ui/PhoneInputAdapter";
 
 interface Props {
     course: Course;
@@ -104,12 +105,11 @@ export default function CourseRegistrationForm({ course, selectedLevel, price, o
                             {/* Contact Number */}
                             <div>
                                 <label className="block text-gray-700 text-sm font-medium mb-2">Contact Number</label>
-                                <input
-                                    type="tel"
+                                <PhoneInputAdapter
                                     name="contactNumber"
-                                    required
+                                    required={true}
                                     placeholder="Number with country code"
-                                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                                    className="w-full !pl-12 border border-gray-300 rounded-lg pr-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                                     value={formData.contactNumber}
                                     onChange={handleChange}
                                 />

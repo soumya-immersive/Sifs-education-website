@@ -10,6 +10,7 @@ import { useQuizData } from "@/hooks/useQuizData";
 import { QuizFormData } from "@/types/quiz";
 import { API_BASE_URL } from "@/lib/config";
 import QuizPageSkeleton from "@/components/skeletons/QuizPageSkeleton";
+import PhoneInputAdapter from "@/components/ui/PhoneInputAdapter";
 
 export default function QuizZonePage() {
     const router = useRouter();
@@ -322,13 +323,12 @@ export default function QuizZonePage() {
                                         </div>
                                         <div>
                                             <label className="text-[14px] font-medium text-black mb-1.5 block">Mobile number</label>
-                                            <input
-                                                type="tel"
+                                            <PhoneInputAdapter
                                                 name="mobile"
                                                 value={formData.mobile}
                                                 onChange={handleInputChange}
-                                                required
-                                                className="w-full border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-[#3E58EE] focus:ring-2 focus:ring-[#3E58EE]/10 transition-all"
+                                                required={true}
+                                                className="w-full !pl-12 border border-gray-200 rounded-lg pr-3 py-3 text-sm outline-none focus:border-[#3E58EE] focus:ring-2 focus:ring-[#3E58EE]/10 transition-all"
                                             />
                                         </div>
 

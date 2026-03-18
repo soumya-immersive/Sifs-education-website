@@ -8,6 +8,7 @@ import { motion, easeOut, AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
 import Link from "next/link";
 import ContactPageSkeleton from "@/components/skeletons/ContactPageSkeleton";
+import PhoneInputAdapter from "@/components/ui/PhoneInputAdapter";
 
 const LocationItem = ({
     item,
@@ -317,14 +318,24 @@ export default function ContactPage() {
                                             className="border rounded-lg p-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                                         />
 
-                                        <input
-                                            type="text"
-                                            name="mobile"
-                                            placeholder="Mobile number"
-                                            value={form.mobile}
-                                            onChange={handleChange}
-                                            className="border rounded-lg p-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                        />
+                                        <div className="w-full relative">
+                                            <style>
+                                                {`
+                                                    .contact-phone-input .react-tel-input .form-control {
+                                                        border: 1px solid #1e2939 !important;
+                                                    }
+                                                `}
+                                            </style>
+                                            <div className="contact-phone-input w-full">
+                                                <PhoneInputAdapter
+                                                    name="mobile"
+                                                    placeholder="Mobile number"
+                                                    value={form.mobile}
+                                                    onChange={handleChange}
+                                                    className="w-full !pl-12 border rounded-lg pr-3 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                                />
+                                            </div>
+                                        </div>
 
                                         <input
                                             type="text"

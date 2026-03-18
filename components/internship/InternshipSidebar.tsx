@@ -7,6 +7,7 @@ import { motion, Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Internship } from "../../data/internships";
 import Link from "next/link";
+import PhoneInputAdapter from "@/components/ui/PhoneInputAdapter";
 
 interface Props {
   internship: Internship;
@@ -387,12 +388,12 @@ export default function InternshipSidebar({ internship }: Props) {
               className="w-full border border-[#D9D9D9] text-black rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
               placeholder="Name"
             />
-            <input
+            <PhoneInputAdapter
               name="mobile"
               value={queryForm.mobile}
               onChange={handleQueryChange}
               required
-              className="w-full border border-[#D9D9D9] text-black rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full !pl-12 border border-[#D9D9D9] text-black rounded-lg pr-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
               placeholder="Mobile"
             />
             <input
