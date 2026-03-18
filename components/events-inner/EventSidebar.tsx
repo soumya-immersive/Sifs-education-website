@@ -1,8 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Calendar, Users, Phone, Info, Mail, Video, ArrowRight, Facebook } from "lucide-react";
 import { Event } from "../../data/events";
+import PhoneInputAdapter from "@/components/ui/PhoneInputAdapter";
 
 interface Props {
   event: Event;
@@ -10,6 +12,7 @@ interface Props {
 
 export default function EventSidebar({ event }: Props) {
   const router = useRouter();
+  const [mobile, setMobile] = useState('');
 
   return (
     <div className="space-y-6 sticky top-24 max-w-sm">
@@ -119,7 +122,12 @@ export default function EventSidebar({ event }: Props) {
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-bold text-gray-700">Mobile</label>
-            <input type="tel" className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all" />
+            <PhoneInputAdapter 
+                name="mobile"
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
+                className="w-full !pl-12 border border-gray-200 rounded-xl pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all" 
+            />
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-bold text-gray-700">E-mail</label>

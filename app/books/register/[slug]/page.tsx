@@ -7,6 +7,7 @@ import { ArrowLeft, BookOpen, User, Phone, Mail, MapPin, Globe, CreditCard, Shie
 import { API_BASE_URL } from "@/lib/config";
 import { fetchJSON } from "@/lib/fetchUtils";
 import { RegistrationFormResponse, RegistrationProcessResponse } from "@/types/book";
+import PhoneInputAdapter from "@/components/ui/PhoneInputAdapter";
 
 export default function BookRegistrationPage() {
     const router = useRouter();
@@ -161,12 +162,12 @@ export default function BookRegistrationPage() {
                                             <label className="text-xs font-bold text-gray-700 ml-1">Phone Number</label>
                                             <div className="relative">
                                                 <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                                                <input
-                                                    required
+                                                <PhoneInputAdapter
                                                     name="phone_number"
                                                     value={formData.phone_number}
                                                     onChange={handleInputChange}
-                                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-11 pr-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 transition-all text-black"
+                                                    required={true}
+                                                    className="w-full !pl-20 bg-gray-50 border border-gray-200 rounded-xl pr-4 py-3 outline-none focus:ring-2 focus:ring-blue-100 transition-all text-black"
                                                     placeholder="Enter mobile number"
                                                 />
                                             </div>

@@ -14,23 +14,38 @@ interface Country {
     phonecode: number;
 }
 
+import PhoneInputAdapter from "@/components/ui/PhoneInputAdapter";
+
 const InputField = ({ label, name, type = "text", placeholder, icon: Icon, required = false, value, onChange, ...props }: any) => (
     <div className="relative group">
         <label className="block text-gray-700 text-sm font-semibold mb-2 ml-1">{label} {required && <span className="text-red-500">*</span>}</label>
         <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                {Icon && <Icon className="h-5 w-5 text-gray-400 group-hover:text-indigo-500 transition-colors" />}
-            </div>
-            <input
-                type={type}
-                name={name}
-                required={required}
-                placeholder={placeholder}
-                className="w-full pl-10 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-gray-50 focus:bg-white placeholder-gray-400 text-gray-800"
-                value={value}
-                onChange={onChange}
-                {...props}
-            />
+            {type !== "tel" && (
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                    {Icon && <Icon className="h-5 w-5 text-gray-400 group-hover:text-indigo-500 transition-colors" />}
+                </div>
+            )}
+            {type === "tel" ? (
+                <PhoneInputAdapter
+                    name={name}
+                    value={value}
+                    onChange={onChange}
+                    required={required}
+                    placeholder={placeholder}
+                    className="w-full !pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-gray-50 focus:bg-white placeholder-gray-400 text-gray-800"
+                />
+            ) : (
+                <input
+                    type={type}
+                    name={name}
+                    required={required}
+                    placeholder={placeholder}
+                    className="w-full pl-10 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-gray-50 focus:bg-white placeholder-gray-400 text-gray-800"
+                    value={value}
+                    onChange={onChange}
+                    {...props}
+                />
+            )}
         </div>
     </div>
 );

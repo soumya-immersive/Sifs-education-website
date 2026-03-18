@@ -8,6 +8,7 @@ import { coursePrograms } from "../../data/coursePrograms";
 import { internshipPrograms } from "../../data/internshipPrograms";
 import { trainingPrograms } from "../../data/trainingPrograms";
 import { API_BASE_URL, BASE_URL } from "../../lib/config";
+import PhoneInputAdapter from "@/components/ui/PhoneInputAdapter";
 
 // ----------------------
 // Types
@@ -349,12 +350,11 @@ const ApplyForensicLearning = () => {
 
                   {/* Phone Number */}
                   <div>
-                    <input
-                      type="tel"
+                    <PhoneInputAdapter
                       name="phone_number"
                       value={formData.phone_number}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full !pl-12 px-4 py-3 bg-white border border-gray-300 rounded-lg text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       placeholder="Phone number"
                     />
                   </div>
