@@ -16,6 +16,7 @@ import TestimonialsSection from '../components/home/TestimonialsSection';
 import ForensicInsightsSection from '../components/home/ForensicInsightsSection';
 import Partners from '../components/home/Partners';
 import DownloadSection from '../components/home/DownloadSection';
+import MarketingPopup from '../components/home/MarketingPopup';
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -61,6 +62,7 @@ export default function HomePage() {
       <DownloadSection />
       <ForensicInsightsSection />
       <TestimonialsSection />
+      <MarketingPopup />
     </>
   );
 }
