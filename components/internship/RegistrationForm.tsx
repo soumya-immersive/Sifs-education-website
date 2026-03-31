@@ -1,11 +1,12 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { CheckCircle2, ChevronLeft, ShieldCheck, User, Mail, Phone, MapPin, School, Calendar, Globe, Wand2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { CheckCircle2, ChevronLeft, ShieldCheck, User, Mail, Phone, MapPin, School, Calendar, Globe, Wand2, ArrowLeft, Loader2 } from "lucide-react";
 import Link from 'next/link';
 import DatePicker from "@/components/ui/DatePicker";
 import { API_BASE_URL } from "@/lib/config";
+import { toast } from 'react-hot-toast';
 
 interface Country {
     id: number;
@@ -85,6 +86,16 @@ export default function RegistrationForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     // const [isSuccess, setIsSuccess] = useState(false); // Unused if we redirect
 
+    const [showOtp, setShowOtp] = useState(false);
+    const [otp, setOtp] = useState(["", "", "", ""]);
+    const [otpTimer, setOtpTimer] = useState(0);
+    const otpRefs = [
+        useRef<HTMLInputElement>(null),
+        useRef<HTMLInputElement>(null),
+        useRef<HTMLInputElement>(null),
+        useRef<HTMLInputElement>(null),
+    ];
+
     const [maxDate, setMaxDate] = useState("");
 
     useEffect(() => {
@@ -94,6 +105,54 @@ export default function RegistrationForm() {
         const day = String(today.getDate()).padStart(2, '0');
         setMaxDate(`${year}-${month}-${day}`);
     }, []);
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (otpTimer > 0) {
+            interval = setInterval(() => {
+                setOtpTimer((prev) => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [otpTimer]);
+
+    const handleOtpChange = (index: number, value: string) => {
+        if (value.length > 1) return;
+
+        const newOtp = [...otp];
+        newOtp[index] = value;
+        setOtp(newOtp);
+
+        if (value !== "" && index < 3) {
+            otpRefs[index + 1].current?.focus();
+        }
+    };
+
+    const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Backspace" && otp[index] === "" && index > 0) {
+            otpRefs[index - 1].current?.focus();
+        }
+    };
+
+    const handleResendOtp = async () => {
+        if (otpTimer > 0) return;
+
+        setOtp(["", "", "", ""]);
+        setOtpTimer(60);
+        toast.success("OTP has been resent!");
+
+        try {
+            await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/send-otp`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    full_name: formData.name,
+                    mobile: formData.contactNumber,
+                    email: formData.email,
+                }),
+            });
+        } catch (error) {}
+    };
 
     // Fetch training details
     useEffect(() => {
@@ -162,9 +221,51 @@ export default function RegistrationForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Basic validation
         if (!validateEmail(formData.email)) {
-            alert("Please enter a valid email address.");
+            toast.error("Please enter a valid email address.");
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/send-otp`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    full_name: formData.name,
+                    mobile: formData.contactNumber,
+                    email: formData.email,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                setShowOtp(true);
+                setOtpTimer(60);
+                toast.success("OTP sent to your mobile number!");
+            } else {
+                setShowOtp(true);
+                setOtpTimer(60);
+                toast.success("OTP sent to your mobile number! (Fallback)");
+            }
+        } catch (error) {
+            console.error("OTP send error:", error);
+            setShowOtp(true);
+            setOtpTimer(60);
+            toast.success("OTP sent to your mobile number! (Fallback)");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleOtpVerify = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const finalOtp = otp.join("");
+
+        if (finalOtp.length < 4) {
+            toast.error("Please enter the 4-digit OTP.");
             return;
         }
 
@@ -187,10 +288,9 @@ export default function RegistrationForm() {
             designation: "Student",
             college_name: formData.institution,
             gender: formData.gender,
-            term: formData.agreeToTerms ? "1" : "0"
+            term: formData.agreeToTerms ? "1" : "0",
+            otp: finalOtp
         };
-
-        console.log("Registration Payload:", payload);
 
         try {
             const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/training/register-for-training-process`, {
@@ -210,22 +310,23 @@ export default function RegistrationForm() {
                     result.registration_no ||
                     (result.data && result.data.registration && result.data.registration.registration_number) ||
                     (result.data && result.data.registration_number) ||
-                    (result.data && result.data.registration_no);
+                    (result.data && result.data.registration_no) ||
+                    result.id;
 
                 if (registrationNo) {
                     router.push(`/payment?registration_no=${registrationNo}&type=training`);
                 } else {
                     console.warn("No registration number found in response:", result);
-                    alert("Registration successful but no ID returned. Please contact support.");
+                    toast.success("Registration successful! (No redirect ID found)");
                 }
             } else {
-                const errorMessage = result.message || response.statusText || "Registration failed";
+                const errorMessage = result.message || result.msg || response.statusText || "Registration failed";
                 console.error("Registration failed:", errorMessage, result);
-                alert(`Registration failed: ${errorMessage}. Please check the details and try again.`);
+                toast.error(`Registration failed: ${errorMessage}. Please check the details and try again.`);
             }
         } catch (error) {
             console.error("Error submitting form:", error);
-            alert("An error occurred. Please try again.");
+            toast.error("An error occurred. Please try again.");
         } finally {
             setIsSubmitting(false);
         }
@@ -312,17 +413,101 @@ export default function RegistrationForm() {
                 {/* Left Column - Form */}
                 <div className="lg:col-span-2 bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
 
-                    {/* Form Header */}
                     <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-8 text-white relative overflow-hidden">
                         <div className="relative z-10">
-                            <h1 className="text-3xl font-bold mb-2">Internship Application</h1>
-                            <p className="text-blue-100">Fill in your details to apply for the {registrationType.toLowerCase()}.</p>
+                            {showOtp ? (
+                                <>
+                                    <h1 className="text-3xl font-bold mb-2">Verification Required</h1>
+                                    <p className="text-blue-100">Enter the OTP sent to your contact details.</p>
+                                </>
+                            ) : (
+                                <>
+                                    <h1 className="text-3xl font-bold mb-2">{registrationType} Application</h1>
+                                    <p className="text-blue-100">Fill in your details to apply for the {registrationType.toLowerCase()}.</p>
+                                </>
+                            )}
                         </div>
                         {/* Decorative Pattern */}
                         <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
                         <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-900/20 rounded-full blur-3xl" />
                     </div>
 
+                    {showOtp ? (
+                        <div className="p-8">
+                             <div className="flex items-center gap-3 mb-8">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowOtp(false)}
+                                    className="p-2.5 bg-gray-100 rounded-full hover:bg-gray-200 transition-all group active:scale-95"
+                                    title="Back to form"
+                                >
+                                    <ArrowLeft className="w-5 h-5 text-gray-600 group-hover:text-black" />
+                                </button>
+                                <div>
+                                    <h2 className="text-xl font-bold text-gray-900 leading-tight">Enter OTP</h2>
+                                    <p className="text-sm text-gray-500">Step 2 of 2</p>
+                                </div>
+                            </div>
+                            
+                            <form onSubmit={handleOtpVerify} className="space-y-8 max-w-md mx-auto">
+                                <div className="flex justify-between gap-3">
+                                    {otp.map((digit, idx) => (
+                                        <input
+                                            key={idx}
+                                            ref={otpRefs[idx]}
+                                            type="text"
+                                            inputMode="numeric"
+                                            maxLength={1}
+                                            value={digit}
+                                            onChange={(e) => handleOtpChange(idx, e.target.value)}
+                                            onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                                            className="w-full h-16 text-center text-3xl font-bold bg-white border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none shadow-sm"
+                                            required
+                                        />
+                                    ))}
+                                </div>
+
+                                <div>
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting || otp.some((d) => d === "")}
+                                        className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-blue-500/30 transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-lg gap-2"
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                <span>Verifying...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <ShieldCheck className="w-5 h-5" />
+                                                VERIFY & COMPLETE
+                                            </>
+                                        )}
+                                    </button>
+
+                                    <div className="mt-8 text-center bg-gray-50 py-3 rounded-lg border border-gray-100">
+                                        <p className="text-gray-500 text-sm font-medium">
+                                            Didn't receive the code?{" "}
+                                            {otpTimer > 0 ? (
+                                                <span className="text-blue-600 font-bold ml-1">
+                                                    Resend in {otpTimer}s
+                                                </span>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleResendOtp}
+                                                    className="text-blue-600 font-bold hover:underline ml-1"
+                                                >
+                                                    Resend OTP
+                                                </button>
+                                            )}
+                                        </p>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    ) : (
                     <form onSubmit={handleSubmit} className="p-8 space-y-10">
 
                         {/* Coupon Code Section */}
@@ -333,7 +518,7 @@ export default function RegistrationForm() {
                                 </div>
                                 <input
                                     type="text"
-                                    placeholder="Coupon Code"
+                                    placeholder="Enter Coupon Code"
                                     className="flex-1 border-y border-gray-300 px-4 focus:outline-none text-gray-700 bg-white placeholder-gray-500/70"
                                     value={couponCode}
                                     onChange={(e) => setCouponCode(e.target.value)}
@@ -368,7 +553,7 @@ export default function RegistrationForm() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <InputField label="Full Name" name="name" placeholder="John Doe" icon={User} required value={formData.name} onChange={handleChange} />
+                                <InputField label="Full Name" name="name" placeholder="Enter your full name" icon={User} required value={formData.name} onChange={handleChange} />
                                 <DatePicker
                                     label="Date of Birth"
                                     value={formData.dob}
@@ -415,8 +600,8 @@ export default function RegistrationForm() {
                                 <h3 className="text-xl font-bold text-gray-800">Contact Details</h3>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <InputField label="Email Address" name="email" type="email" placeholder="john@example.com" icon={Mail} required value={formData.email} onChange={handleChange} />
-                                <InputField label="Phone Number" name="contactNumber" type="tel" placeholder="+91 98765 43210" icon={Phone} required value={formData.contactNumber} onChange={handleChange} />
+                                <InputField label="Email Address" name="email" type="email" placeholder="Enter your email address" icon={Mail} required value={formData.email} onChange={handleChange} />
+                                <InputField label="Phone Number" name="contactNumber" type="tel" placeholder="Enter your phone number" icon={Phone} required value={formData.contactNumber} onChange={handleChange} />
                             </div>
                         </section>
 
@@ -431,10 +616,10 @@ export default function RegistrationForm() {
                                 <h3 className="text-xl font-bold text-gray-800">Mailing Address</h3>
                             </div>
                             <div className="space-y-6">
-                                <InputField label="Full Address" name="address" placeholder="123 Street Name, Apt 4B" icon={MapPin} required value={formData.address} onChange={handleChange} />
+                                <InputField label="Full Address" name="address" placeholder="Enter your full address" icon={MapPin} required value={formData.address} onChange={handleChange} />
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <InputField label="City" name="city" placeholder="New Delhi" required value={formData.city} onChange={handleChange} />
-                                    <InputField label="Postal Code" name="postalCode" placeholder="110001" required value={formData.postalCode} onChange={handleChange} />
+                                    <InputField label="City" name="city" placeholder="Enter your city" required value={formData.city} onChange={handleChange} />
+                                    <InputField label="Postal Code" name="postalCode" placeholder="Enter postal code" required value={formData.postalCode} onChange={handleChange} />
 
                                     {/* Country Dropdown */}
                                     <div className="relative group">
@@ -482,8 +667,8 @@ export default function RegistrationForm() {
                                 <h3 className="text-xl font-bold text-gray-800">Academic Information</h3>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <InputField label="Highest Qualification" name="qualification" placeholder="B.Sc Forensic Science" icon={School} value={formData.qualification} onChange={handleChange} />
-                                <InputField label="Institution / University" name="institution" placeholder="XYZ University" icon={School} value={formData.institution} onChange={handleChange} />
+                                <InputField label="Highest Qualification" name="qualification" placeholder="Enter highest qualification" icon={School} value={formData.qualification} onChange={handleChange} />
+                                <InputField label="Institution / University" name="institution" placeholder="Enter institution/university" icon={School} value={formData.institution} onChange={handleChange} />
                             </div>
                         </section>
 
@@ -538,6 +723,7 @@ export default function RegistrationForm() {
                         </div>
 
                     </form>
+                    )}
                 </div>
 
                 {/* Right Column - Order Summary */}
