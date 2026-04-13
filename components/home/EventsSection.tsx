@@ -5,9 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { API_BASE_URL } from "@/lib/config";
 import { ensureHttps } from "@/lib/imageUtils";
+import { useFetchWithCacheBusting } from "@/hooks/useFetchWithCacheBusting";
 
 type Event = {
   id: number;
@@ -192,66 +193,76 @@ const subItemVariants: Variants = {
 export default function EventsSection() {
   const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [timeLefts, setTimeLefts] = useState<{ [key: number]: any }>({});
   const [headerData, setHeaderData] = useState({
     title: "Explore Events",
     subtitle: "Upcoming Events"
   });
+  const [isProcessingEvents, setIsProcessingEvents] = useState(true);
+
+  // Use the custom hook for header data
+  const { 
+    data: headerResponse, 
+    loading: headerLoading, 
+    error: headerError,
+    isInitialized: headerInitialized
+  } = useFetchWithCacheBusting(
+    `${API_BASE_URL}/EducationAndInternship/Website/front`
+  );
+
+  // Use the custom hook for events data
+  const { 
+    data: eventsResponse, 
+    loading: eventsLoading, 
+    error: eventsError,
+    refetch: refetchEvents,
+    isInitialized: eventsInitialized
+  } = useFetchWithCacheBusting(
+    `${API_BASE_URL}/EventManagement/Website/events?type=upcoming`
+  );
+
+  const loading = (!headerInitialized && headerLoading) || (!eventsInitialized && eventsLoading) || isProcessingEvents;
+  const error = headerError || eventsError;
 
   // Default event images (cycling through available images)
   const defaultImages = ["/event/1.png", "/event/2.png", "/event/3.png"];
 
+  // Process header data when available
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setLoading(true);
+    if (headerResponse?.success && headerResponse.data?.bs) {
+      setHeaderData({
+        title: headerResponse.data.bs.event_section_title || "Explore Events",
+        subtitle: headerResponse.data.bs.event_section_subtitle || "Upcoming Events"
+      });
+    }
+  }, [headerResponse]);
 
-        // Fetch header data
-        try {
-          const frontResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`);
-          const frontResult = await frontResponse.json();
-          if (frontResult.success && frontResult.data?.bs) {
-            setHeaderData({
-              title: frontResult.data.bs.event_section_title || "Explore Events",
-              subtitle: frontResult.data.bs.event_section_subtitle || "Upcoming Events"
-            });
-          }
-        } catch (err) {
-          console.error("Error fetching header data:", err);
-        }
-
-        const response = await fetch(
-          `${API_BASE_URL}/EventManagement/Website/events?type=upcoming&_t=${Date.now()}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'Pragma': 'no-cache',
-              'Expires': '0'
-            },
-            cache: 'no-store',
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch events");
-        }
-
-        const result: APIResponse = await response.json();
-
-        if (result.success && result.data?.data && result.data.data.length > 0) {
+  // Process events data when available
+  useEffect(() => {
+    const processEvents = async () => {
+      if (eventsResponse?.success && eventsResponse.data?.data) {
+        setIsProcessingEvents(true);
+        
+        if (eventsResponse.data.data.length > 0) {
           // Fetch extreme details for each event to get the explore image
-          const topEvents = result.data.data.slice(0, 4);
+          const topEvents = eventsResponse.data.data.slice(0, 4);
 
           const detailedEvents = await Promise.all(
-            topEvents.map(async (apiEvent) => {
+            topEvents.map(async (apiEvent: APIEvent) => {
               try {
-                const detailRes = await fetch(`${API_BASE_URL}/EventManagement/Website/events/${apiEvent.slug}?_t=${Date.now()}`, {
-                  cache: 'no-store'
-                });
+                const detailRes = await fetch(
+                  `${API_BASE_URL}/EventManagement/Website/events/${apiEvent.slug}?_t=${Date.now()}`,
+                  {
+                    method: 'GET',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Cache-Control': 'no-cache, no-store, must-revalidate',
+                      'Pragma': 'no-cache',
+                      'Expires': '0'
+                    },
+                    cache: 'no-store'
+                  }
+                );
                 if (detailRes.ok) {
                   const detailData = await detailRes.json();
                   if (detailData.success && detailData.data) {
@@ -287,23 +298,19 @@ export default function EventsSection() {
           }));
 
           setEvents(transformedEvents);
-          setError(null);
         } else {
           // No events available - this is not an error, just empty state
           setEvents([]);
-          setError(null);
         }
-      } catch (err) {
-        console.error("Error fetching events:", err);
-        setError(err instanceof Error ? err.message : "Failed to load events");
-        setEvents([]);
-      } finally {
-        setLoading(false);
+        
+        setIsProcessingEvents(false);
       }
     };
 
-    fetchEvents();
-  }, []);
+    if (eventsInitialized && eventsResponse) {
+      processEvents();
+    }
+  }, [eventsResponse, eventsInitialized]);
 
   // Initialize timers when events are loaded
   useEffect(() => {
@@ -359,6 +366,7 @@ export default function EventsSection() {
     router.push("/events");
   };
 
+  // Show loading skeleton while fetching or processing
   if (loading) {
     return (
       <section className="bg-gradient-to-r from-white via-white to-violet-50 py-16">
@@ -432,7 +440,16 @@ export default function EventsSection() {
         <div className="mx-auto max-w-7xl px-4">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <p className="text-red-500">Error: {error}</p>
+              <p className="text-red-500 mb-4">Error: {error}</p>
+              <button
+                onClick={() => {
+                  setIsProcessingEvents(true);
+                  refetchEvents();
+                }}
+                className="mt-4 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
+              >
+                Retry
+              </button>
             </div>
           </div>
         </div>
@@ -440,7 +457,8 @@ export default function EventsSection() {
     );
   }
 
-  if (events.length === 0) {
+  // Only show "Coming Soon" if we're not loading and there are no events
+  if (!loading && events.length === 0) {
     return (
       <section className="bg-gradient-to-r from-white via-white to-violet-50 py-16">
         <div className="mx-auto max-w-7xl px-4">
@@ -562,6 +580,12 @@ export default function EventsSection() {
                       className="object-cover rounded-lg hover:scale-105 transition-transform duration-300"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                       unoptimized={event.image.startsWith("http")}
+                      onError={(e) => {
+                        // Fallback to default image on error
+                        const target = e.target as HTMLImageElement;
+                        target.onerror = null;
+                        target.src = defaultImages[event.id % defaultImages.length];
+                      }}
                     />
                     <div className="absolute top-3 right-3 z-10">
                       <span className="backdrop-blur-sm text-[#fff] text-[8px] font-black px-3 py-1.5 rounded-full shadow-sm uppercase tracking-wider border border-white/50">
@@ -602,7 +626,7 @@ export default function EventsSection() {
                     <motion.div className="mt-auto flex items-center justify-between" variants={subItemVariants}>
                       <div className="flex gap-1 text-[10px] font-semibold">
                         {timerTitles.map((title, i) => {
-                          const style = timerStyles[i % timerStyles.length]; // Use modulo to avoid index issues
+                          const style = timerStyles[i % timerStyles.length];
                           return (
                             <div key={title} className={`rounded-md px-2 py-1 ${style.container}`}>
                               <div className={`text-sm font-bold ${style.number}`}>
