@@ -9,21 +9,10 @@ import {
     ChevronRight,
     Calendar,
     User,
-    ChevronLeft,
-    ChevronsLeft,
-    ChevronsRight,
-    Plus,
-    Trash2,
-    Save,
-    Edit,
-    RotateCcw,
     Loader2
 } from "lucide-react";
-import { useBlogPageData } from "../../hooks/useBlogPageData";
-import EditableText from "../../components/editable/EditableText";
-import { Toaster, toast } from "react-hot-toast";
-import { BlogPost } from "../../types/blog-page";
-import ConfirmationDialog from "../../components/common/ConfirmationDialog";
+import { Toaster } from "react-hot-toast";
+import { BLOG_PAGE_INITIAL_DATA } from "../../lib/data/blog-page-data";
 
 export default function BlogPage({
     params: paramsPromise,
@@ -36,22 +25,9 @@ export default function BlogPage({
     const params = React.use(paramsPromise);
     const searchParams = React.use(searchParamsPromise);
 
-    const {
-        data,
-        updateSection,
-        updateMultiple,
-        editMode,
-        setEditMode,
-        saveData,
-        isLoaded,
-        resetToDefault
-    } = useBlogPageData();
-
-    const [isSaving, setIsSaving] = useState(false);
-    const [isEditLoading, setIsEditLoading] = useState(false);
+    const data = BLOG_PAGE_INITIAL_DATA;
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("All");
-    const [showConfirmation, setShowConfirmation] = useState(false);
 
     // slugify helper
     const slugify = (text: string) =>
@@ -62,104 +38,11 @@ export default function BlogPage({
     const posts = data.posts || [];
     const categories = data.categories || [];
 
-    const handleEditClick = () => {
-        setIsEditLoading(true);
-        setTimeout(() => {
-            setEditMode(true);
-            setIsEditLoading(false);
-        }, 600);
-    };
-
-    const handleSaveClick = () => {
-        setShowConfirmation(true);
-    };
-
-    const handleConfirmSave = async () => {
-        setIsSaving(true);
-        const success = saveData();
-        setTimeout(() => {
-            if (success) {
-                setEditMode(false);
-                toast.success("✅ Blog data saved successfully");
-            } else {
-                toast.error("❌ Failed to save blog data");
-            }
-            setIsSaving(false);
-            setShowConfirmation(false);
-        }, 800);
-    };
-
-    const addPost = () => {
-        const newPost: BlogPost = {
-            id: Date.now(),
-            slug: `new-post-${Date.now()}`,
-            title: "New Blog Post Title",
-            author: "Author Name",
-            date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
-            category: selectedCategory === "All" ? (categories[0]?.name || "Uncategorized") : selectedCategory,
-            excerpt: "A brief summary of your new blog post...",
-            heroImage: "/blog/blog-main-hero.png",
-            image: "/blog/blog-main-hero.png",
-            contentImage: "/blog/training-ui.png",
-            introduction: "Introduction for the new blog post...",
-            content: "<p>Start writing your blog content here...</p>"
-        };
-        updateSection("posts", [...posts, newPost]);
-        toast.success("Blog post added");
-    };
-
-    const deletePost = (id: number) => {
-        if (confirm("Are you sure you want to delete this blog post?")) {
-            updateSection("posts", posts.filter(p => p.id !== id));
-            toast.success("Post removed");
-        }
-    };
-
-    const updatePost = (updatedPost: BlogPost) => {
-        updateSection("posts", posts.map(p => p.id === updatedPost.id ? updatedPost : p));
-    };
-
-    const addCategory = () => {
-        const newCat = { id: Date.now(), name: "New Category" };
-        updateSection("categories", [...categories, newCat]);
-        toast.success("Category added");
-    };
-
-    const deleteCategory = (id: number) => {
-        if (confirm("Are you sure you want to delete this category?")) {
-            updateSection("categories", categories.filter(c => c.id !== id));
-            toast.success("Category removed");
-        }
-    };
-
-    const updateCategoryName = (id: number, name: string) => {
-        const oldCat = categories.find(c => c.id === id);
-        const updatedCats = categories.map(c => c.id === id ? { ...c, name } : c);
-
-        if (oldCat) {
-            const updatedPosts = posts.map(p => p.category === oldCat.name ? { ...p, category: name } : p);
-            updateMultiple({ categories: updatedCats, posts: updatedPosts });
-        } else {
-            updateSection("categories", updatedCats);
-        }
-    };
-
     const stripHtml = (htmlContent: string) => {
         if (typeof window === 'undefined') return htmlContent;
         const div = document.createElement("div");
         div.innerHTML = htmlContent;
         return div.textContent || div.innerText || "";
-    };
-
-    const toggleRecentPost = (postId: number) => {
-        const current = data.recentPostIds || [];
-        if (current.includes(postId)) {
-            updateSection("recentPostIds", current.filter(id => id !== postId));
-            toast.success("Removed from recent posts");
-        } else {
-            updateSection("recentPostIds", [...current, postId]);
-            toast.success("Added to recent posts");
-        }
     };
 
     const filteredPosts = useMemo(() => {
@@ -188,14 +71,6 @@ export default function BlogPage({
         visible: { transition: { staggerChildren: 0.1 } },
     };
 
-    if (!isLoaded) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[#FBFCFF]">
-                <Loader2 className="w-10 h-10 text-[#3E58EE] animate-spin" />
-            </div>
-        );
-    }
-
     return (
         <motion.div
             className="w-full bg-[#FBFCFF] pb-20 relative"
@@ -205,61 +80,12 @@ export default function BlogPage({
         >
             <Toaster position="top-right" />
 
-            {/* Confirmation Dialog */}
-            <ConfirmationDialog
-                isOpen={showConfirmation}
-                onClose={() => setShowConfirmation(false)}
-                onConfirm={handleConfirmSave}
-                title="Save Changes"
-                message="Are you sure you want to save all the changes made to this page? This action will update the content permanently."
-                confirmText="Save Changes"
-                cancelText="Cancel"
-                type="success"
-                isLoading={isSaving}
-                requirePassword={true}
-                username="admin@sifs.com"
-                expectedPassword="admin123"
-            />
-
-            {/* Admin Controls */}
-            <div className="fixed bottom-6 right-6 z-[1000] flex gap-2">
-                {!editMode ? (
-                    <button
-                        onClick={handleEditClick}
-                        disabled={isEditLoading}
-                        className={`flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-blue-700 transition-all font-medium ${isEditLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
-                    >
-                        {isEditLoading ? (
-                            <Loader2 size={18} className="animate-spin" />
-                        ) : (
-                            <Edit size={18} />
-                        )}
-                        {isEditLoading ? 'Loading...' : 'Edit Page'}
-                    </button>
-                ) : (
-                    <button
-                        onClick={handleSaveClick}
-                        disabled={isSaving}
-                        className={`flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-full shadow-lg hover:bg-green-700 transition-all font-medium animate-in fade-in zoom-in ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
-                    >
-                        {isSaving ? (
-                            <Loader2 size={18} className="animate-spin" />
-                        ) : (
-                            <Save size={18} />
-                        )}
-                        {isSaving ? 'Saving...' : 'Save Changes'}
-                    </button>
-                )}
-            </div>
-
             {/* TOP BANNER */}
             <motion.div variants={fadeUp}>
                 <PageBanner
                     title={data.hero.title}
                     subtitle={data.hero.subtitle}
                     bgImage={data.hero.bgImage}
-                    editMode={editMode}
-                    onUpdate={(hero) => updateSection("hero", hero)}
                 />
             </motion.div>
 
@@ -268,15 +94,6 @@ export default function BlogPage({
 
                     {/* LEFT: BLOG POSTS GRID */}
                     <div className="lg:col-span-2">
-                        {editMode && (
-                            <button
-                                onClick={addPost}
-                                className="w-full mb-8 p-4 border-2 border-dashed border-blue-200 rounded-2xl text-blue-500 font-bold hover:bg-blue-50 transition-all flex items-center justify-center gap-2"
-                            >
-                                <Plus size={20} /> Add New Blog Post
-                            </button>
-                        )}
-
                         <motion.div
                             className="grid grid-cols-1 md:grid-cols-2 gap-6"
                             variants={staggerContainer}
@@ -292,28 +109,6 @@ export default function BlogPage({
                                         exit={{ opacity: 0, scale: 0.9 }}
                                     >
                                         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 relative group h-full flex flex-col">
-                                            {editMode && (
-                                                <div className="absolute top-4 right-4 z-20 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button
-                                                        onClick={() => deletePost(post.id)}
-                                                        className="bg-red-500 text-white p-2 rounded-full shadow-lg hover:bg-red-600 transition-colors"
-                                                        title="Delete Post"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => toggleRecentPost(post.id)}
-                                                        className={`p-2 rounded-full shadow-lg transition-colors ${data.recentPostIds.includes(post.id)
-                                                            ? "bg-yellow-500 text-white hover:bg-yellow-600"
-                                                            : "bg-white text-gray-400 hover:text-yellow-600"
-                                                            }`}
-                                                        title={data.recentPostIds.includes(post.id) ? "Remove from Recent" : "Add to Recent"}
-                                                    >
-                                                        <Plus size={16} className={data.recentPostIds.includes(post.id) ? "rotate-45" : ""} />
-                                                    </button>
-                                                </div>
-                                            )}
-
                                             <Link href={`/blog/${post.slug}`} className="block">
                                                 <div className="relative h-48 w-full bg-gray-200 overflow-hidden">
                                                     <img
@@ -327,62 +122,32 @@ export default function BlogPage({
                                             <div className="p-5 flex-1 flex flex-col">
                                                 <div className="flex justify-between items-start">
                                                     <span className="bg-[#E0F2FE] text-[#0369A1] text-[10px] font-bold px-2 py-1 rounded uppercase">
-                                                        {editMode ? (
-                                                            <select
-                                                                value={post.category}
-                                                                onChange={(e) => updatePost({ ...post, category: e.target.value })}
-                                                                className="bg-transparent outline-none cursor-pointer"
-                                                            >
-                                                                {categories.map(c => (
-                                                                    <option key={c.id} value={c.name}>
-                                                                        {stripHtml(c.name)}
-                                                                    </option>
-                                                                ))}
-                                                            </select>
-                                                        ) : stripHtml(post.category)}
+                                                        {stripHtml(post.category)}
                                                     </span>
                                                 </div>
 
                                                 <h3 className="text-lg font-bold text-gray-900 mt-3 leading-tight group-hover:text-[#3E58EE] transition-colors">
-                                                    <EditableText
-                                                        html={post.title}
-                                                        editMode={editMode}
-                                                        onChange={(val) => updatePost({ ...post, title: val, slug: slugify(stripHtml(val)) })}
-                                                    />
+                                                    <div dangerouslySetInnerHTML={{ __html: post.title }} />
                                                 </h3>
 
                                                 <div className="text-gray-500 text-sm mt-2 line-clamp-3">
-                                                    <EditableText
-                                                        html={post.excerpt}
-                                                        editMode={editMode}
-                                                        onChange={(val) => updatePost({ ...post, excerpt: val })}
-                                                    />
+                                                    <div dangerouslySetInnerHTML={{ __html: post.excerpt }} />
                                                 </div>
 
                                                 <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50 text-[11px] text-gray-500">
                                                     <div className="flex items-center gap-1 font-semibold">
                                                         <Calendar size={14} className="text-blue-500" />
-                                                        <EditableText
-                                                            html={post.date}
-                                                            editMode={editMode}
-                                                            onChange={(val) => updatePost({ ...post, date: val })}
-                                                        />
+                                                        <div dangerouslySetInnerHTML={{ __html: post.date }} />
                                                     </div>
                                                     <div className="flex items-center gap-1 font-semibold">
                                                         <User size={14} className="text-blue-500" />
-                                                        <EditableText
-                                                            html={post.author}
-                                                            editMode={editMode}
-                                                            onChange={(val) => updatePost({ ...post, author: val })}
-                                                        />
+                                                        <div dangerouslySetInnerHTML={{ __html: post.author }} />
                                                     </div>
                                                 </div>
 
-                                                {!editMode && (
-                                                    <Link href={`/blog/${post.slug}`} className="mt-4 flex items-center text-[#3E58EE] text-xs font-bold hover:underline">
-                                                        Read Full Article <ChevronRight size={14} />
-                                                    </Link>
-                                                )}
+                                                <Link href={`/blog/${post.slug}`} className="mt-4 flex items-center text-[#3E58EE] text-xs font-bold hover:underline">
+                                                    Read Full Article <ChevronRight size={14} />
+                                                </Link>
                                             </div>
                                         </div>
                                     </motion.div>
@@ -420,14 +185,6 @@ export default function BlogPage({
                         <motion.div variants={fadeUp} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                             <div className="flex justify-between items-center mb-4">
                                 <h4 className="font-bold text-gray-900 text-lg">Categories</h4>
-                                {editMode && (
-                                    <button
-                                        onClick={addCategory}
-                                        className="text-[#3E58EE] hover:bg-blue-50 p-1 rounded-full transition-colors"
-                                    >
-                                        <Plus size={20} />
-                                    </button>
-                                )}
                             </div>
                             <div className="space-y-2">
                                 <button
@@ -449,21 +206,9 @@ export default function BlogPage({
                                                 : "bg-gray-50 text-gray-700 hover:bg-gray-100"
                                                 }`}
                                         >
-                                            <EditableText
-                                                html={cat.name}
-                                                editMode={editMode}
-                                                onChange={(val) => updateCategoryName(cat.id, val)}
-                                            />
+                                            <div dangerouslySetInnerHTML={{ __html: cat.name }} />
                                             <ChevronRight size={14} />
                                         </div>
-                                        {editMode && (
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); deleteCategory(cat.id); }}
-                                                className="absolute -right-2 -top-2 bg-red-500 text-white p-1 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                            >
-                                                <Plus size={12} className="rotate-45" />
-                                            </button>
-                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -494,23 +239,9 @@ export default function BlogPage({
                                                     </p>
                                                 </div>
                                             </Link>
-                                            {editMode && (
-                                                <button
-                                                    onClick={() => toggleRecentPost(post.id)}
-                                                    className="absolute -right-2 -top-2 bg-red-500 text-white p-1 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    title="Remove from Recent"
-                                                >
-                                                    <Plus size={10} className="rotate-45" />
-                                                </button>
-                                            )}
                                         </div>
                                     );
                                 })}
-                                {editMode && data.recentPostIds.length === 0 && (
-                                    <div className="text-xs text-gray-400 italic text-center py-4 border-2 border-dashed border-gray-100 rounded-xl">
-                                        Click + on any post card to add it to recent posts
-                                    </div>
-                                )}
                             </div>
                         </motion.div>
                     </div>

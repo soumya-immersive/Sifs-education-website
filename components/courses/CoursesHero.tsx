@@ -1,8 +1,7 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
-import EditableText from "../editable/EditableText";
-import EditableImage from "../editable/EditableImage";
+import Image from "next/image";
 import { CourseProgram } from "../../types/courses-page";
 
 const container: Variants = {
@@ -30,14 +29,10 @@ const scaleFade: Variants = {
 
 interface CoursesHeroProps {
   program: CourseProgram;
-  editMode?: boolean;
-  onUpdate?: (updatedInfo: Partial<CourseProgram>) => void;
 }
 
 export default function CoursesHero({
   program,
-  editMode,
-  onUpdate
 }: CoursesHeroProps) {
   const stripHtml = (htmlContent: string) => {
     if (typeof window === 'undefined') return htmlContent;
@@ -50,13 +45,14 @@ export default function CoursesHero({
     <section className="relative py-16 overflow-hidden">
       {/* Dynamic Background */}
       <div className="absolute inset-0 z-0">
-        <EditableImage
-          src={program.heroBgImage || "/courses/hero-bg.png"}
-          alt="Hero Background"
-          editMode={!!editMode}
-          onChange={(val) => onUpdate?.({ heroBgImage: val })}
-          className="w-full h-full object-cover"
-        />
+        <div className="w-full h-full relative">
+          <Image
+            src={program.heroBgImage || "/courses/hero-bg.png"}
+            alt="Hero Background"
+            fill
+            className="w-full h-full object-cover"
+          />
+        </div>
         <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px]" />
       </div>
 
@@ -80,22 +76,14 @@ export default function CoursesHero({
             variants={fadeUp}
             className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight"
           >
-            <EditableText
-              html={program.label}
-              editMode={!!editMode}
-              onChange={(val: string) => onUpdate?.({ label: val })}
-            />
+            <div dangerouslySetInnerHTML={{ __html: program.label }} />
           </motion.h1>
 
           <motion.div
             variants={fadeUp}
             className="text-sm text-gray-600 mt-2 font-medium"
           >
-            <EditableText
-              html={program.subtitle || `Explore our professional forensic science courses under ${stripHtml(program.label)}`}
-              editMode={!!editMode}
-              onChange={(val: string) => onUpdate?.({ subtitle: val })}
-            />
+            <div dangerouslySetInnerHTML={{ __html: program.subtitle || `Explore our professional forensic science courses under ${stripHtml(program.label)}` }} />
           </motion.div>
         </motion.div>
 
@@ -105,13 +93,14 @@ export default function CoursesHero({
           className="w-full md:w-[450px] h-[250px]
           rounded-2xl overflow-hidden shadow-xl border-4 border-white/50 relative group"
         >
-          <EditableImage
-            src={program.heroImage || "/courses/hero.png"}
-            alt={stripHtml(program.label)}
-            editMode={!!editMode}
-            onChange={(val: string) => onUpdate?.({ heroImage: val })}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
+          <div className="w-full h-full relative">
+            <Image
+              src={program.heroImage || "/courses/hero.png"}
+              alt={stripHtml(program.label)}
+              fill
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          </div>
         </motion.div>
       </motion.div>
     </section>

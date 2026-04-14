@@ -1,9 +1,8 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
-import { Share2, Link as LinkIcon, Calendar, User, Facebook, Instagram, Linkedin, Twitter, ExternalLink, X } from "lucide-react";
-import EditableText from "../editable/EditableText";
-import EditableImage from "../editable/EditableImage";
+import { Share2, Link as LinkIcon, Calendar, User } from "lucide-react";
+import Image from "next/image";
 import { toast } from "react-hot-toast";
 
 interface Props {
@@ -22,8 +21,6 @@ interface Props {
       twitter?: string;
     };
   };
-  editMode?: boolean;
-  onUpdate?: (fields: any) => void;
 }
 
 const fadeUp: Variants = {
@@ -31,7 +28,7 @@ const fadeUp: Variants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
 };
 
-export default function BlogContent({ post, editMode = false, onUpdate }: Props) {
+export default function BlogContent({ post }: Props) {
   const stripHtml = (html: string) => html.replace(/<\/?[^>]+(>|$)/g, "");
 
   const handleShare = async () => {
@@ -58,20 +55,11 @@ export default function BlogContent({ post, editMode = false, onUpdate }: Props)
     toast.success("Link copied to clipboard!");
   };
 
-  const updateSocialLink = (platform: string, value: string) => {
-    onUpdate?.({
-      socialLinks: {
-        ...(post.socialLinks || {}),
-        [platform]: value
-      }
-    });
-  };
-
   const socialPlatforms = [
-    { name: 'facebook', icon: '/blog/facebook.png', placeholder: 'https://facebook.com/...' },
-    { name: 'instagram', icon: '/blog/insta.png', placeholder: 'https://instagram.com/...' },
-    { name: 'linkedin', icon: '/blog/linkedin.png', placeholder: 'https://linkedin.com/...' },
-    { name: 'twitter', icon: '/blog/twitter.png', placeholder: 'https://twitter.com/...' }
+    { name: 'facebook', icon: '/blog/facebook.png' },
+    { name: 'instagram', icon: '/blog/insta.png' },
+    { name: 'linkedin', icon: '/blog/linkedin.png' },
+    { name: 'twitter', icon: '/blog/twitter.png' }
   ];
 
   return (
@@ -83,11 +71,7 @@ export default function BlogContent({ post, editMode = false, onUpdate }: Props)
     >
       {/* Title Header */}
       <motion.h1 variants={fadeUp} className="text-3xl font-bold text-gray-900 leading-tight">
-        <EditableText
-          html={post.title}
-          editMode={editMode}
-          onChange={(val) => onUpdate?.({ title: val })}
-        />
+        <div dangerouslySetInnerHTML={{ __html: post.title }} />
       </motion.h1>
 
       {/* Meta Bar */}
@@ -95,20 +79,12 @@ export default function BlogContent({ post, editMode = false, onUpdate }: Props)
         <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-600">
           <div className="flex items-center gap-1">
             <User size={14} className="text-blue-500" />
-            <EditableText
-              html={post.author}
-              editMode={editMode}
-              onChange={(val) => onUpdate?.({ author: val })}
-            />
+            <div dangerouslySetInnerHTML={{ __html: post.author }} />
           </div>
           <span className="hidden sm:inline w-1 h-1 bg-gray-300 rounded-full" />
           <div className="flex items-center gap-1">
             <Calendar size={14} className="text-blue-500" />
-            <EditableText
-              html={post.date}
-              editMode={editMode}
-              onChange={(val) => onUpdate?.({ date: val })}
-            />
+            <div dangerouslySetInnerHTML={{ __html: post.date }} />
           </div>
         </div>
         <div className="flex gap-4">
@@ -133,21 +109,16 @@ export default function BlogContent({ post, editMode = false, onUpdate }: Props)
 
       {/* Main Content Area */}
       <motion.div variants={fadeUp} className="prose prose-lg max-w-none prose-headings:font-bold prose-p:text-gray-600 prose-li:text-gray-600">
-        <EditableText
-          html={post.content}
-          editMode={editMode}
-          onChange={(val) => onUpdate?.({ content: val })}
-        />
+        <div dangerouslySetInnerHTML={{ __html: post.content }} />
       </motion.div>
 
       {/* Secondary Content Image */}
       <motion.div variants={fadeUp} className="relative rounded-[2rem] overflow-hidden border border-gray-100 shadow-xl aspect-video">
-        <EditableImage
+        <Image
           src={post.contentImage}
           alt="Practical Training"
-          editMode={editMode}
-          onChange={(src) => onUpdate?.({ contentImage: src })}
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
         />
       </motion.div>
 
@@ -159,12 +130,12 @@ export default function BlogContent({ post, editMode = false, onUpdate }: Props)
             return (
               <div key={social.name} className="flex flex-col gap-2">
                 <a
-                  href={editMode ? undefined : link}
-                  target={editMode ? undefined : "_blank"}
+                  href={link}
+                  target="_blank"
                   rel="noopener noreferrer"
-                  className={`w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer ${editMode ? 'cursor-default' : ''}`}
+                  className="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer"
                 >
-                  <img
+                  <Image
                     src={social.icon}
                     alt={social.name}
                     width={24}
@@ -172,24 +143,10 @@ export default function BlogContent({ post, editMode = false, onUpdate }: Props)
                     className="opacity-70 group-hover:opacity-100"
                   />
                 </a>
-                {editMode && (
-                  <input
-                    type="text"
-                    value={post.socialLinks?.[social.name as keyof typeof post.socialLinks] || ""}
-                    onChange={(e) => updateSocialLink(social.name, e.target.value)}
-                    placeholder={social.placeholder}
-                    className="text-[10px] w-32 border border-gray-200 rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                )}
               </div>
             );
           })}
         </div>
-        {editMode && (
-          <p className="text-xs text-gray-400 italic">
-            Enter the full URLs for your social media profiles above.
-          </p>
-        )}
       </motion.div>
     </motion.div>
   );

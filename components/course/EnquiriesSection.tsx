@@ -1,16 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { EnquiriesData, EnquiryItem } from "../../types/courses-page";
-import EditableText from "../editable/EditableText";
+import { EnquiriesData } from "../../types/courses-page";
 
 interface Props {
   data: EnquiriesData;
-  editMode?: boolean;
-  onUpdate?: (updatedInfo: Partial<EnquiriesData>) => void;
 }
 
 /* ---------------- Animations ---------------- */
@@ -32,36 +29,15 @@ const itemVariants: Variants = {
   },
 };
 
-export default function EnquiriesSection({ data, editMode, onUpdate }: Props) {
+export default function EnquiriesSection({ data }: Props) {
   if (!data) return null;
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-
-  const handleFaqChange = (index: number, updatedItem: Partial<EnquiryItem>) => {
-    const updatedFaqs = [...(data.faqs || [])];
-    updatedFaqs[index] = { ...updatedFaqs[index], ...updatedItem };
-    onUpdate?.({ faqs: updatedFaqs });
-  };
-
-  const addFaq = () => {
-    const newFaq: EnquiryItem = {
-      question: "New Question?",
-      author: "Author Name",
-      answer: "Answer to the new question goes here..."
-    };
-    onUpdate?.({ faqs: [...(data.faqs || []), newFaq] });
-  };
-
-  const removeFaq = (index: number) => {
-    const updatedFaqs = (data.faqs || []).filter((_, i) => i !== index);
-    onUpdate?.({ faqs: updatedFaqs });
-    if (openIndex === index) setOpenIndex(null);
-  };
 
   return (
     <motion.section
       className="relative mb-24 px-4 py-24 bg-gray-50/50"
       variants={containerVariants}
-      initial={editMode ? "visible" : "hidden"}
+      initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0 }}
     >
@@ -79,11 +55,7 @@ export default function EnquiriesSection({ data, editMode, onUpdate }: Props) {
       <div className="max-w-4xl mx-auto relative z-10">
         <motion.div variants={itemVariants} className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">
-            <EditableText
-              html={data.title}
-              editMode={!!editMode}
-              onChange={(val) => onUpdate?.({ title: val })}
-            />
+            <div dangerouslySetInnerHTML={{ __html: data.title }} />
           </h2>
           <div className="w-24 h-1.5 bg-indigo-600 mx-auto rounded-full" />
         </motion.div>
@@ -112,17 +84,9 @@ export default function EnquiriesSection({ data, editMode, onUpdate }: Props) {
                     }`}
                 >
                   <div className="text-lg font-bold flex flex-wrap items-center gap-x-2">
-                    <EditableText
-                      html={faq.question}
-                      editMode={!!editMode}
-                      onChange={(val) => handleFaqChange(index, { question: val })}
-                    />
+                    <div dangerouslySetInnerHTML={{ __html: faq.question }} />
                     <span className={`text-sm font-medium opacity-60 flex items-center gap-1 before:content-['—'] before:mr-1`}>
-                      <EditableText
-                        html={faq.author}
-                        editMode={!!editMode}
-                        onChange={(val) => handleFaqChange(index, { author: val })}
-                      />
+                      <div dangerouslySetInnerHTML={{ __html: faq.author }} />
                     </span>
                   </div>
 
@@ -143,39 +107,14 @@ export default function EnquiriesSection({ data, editMode, onUpdate }: Props) {
                       className="overflow-hidden bg-white rounded-b-2xl -mt-4 pt-8 px-8 pb-6 border-x border-b border-gray-100 shadow-inner"
                     >
                       <div className="text-base text-gray-600 leading-relaxed">
-                        <EditableText
-                          html={faq.answer || ""}
-                          editMode={!!editMode}
-                          onChange={(val) => handleFaqChange(index, { answer: val })}
-                        />
+                        <div dangerouslySetInnerHTML={{ __html: faq.answer || "" }} />
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
-
-                {editMode && (
-                  <button
-                    onClick={() => removeFaq(index)}
-                    className="absolute -right-12 top-1/2 -translate-y-1/2 p-2 bg-red-50 text-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Remove FAQ"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                )}
               </motion.div>
             );
           })}
-
-          {editMode && (
-            <motion.button
-              variants={itemVariants}
-              onClick={addFaq}
-              className="w-full py-6 border-2 border-dashed border-indigo-100 rounded-2xl flex items-center justify-center gap-2 text-indigo-600 font-bold hover:bg-indigo-50 transition-colors"
-            >
-              <Plus size={20} />
-              Add New Enquiry / FAQ
-            </motion.button>
-          )}
         </motion.div>
       </div>
 

@@ -1,14 +1,11 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
-import { Course, CoursePaymentDetails } from "../../types/courses-page";
-import EditableText from "../editable/EditableText";
-import EditableImage from "../editable/EditableImage";
+import Image from "next/image";
+import { Course } from "../../types/courses-page";
 
 interface Props {
   course: Course;
-  editMode?: boolean;
-  onUpdate?: (updatedInfo: Partial<Course>) => void;
 }
 
 /* ---------------- Animations ---------------- */
@@ -30,12 +27,8 @@ const itemVariants: Variants = {
   },
 };
 
-export default function PaymentDetails({ course, editMode, onUpdate }: Props) {
+export default function PaymentDetails({ course }: Props) {
   const payment = course.paymentDetails;
-
-  const handlePaymentChange = (updatedPayment: Partial<CoursePaymentDetails>) => {
-    onUpdate?.({ paymentDetails: { ...payment, ...updatedPayment } });
-  };
 
   return (
     <motion.div
@@ -65,11 +58,7 @@ export default function PaymentDetails({ course, editMode, onUpdate }: Props) {
             <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-center gap-3">
               <span className="text-indigo-600 font-bold">PayPal:</span>
               <span className="text-gray-900 font-medium">
-                <EditableText
-                  html={payment.paypal}
-                  editMode={!!editMode}
-                  onChange={(val) => handlePaymentChange({ paypal: val })}
-                />
+                <div dangerouslySetInnerHTML={{ __html: payment.paypal }} />
               </span>
             </div>
           </div>
@@ -84,33 +73,21 @@ export default function PaymentDetails({ course, editMode, onUpdate }: Props) {
                 <div>
                   <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-1">Bank Name</p>
                   <div className="text-gray-900 font-bold">
-                    <EditableText
-                      html={payment.bankName}
-                      editMode={!!editMode}
-                      onChange={(val) => handlePaymentChange({ bankName: val })}
-                    />
+                    <div dangerouslySetInnerHTML={{ __html: payment.bankName }} />
                   </div>
                 </div>
 
                 <div>
                   <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-1">Account Name</p>
                   <div className="text-gray-900 font-bold">
-                    <EditableText
-                      html={payment.accountName}
-                      editMode={!!editMode}
-                      onChange={(val) => handlePaymentChange({ accountName: val })}
-                    />
+                    <div dangerouslySetInnerHTML={{ __html: payment.accountName }} />
                   </div>
                 </div>
 
                 <div>
                   <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-1">Account No.</p>
                   <div className="text-gray-900 font-bold">
-                    <EditableText
-                      html={payment.accountNo}
-                      editMode={!!editMode}
-                      onChange={(val) => handlePaymentChange({ accountNo: val })}
-                    />
+                    <div dangerouslySetInnerHTML={{ __html: payment.accountNo }} />
                   </div>
                 </div>
               </div>
@@ -119,22 +96,14 @@ export default function PaymentDetails({ course, editMode, onUpdate }: Props) {
                 <div>
                   <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-1">Account Type</p>
                   <div className="text-gray-900 font-bold">
-                    <EditableText
-                      html={payment.type}
-                      editMode={!!editMode}
-                      onChange={(val) => handlePaymentChange({ type: val })}
-                    />
+                    <div dangerouslySetInnerHTML={{ __html: payment.type }} />
                   </div>
                 </div>
 
                 <div>
                   <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] mb-1">IFSC Code</p>
                   <div className="text-gray-900 font-bold text-xl tracking-wider">
-                    <EditableText
-                      html={payment.ifsc}
-                      editMode={!!editMode}
-                      onChange={(val) => handlePaymentChange({ ifsc: val })}
-                    />
+                    <div dangerouslySetInnerHTML={{ __html: payment.ifsc }} />
                   </div>
                 </div>
               </div>
@@ -148,12 +117,11 @@ export default function PaymentDetails({ course, editMode, onUpdate }: Props) {
           className="lg:col-span-2 flex flex-col items-center justify-center p-6 bg-gray-50 rounded-3xl border border-gray-100 relative group"
         >
           <p className="text-xs font-black text-gray-400 uppercase tracking-[0.3em] mb-6">Scan to Pay</p>
-          <div className="w-56 h-56 bg-white p-4 rounded-2xl shadow-xl ring-8 ring-gray-100 overflow-hidden">
-            <EditableImage
+          <div className="w-56 h-56 bg-white p-4 rounded-2xl shadow-xl ring-8 ring-gray-100 overflow-hidden relative">
+            <Image
               src={payment.qrImage || "/course/qr.png"}
               alt="Payment QR"
-              editMode={!!editMode}
-              onChange={(val) => handlePaymentChange({ qrImage: val })}
+              fill
               className="w-full h-full object-contain"
             />
           </div>

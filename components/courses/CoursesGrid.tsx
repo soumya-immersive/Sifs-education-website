@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { motion, Variants } from "framer-motion";
-import { Plus } from "lucide-react";
 import CourseCard from "./CourseCard";
 import { Course } from "../../types/courses-page";
 
@@ -10,10 +9,6 @@ import { Course } from "../../types/courses-page";
 
 interface Props {
   courses: Course[];
-  editMode?: boolean;
-  onUpdateCourse?: (id: number, updatedInfo: Partial<Course>) => void;
-  onDeleteCourse?: (id: number) => void;
-  onAddCourse?: () => void;
   realm?: "courses" | "internships" | "training";
 }
 
@@ -43,10 +38,6 @@ const fadeUp: Variants = {
 
 export default function CoursesGrid({
   courses,
-  editMode,
-  onUpdateCourse,
-  onDeleteCourse,
-  onAddCourse,
   realm = "courses"
 }: Props) {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
@@ -71,11 +62,11 @@ export default function CoursesGrid({
       <motion.div
         className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
         variants={container}
-        initial={editMode ? "visible" : "hidden"}
+        initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0 }}
       >
-        {courses.length === 0 && !editMode && (
+        {courses.length === 0 && (
           <div className="md:col-span-2 lg:col-span-3 bg-white rounded-2xl p-12 shadow-sm border border-gray-100 text-center">
             <p className="text-gray-500 text-lg italic">
               No courses found matching your search or filters.
@@ -83,45 +74,24 @@ export default function CoursesGrid({
           </div>
         )}
 
-        {(editMode ? courses : courses.slice(0, visibleCount)).map((course) => (
+        {courses.slice(0, visibleCount).map((course) => (
           <motion.div
             key={course.id}
             variants={fadeUp}
-            initial={editMode ? "visible" : "hidden"}
+            initial="hidden"
             animate="visible"
             className="h-full"
           >
             <CourseCard
               course={course}
-              editMode={editMode}
-              onUpdate={(updatedInfo) => onUpdateCourse?.(course.id, updatedInfo)}
-              onDelete={() => onDeleteCourse?.(course.id)}
               realm={realm}
             />
           </motion.div>
         ))}
-
-        {editMode && (
-          <motion.div
-            variants={fadeUp}
-            initial="visible"
-            animate="visible"
-            onClick={onAddCourse}
-            className="h-full min-h-[420px] border-4 border-dashed border-blue-200 rounded-xl flex flex-col items-center justify-center gap-4 text-blue-600 hover:border-blue-400 hover:bg-blue-50/50 transition-all group shadow-sm bg-white cursor-pointer relative z-10"
-          >
-            <div className="p-6 bg-blue-100 rounded-full group-hover:scale-110 transition-transform shadow-inner">
-              <Plus size={40} />
-            </div>
-            <div className="text-center">
-              <span className="font-extrabold text-xl block">Add New {realm === "courses" ? "Course" : realm === "internships" ? "Internship" : "Training"}</span>
-              <span className="text-blue-400 text-xs font-medium uppercase tracking-widest mt-1">Create a new program entry</span>
-            </div>
-          </motion.div>
-        )}
       </motion.div>
 
-      {/* ACTIONS - Only show if total courses > 3 and NOT in editMode */}
-      {!editMode && courses.length > ITEMS_PER_LOAD && (
+      {/* ACTIONS - Only show if total courses > 3 */}
+      {courses.length > ITEMS_PER_LOAD && (
         <motion.div
           variants={fadeUp}
           initial="hidden"

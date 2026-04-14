@@ -1,15 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronRight, Plus, Trash2 } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
-import { Course, CourseAccordionItem } from "../../types/courses-page";
-import EditableText from "../editable/EditableText";
+import { Course } from "../../types/courses-page";
 
 interface Props {
   course: Course;
-  editMode?: boolean;
-  onUpdate?: (updatedInfo: Partial<Course>) => void;
 }
 
 /* ---------------- Animations ---------------- */
@@ -43,28 +40,8 @@ const accordionContent: Variants = {
   },
 };
 
-export default function AccordionBlocks({ course, editMode, onUpdate }: Props) {
+export default function AccordionBlocks({ course }: Props) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  const handleItemChange = (index: number, updatedItem: Partial<CourseAccordionItem>) => {
-    const updatedItems = [...(course.accordionItems || [])];
-    updatedItems[index] = { ...updatedItems[index], ...updatedItem };
-    onUpdate?.({ accordionItems: updatedItems });
-  };
-
-  const addItem = () => {
-    const newItem: CourseAccordionItem = {
-      title: "New Section",
-      content: "Content for the new section goes here..."
-    };
-    onUpdate?.({ accordionItems: [...(course.accordionItems || []), newItem] });
-  };
-
-  const removeItem = (index: number) => {
-    const updatedItems = (course.accordionItems || []).filter((_, i) => i !== index);
-    onUpdate?.({ accordionItems: updatedItems });
-    if (openIndex === index) setOpenIndex(null);
-  };
 
   return (
     <div className="space-y-4">
@@ -73,15 +50,6 @@ export default function AccordionBlocks({ course, editMode, onUpdate }: Props) {
           <span className="w-1.5 h-6 bg-green-500 rounded-full" />
           Course Curriculum & Information
         </h3>
-        {editMode && (
-          <button
-            onClick={addItem}
-            className="flex items-center gap-2 text-green-600 font-bold text-sm hover:text-green-700 transition px-3 py-1.5 bg-green-50 rounded-lg border border-green-200"
-          >
-            <Plus size={14} />
-            Add Section
-          </button>
-        )}
       </div>
 
       {(course.accordionItems || []).map((item, index) => {
@@ -113,27 +81,13 @@ export default function AccordionBlocks({ course, editMode, onUpdate }: Props) {
                            text-left font-bold transition-all cursor-pointer select-none ${isOpen ? "text-indigo-600 bg-indigo-50/50" : "text-gray-800 hover:bg-gray-50"
                   }`}
               >
-                <EditableText
-                  html={item.title}
-                  editMode={!!editMode}
-                  onChange={(val) => handleItemChange(index, { title: val })}
-                />
+                <div dangerouslySetInnerHTML={{ __html: item.title }} />
 
                 <ChevronRight
                   className={`w-5 h-5 transition-transform duration-300 ${isOpen ? "rotate-90 text-indigo-600" : "text-gray-400"
                     }`}
                 />
               </div>
-
-              {editMode && (
-                <button
-                  onClick={() => removeItem(index)}
-                  className="absolute right-14 top-1/2 -translate-y-1/2 p-1.5 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Remove Section"
-                >
-                  <Trash2 size={16} />
-                </button>
-              )}
             </div>
 
             {/* Content */}
@@ -146,11 +100,7 @@ export default function AccordionBlocks({ course, editMode, onUpdate }: Props) {
                   animate="visible"
                   exit="exit"
                 >
-                  <EditableText
-                    html={item.content}
-                    editMode={!!editMode}
-                    onChange={(val) => handleItemChange(index, { content: val })}
-                  />
+                  <div dangerouslySetInnerHTML={{ __html: item.content }} />
                 </motion.div>
               )}
             </AnimatePresence>

@@ -1,6 +1,4 @@
 import React from "react";
-import { Plus, Trash2 } from "lucide-react";
-import EditableText from "../editable/EditableText";
 import { CareerCategory } from "@/types/career-page";
 
 interface CategoryWithCount extends CareerCategory {
@@ -11,34 +9,17 @@ interface SidebarProps {
   activeCategory: string;
   onSelect: (name: string) => void;
   categories: CategoryWithCount[];
-  editMode?: boolean;
-  onUpdateCategory?: (id: number, name: string) => void;
-  onDeleteCategory?: (id: number) => void;
-  onAddCategory?: () => void;
 }
 
 const JobCategoriesSidebar: React.FC<SidebarProps> = ({
   activeCategory,
   onSelect,
   categories,
-  editMode = false,
-  onUpdateCategory,
-  onDeleteCategory,
-  onAddCategory
 }) => {
   return (
     <div className="border-2 border-purple-50 rounded-2xl bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900">Job Categories</h2>
-        {editMode && onAddCategory && (
-          <button
-            onClick={onAddCategory}
-            className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
-            title="Add Category"
-          >
-            <Plus size={18} />
-          </button>
-        )}
       </div>
 
       <div className="space-y-4">
@@ -66,11 +47,7 @@ const JobCategoriesSidebar: React.FC<SidebarProps> = ({
 
                   <div className={`text-sm font-semibold transition-colors flex-1
                     ${isActive ? 'text-[#D08522]' : 'text-gray-500 group-hover:text-blue-600'}`}>
-                    <EditableText
-                      html={cat.name}
-                      editMode={editMode}
-                      onChange={(h) => onUpdateCategory?.(cat.id, h)}
-                    />
+                    <div dangerouslySetInnerHTML={{ __html: cat.name }} />
                   </div>
                 </div>
 
@@ -78,18 +55,6 @@ const JobCategoriesSidebar: React.FC<SidebarProps> = ({
                   <span className={`text-sm font-bold ${isActive ? 'text-[#D08522]' : 'text-gray-400'}`}>
                     ({cat.count})
                   </span>
-
-                  {editMode && cat.name !== "All" && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteCategory?.(cat.id);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-red-400 hover:text-red-600 transition-all"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  )}
                 </div>
               </div>
             </div>

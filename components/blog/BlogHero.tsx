@@ -2,8 +2,6 @@
 
 import Image from "next/image";
 import { motion, Variants } from "framer-motion";
-import EditableText from "../editable/EditableText";
-import EditableImage from "../editable/EditableImage";
 
 interface BlogHeroProps {
   post: {
@@ -11,8 +9,6 @@ interface BlogHeroProps {
     heroImage: string;
     introduction?: string;
   };
-  editMode?: boolean;
-  onUpdate?: (fields: any) => void;
 }
 
 /* ---------------- Animations ---------------- */
@@ -34,7 +30,7 @@ const fadeUp: Variants = {
   },
 };
 
-export default function BlogHero({ post, editMode = false, onUpdate }: BlogHeroProps) {
+export default function BlogHero({ post }: BlogHeroProps) {
   const stripHtml = (html: string) => html.replace(/<\/?[^>]+(>|$)/g, "");
 
   return (
@@ -52,11 +48,7 @@ export default function BlogHero({ post, editMode = false, onUpdate }: BlogHeroP
               variants={fadeUp}
               className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight"
             >
-              <EditableText
-                html={post.title}
-                editMode={editMode}
-                onChange={(val) => onUpdate?.({ title: val })}
-              />
+              <div dangerouslySetInnerHTML={{ __html: post.title }} />
             </motion.h1>
 
             {/* Decorative Arrow */}
@@ -74,11 +66,7 @@ export default function BlogHero({ post, editMode = false, onUpdate }: BlogHeroP
             className="lg:w-5/12 text-gray-500 text-sm md:text-base leading-relaxed"
           >
             <div className="prose prose-sm text-gray-500 max-w-none">
-              <EditableText
-                html={post.introduction || "A brief introduction explaining what type of content users can expect."}
-                editMode={editMode}
-                onChange={(val) => onUpdate?.({ introduction: val })}
-              />
+              <div dangerouslySetInnerHTML={{ __html: post.introduction || "A brief introduction explaining what type of content users can expect." }} />
             </div>
           </motion.div>
         </div>
@@ -88,13 +76,14 @@ export default function BlogHero({ post, editMode = false, onUpdate }: BlogHeroP
           variants={fadeUp}
           className="relative w-full aspect-[21/9] rounded-[2rem] overflow-hidden shadow-2xl shadow-gray-200/50"
         >
-          <EditableImage
-            src={post.heroImage || "/blog/main-featured.png"}
-            alt={stripHtml(post.title) || "Blog featured image"}
-            editMode={editMode}
-            onChange={(src: string) => onUpdate?.({ heroImage: src, image: src })}
-            className="object-cover transition-transform duration-700 hover:scale-105"
-          />
+          <div className="relative w-full h-full">
+            <Image
+              src={post.heroImage || "/blog/main-featured.png"}
+              alt={stripHtml(post.title) || "Blog featured image"}
+              fill
+              className="object-cover transition-transform duration-700 hover:scale-105"
+            />
+          </div>
         </motion.div>
       </motion.div>
     </section>

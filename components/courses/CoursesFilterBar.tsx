@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Search } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 
@@ -20,7 +19,6 @@ const fadeUp: Variants = {
 };
 
 interface FilterBarProps {
-  editMode?: boolean;
   searchQuery: string;
   onSearchChange: (val: string) => void;
   level: string;
@@ -32,7 +30,6 @@ interface FilterBarProps {
 }
 
 export default function CoursesFilterBar({
-  editMode,
   searchQuery,
   onSearchChange,
   level,

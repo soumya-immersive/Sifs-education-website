@@ -2,8 +2,7 @@
 
 import { ArrowRight } from "lucide-react";
 import { motion, Variants } from "framer-motion";
-import EditableText from "../editable/EditableText";
-import EditableImage from "../editable/EditableImage";
+import Image from "next/image";
 import { LearningData } from "../../types/courses-page";
 
 const studentImage = "/student-pointing.png";
@@ -66,11 +65,9 @@ const buttonItemVariants: Variants = {
 
 interface LearningProps {
   data?: LearningData;
-  editMode?: boolean;
-  onUpdate?: (updatedInfo: Partial<LearningData>) => void;
 }
 
-export default function Learning({ data, editMode, onUpdate }: LearningProps) {
+export default function Learning({ data }: LearningProps) {
   if (!data) return null;
 
   const stripHtml = (htmlContent: string) => {
@@ -106,19 +103,11 @@ export default function Learning({ data, editMode, onUpdate }: LearningProps) {
           variants={textBlockVariants}
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            <EditableText
-              html={data.title}
-              editMode={!!editMode}
-              onChange={(val) => onUpdate?.({ title: val })}
-            />
+            <div dangerouslySetInnerHTML={{ __html: data.title }} />
           </h2>
 
           <div className="text-sm md:text-base opacity-90 mb-8 max-w-xl">
-            <EditableText
-              html={data.subtitle}
-              editMode={!!editMode}
-              onChange={(val) => onUpdate?.({ subtitle: val })}
-            />
+            <div dangerouslySetInnerHTML={{ __html: data.subtitle }} />
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4">
@@ -132,14 +121,10 @@ export default function Learning({ data, editMode, onUpdate }: LearningProps) {
                 text-white font-semibold
                 py-3 px-6 rounded-lg
                 transition duration-300
-                ${!editMode ? 'cursor-pointer' : ''}
+                cursor-pointer
               `}
             >
-              <EditableText
-                html={data.exploreLabel || "Explore"}
-                editMode={!!editMode}
-                onChange={(val) => onUpdate?.({ exploreLabel: val })}
-              />
+              <div dangerouslySetInnerHTML={{ __html: data.exploreLabel || "Explore" }} />
               <ArrowRight className="ml-2 w-5 h-5 shrink-0" />
             </motion.div>
 
@@ -154,14 +139,10 @@ export default function Learning({ data, editMode, onUpdate }: LearningProps) {
                 text-white font-semibold
                 py-3 px-6 rounded-lg
                 transition duration-300
-                 ${!editMode ? 'cursor-pointer' : ''}
+                 cursor-pointer
               `}
             >
-              <EditableText
-                html={data.storyLabel || "Watch Video"}
-                editMode={!!editMode}
-                onChange={(val) => onUpdate?.({ storyLabel: val })}
-              />
+              <div dangerouslySetInnerHTML={{ __html: data.storyLabel || "Watch Video" }} />
               <ArrowRight className="ml-2 w-5 h-5 shrink-0" />
             </motion.div>
           </div>
@@ -183,13 +164,13 @@ export default function Learning({ data, editMode, onUpdate }: LearningProps) {
               maxWidth: "none",
               objectPosition: "center bottom",
             }}
-            className="h-full w-auto"
+            className="h-full w-auto relative"
           >
-            <EditableImage
+            <Image
               src={data.image || studentImage}
               alt={stripHtml(data.title)}
-              editMode={!!editMode}
-              onChange={(val) => onUpdate?.({ image: val })}
+              width={500}
+              height={500}
               className="h-full w-auto object-cover z-20"
             />
           </div>

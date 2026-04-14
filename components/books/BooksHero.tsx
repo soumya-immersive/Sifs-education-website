@@ -1,8 +1,7 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
-import EditableText from "../editable/EditableText";
-import EditableImage from "../editable/EditableImage";
+import Image from "next/image";
 import { CourseProgram } from "../../types/courses-page";
 
 const container: Variants = {
@@ -30,11 +29,9 @@ const scaleFade: Variants = {
 
 interface Props {
   program: CourseProgram;
-  editMode?: boolean;
-  onUpdate?: (updatedInfo: Partial<CourseProgram>) => void;
 }
 
-export default function BooksHero({ program, editMode, onUpdate }: Props) {
+export default function BooksHero({ program }: Props) {
   const stripHtml = (htmlContent: string) => {
     if (typeof window === 'undefined') return htmlContent;
     const div = document.createElement("div");
@@ -46,7 +43,7 @@ export default function BooksHero({ program, editMode, onUpdate }: Props) {
     <section
       className="relative py-16 overflow-hidden border-b border-gray-100"
     >
-      {/* Background Image - Non-Editable as per request */}
+      {/* Background Image */}
       <div
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url('${program.heroBgImage || "/books/hero-bg.png"}')` }}
@@ -66,22 +63,14 @@ export default function BooksHero({ program, editMode, onUpdate }: Props) {
             variants={fadeUp}
             className="text-3xl font-bold text-gray-900"
           >
-            <EditableText
-              html={program.label}
-              editMode={!!editMode}
-              onChange={(val: string) => onUpdate?.({ label: val })}
-            />
+            <div dangerouslySetInnerHTML={{ __html: program.label }} />
           </motion.h1>
 
           <motion.div
             variants={fadeUp}
             className="text-sm text-gray-600 mt-1 font-medium"
           >
-            <EditableText
-              html={program.subtitle || `Explore our ${stripHtml(program.label).toLowerCase()}`}
-              editMode={!!editMode}
-              onChange={(val: string) => onUpdate?.({ subtitle: val })}
-            />
+            <div dangerouslySetInnerHTML={{ __html: program.subtitle || `Explore our ${stripHtml(program.label).toLowerCase()}` }} />
           </motion.div>
         </motion.div>
 
@@ -91,13 +80,14 @@ export default function BooksHero({ program, editMode, onUpdate }: Props) {
           className="w-full md:w-[400px] h-[200px]
           rounded-xl overflow-hidden relative group"
         >
-          <EditableImage
-            src={program.heroImage || "/books/hero.png"}
-            alt={`${stripHtml(program.label)} Books`}
-            editMode={!!editMode}
-            onChange={(val: string) => onUpdate?.({ heroImage: val })}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
+          <div className="w-full h-full relative">
+            <Image
+              src={program.heroImage || "/books/hero.png"}
+              alt={`${stripHtml(program.label)} Books`}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          </div>
         </motion.div>
       </motion.div>
     </section>

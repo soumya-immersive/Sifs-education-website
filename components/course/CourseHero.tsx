@@ -3,7 +3,6 @@
 import { motion, Variants } from "framer-motion";
 import { Star } from "lucide-react";
 import { Course } from "../../types/courses-page";
-import EditableText from "../editable/EditableText";
 
 /* ---------------- Animations ---------------- */
 
@@ -29,11 +28,9 @@ const fadeUp: Variants = {
 
 interface CourseHeroProps {
   course: Course;
-  editMode?: boolean;
-  onUpdate?: (updatedInfo: Partial<Course>) => void;
 }
 
-export default function CourseHero({ course, editMode, onUpdate }: CourseHeroProps) {
+export default function CourseHero({ course }: CourseHeroProps) {
   return (
     <section
       className="relative bg-cover bg-center bg-no-repeat py-24 overflow-hidden"
@@ -57,11 +54,7 @@ export default function CourseHero({ course, editMode, onUpdate }: CourseHeroPro
           className="mb-4"
         >
           <span className="inline-block bg-[#FFE9CC] text-[#D97706] text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
-            <EditableText
-              html={course.courseCode}
-              editMode={false}
-              onChange={(val) => onUpdate?.({ courseCode: val })}
-            />
+            <div dangerouslySetInnerHTML={{ __html: course.courseCode }} />
           </span>
         </motion.div>
 
@@ -70,11 +63,7 @@ export default function CourseHero({ course, editMode, onUpdate }: CourseHeroPro
           variants={fadeUp}
           className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-6 max-w-4xl leading-tight"
         >
-          <EditableText
-            html={course.title}
-            editMode={false}
-            onChange={(val) => onUpdate?.({ title: val })}
-          />
+          <div dangerouslySetInnerHTML={{ __html: course.title }} />
         </motion.h1>
 
         {/* Rating */}
@@ -94,19 +83,11 @@ export default function CourseHero({ course, editMode, onUpdate }: CourseHeroPro
 
           <div className="flex items-center gap-1.5 text-gray-700 font-medium">
             <span className="text-lg">
-              <EditableText
-                html={String(course.rating || "4.5")}
-                editMode={!!editMode}
-                onChange={(val) => onUpdate?.({ rating: Number(val) || 4.5 })}
-              />
+              <div dangerouslySetInnerHTML={{ __html: String(course.rating || "4.5") }} />
             </span>
             <span className="text-gray-400">|</span>
             <span className="text-sm">
-              <EditableText
-                html={String(course.reviewsCount || "1000")}
-                editMode={!!editMode}
-                onChange={(val) => onUpdate?.({ reviewsCount: Number(val) || 1000 })}
-              />
+              <div className="inline-block" dangerouslySetInnerHTML={{ __html: String(course.reviewsCount || "1000") }} />
               + Ratings
             </span>
           </div>

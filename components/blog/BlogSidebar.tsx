@@ -1,64 +1,28 @@
 "use client";
 
-import { Search, ChevronRight, Calendar, Loader2, Plus, Trash2 } from "lucide-react";
+import { Search, ChevronRight, Calendar, Loader2 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useBlogPageData } from "../../hooks/useBlogPageData";
-import EditableText from "../editable/EditableText";
-import { toast } from "react-hot-toast";
+import { BLOG_PAGE_INITIAL_DATA } from "../../lib/data/blog-page-data";
+import { BlogPost } from "../../types/blog-page";
 
 export default function BlogSidebar() {
   const router = useRouter();
-  const { data, isLoaded, editMode, updateSection } = useBlogPageData();
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const data = BLOG_PAGE_INITIAL_DATA;
   const [searchQuery, setSearchQuery] = useState("");
-
-  if (!isLoaded) {
-    return (
-      <div className="flex justify-center py-10">
-        <Loader2 className="animate-spin text-blue-500" />
-      </div>
-    );
-  }
 
   const categories = data.categories || [];
   const recentPosts = (data.recentPostIds || [])
-    .map(id => data.posts.find(p => p.id === id))
-    .filter(Boolean);
+    .map((id: number) => data.posts.find((p: BlogPost) => p.id === id))
+    .filter((post): post is BlogPost => !!post);
 
   const stripHtml = (html: string) => {
     if (typeof window === 'undefined') return html.replace(/<\/?[^>]+(>|$)/g, "");
     const div = document.createElement("div");
     div.innerHTML = html;
     return div.textContent || div.innerText || "";
-  };
-
-  const updateCategoryName = (id: number, newName: string) => {
-    const updated = categories.map(c => c.id === id ? { ...c, name: newName } : c);
-    updateSection("categories", updated);
-  };
-
-  const deleteCategory = (id: number) => {
-    updateSection("categories", categories.filter(c => c.id !== id));
-    toast.success("Category deleted");
-  };
-
-  const addCategory = () => {
-    const newId = Math.max(...categories.map(c => c.id), 0) + 1;
-    updateSection("categories", [...categories, { id: newId, name: "New Category" }]);
-  };
-
-  const toggleRecentPost = (postId: number) => {
-    const current = data.recentPostIds || [];
-    if (current.includes(postId)) {
-      updateSection("recentPostIds", current.filter(id => id !== postId));
-      toast.success("Removed from recent posts");
-    } else {
-      updateSection("recentPostIds", [...current, postId]);
-      toast.success("Added to recent posts");
-    }
   };
 
   const handleSearch = (e: React.KeyboardEvent) => {
@@ -68,11 +32,7 @@ export default function BlogSidebar() {
   };
 
   const handleCategoryClick = (catName: string) => {
-    if (editMode) {
-      setSelectedCategory(catName);
-    } else {
-      router.push(`/blog?category=${encodeURIComponent(catName)}`);
-    }
+    router.push(`/blog?category=${encodeURIComponent(catName)}`);
   };
 
   return (
@@ -98,51 +58,22 @@ export default function BlogSidebar() {
       <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
         <div className="flex justify-between items-center mb-6">
           <h4 className="font-bold text-gray-900 text-lg">Categories</h4>
-          {editMode && (
-            <button onClick={addCategory} className="text-[#4559ED] hover:bg-blue-50 p-1 rounded-full">
-              <Plus size={20} />
-            </button>
-          )}
         </div>
         <hr className="border-gray-200 mb-6" />
         <div className="space-y-2.5">
-          {categories.map((cat) => {
-            const isSelected = cat.name === selectedCategory;
-
-            return (
-              <div key={cat.id} className="group relative">
-                <div
-                  onClick={() => handleCategoryClick(cat.name)}
-                  className={`
-                    w-full flex items-center justify-between p-3.5 rounded-xl text-sm 
-                    transition-all duration-200 font-medium cursor-pointer
-                    ${isSelected
-                      ? "bg-[#4559ED] text-white shadow-sm shadow-[#4559ED]/20"
-                      : "bg-gray-50 text-gray-800 hover:bg-gray-100"
-                    }
-                  `}
-                >
-                  <EditableText
-                    html={cat.name}
-                    editMode={editMode}
-                    onChange={(val) => updateCategoryName(cat.id, val)}
-                  />
-                  <ChevronRight
-                    className={`w-4 h-4 transition-transform ${isSelected ? "text-white translate-x-0.5" : "text-gray-400"
-                      }`}
-                  />
-                </div>
-                {editMode && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); deleteCategory(cat.id); }}
-                    className="absolute -right-2 -top-2 bg-red-500 text-white p-1 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                  >
-                    <Plus size={12} className="rotate-45" />
-                  </button>
-                )}
+          {categories.map((cat) => (
+            <div key={cat.id} className="group relative">
+              <div
+                onClick={() => handleCategoryClick(cat.name)}
+                className="w-full flex items-center justify-between p-3.5 rounded-xl text-sm transition-all duration-200 font-medium cursor-pointer bg-gray-50 text-gray-800 hover:bg-gray-100"
+              >
+                <div dangerouslySetInnerHTML={{ __html: cat.name }} />
+                <ChevronRight
+                  className="w-4 h-4 text-gray-400"
+                />
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -151,7 +82,7 @@ export default function BlogSidebar() {
         <h4 className="font-bold mb-6 text-gray-900 text-lg">Recent Post</h4>
         <hr className="border-gray-200 mb-6" />
         <div className="space-y-6">
-          {recentPosts.map((post: any) => (
+          {recentPosts.map((post: BlogPost) => (
             <div key={post.id} className="relative group">
               <Link
                 href={`/blog/${post.slug}`}
@@ -179,21 +110,8 @@ export default function BlogSidebar() {
                   </div>
                 </div>
               </Link>
-              {editMode && (
-                <button
-                  onClick={() => toggleRecentPost(post.id)}
-                  className="absolute -right-2 -top-2 bg-red-500 text-white p-1 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Plus size={10} className="rotate-45" />
-                </button>
-              )}
             </div>
           ))}
-          {editMode && recentPosts.length === 0 && (
-            <div className="text-xs text-gray-400 italic text-center py-4 border-2 border-dashed border-gray-100 rounded-xl">
-              Go to blog listing to add posts to recent posts
-            </div>
-          )}
         </div>
       </div>
     </div>

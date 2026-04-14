@@ -3,13 +3,9 @@
 import Image from "next/image";
 import { motion, Variants } from "framer-motion";
 import { Course } from "../../types/courses-page";
-import EditableText from "../editable/EditableText";
-import { Plus, Trash2 } from "lucide-react";
 
 interface Props {
   course: Course;
-  editMode?: boolean;
-  onUpdate?: (updatedInfo: Partial<Course>) => void;
 }
 
 /* ---------------- Animations ---------------- */
@@ -32,28 +28,12 @@ const fadeUp: Variants = {
   },
 };
 
-export default function CourseHighlights({ course, editMode, onUpdate }: Props) {
-  const handleHighlightChange = (index: number, val: string) => {
-    const updatedHighlights = [...(course.highlights || [])];
-    updatedHighlights[index] = val;
-    onUpdate?.({ highlights: updatedHighlights });
-  };
-
-  const addHighlight = () => {
-    const updatedHighlights = [...(course.highlights || []), "New Course Highlight..."];
-    onUpdate?.({ highlights: updatedHighlights });
-  };
-
-  const removeHighlight = (index: number) => {
-    const updatedHighlights = (course.highlights || []).filter((_, i) => i !== index);
-    onUpdate?.({ highlights: updatedHighlights });
-  };
-
+export default function CourseHighlights({ course }: Props) {
   return (
     <motion.div
       className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm"
       variants={container}
-      initial={editMode ? "visible" : "hidden"}
+      initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0 }}
     >
@@ -63,15 +43,6 @@ export default function CourseHighlights({ course, editMode, onUpdate }: Props) 
           <span className="w-1.5 h-6 bg-yellow-500 rounded-full" />
           Course Highlights
         </h3>
-        {editMode && (
-          <button
-            onClick={addHighlight}
-            className="flex items-center gap-2 text-indigo-600 font-bold text-sm hover:text-indigo-700 transition px-3 py-1.5 bg-indigo-50 rounded-lg"
-          >
-            <Plus size={14} />
-            Add Highlight
-          </button>
-        )}
       </motion.div>
 
       {/* List */}
@@ -95,21 +66,8 @@ export default function CourseHighlights({ course, editMode, onUpdate }: Props) 
               />
             </div>
             <div className="text-sm text-gray-700 leading-snug flex-grow">
-              <EditableText
-                html={item}
-                editMode={!!editMode}
-                onChange={(val) => handleHighlightChange(index, val)}
-              />
+              <div dangerouslySetInnerHTML={{ __html: item }} />
             </div>
-            {editMode && (
-              <button
-                onClick={() => removeHighlight(index)}
-                className="p-1 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Remove Highlight"
-              >
-                <Trash2 size={14} />
-              </button>
-            )}
           </motion.li>
         ))}
       </motion.ul>
