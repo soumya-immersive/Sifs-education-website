@@ -75,9 +75,8 @@ interface NavItem {
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<Record<string, boolean>>({});
-  const [navItems, setNavItems] = useState<NavItem[]>([]); // Start empty instead of defaultNavItems
-  const [logo, setLogo] = useState<string>(""); // Start empty instead of default logo
-  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [navItems, setNavItems] = useState<NavItem[]>(defaultNavItems);
+  const [logo, setLogo] = useState<string>("/logo/logo.png");
   const [isMounted, setIsMounted] = useState(false);
 
   // Ensure component is mounted (client-side only)
@@ -90,7 +89,6 @@ export default function Header() {
     if (!isMounted) return;
 
     const fetchHeaderData = async () => {
-      setIsLoading(true);
       try {
         // 1. Fetch Course Categories
         const categoriesResponse = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front/courses/categories`, { cache: 'no-store' });
@@ -142,31 +140,23 @@ export default function Header() {
 
         if (!response.ok) {
           console.error("API request failed:", response.status);
-          // Set fallback nav items
-          setNavItems(prev => {
-            const defaultItems = [...defaultNavItems];
-            return defaultItems.map(item => {
-              if (item.label === "Courses" && dynamicCourseItems.length > 0) return { ...item, children: dynamicCourseItems };
-              if (item.label === "Training" && dynamicTrainingItems.length > 0) return { ...item, children: dynamicTrainingItems };
-              if (item.label === "Internship" && dynamicInternshipItems.length > 0) return { ...item, children: dynamicInternshipItems };
-              return item;
-            });
-          });
-          // Set default logo as fallback
-          setLogo("/logo/logo.png");
-          setIsLoading(false);
+          // Update nav items with whatever categories we managed to fetch
+          setNavItems(prev => prev.map(item => {
+            if (item.label === "Courses" && dynamicCourseItems.length > 0) return { ...item, children: dynamicCourseItems };
+            if (item.label === "Training" && dynamicTrainingItems.length > 0) return { ...item, children: dynamicTrainingItems };
+            if (item.label === "Internship" && dynamicInternshipItems.length > 0) return { ...item, children: dynamicInternshipItems };
+            return item;
+          }));
           return;
         }
 
         const json = await response.json();
 
         if (json.success) {
-          // Set Logo - with fallback
+          // Set Logo
           if (json.data?.bs?.logo) {
             const logoPath = `${BASE_URL}/uploads/Education-And-Internship-Admin-Logo/${json.data.bs.logo}`;
             setLogo(logoPath);
-          } else {
-            setLogo("/logo/logo.png"); // Fallback logo
           }
 
           const headerText = json.data?.be?.header_text || json.data?.bs?.header_text;
@@ -175,30 +165,21 @@ export default function Header() {
             const parsedItems = parseHeaderHTML(headerText);
             if (parsedItems.length > 0) {
               setNavItems(parsedItems);
-              setIsLoading(false);
               return; // Exit if we have API-provided navigation
             }
           }
         }
 
         // Fallback: If no header_text from API, update the defaultNavItems with categories
-        setNavItems(prev => {
-          const defaultItems = [...defaultNavItems];
-          return defaultItems.map(item => {
-            if (item.label === "Courses" && dynamicCourseItems.length > 0) return { ...item, children: dynamicCourseItems };
-            if (item.label === "Training" && dynamicTrainingItems.length > 0) return { ...item, children: dynamicTrainingItems };
-            if (item.label === "Internship" && dynamicInternshipItems.length > 0) return { ...item, children: dynamicInternshipItems };
-            return item;
-          });
-        });
+        setNavItems(prev => prev.map(item => {
+          if (item.label === "Courses" && dynamicCourseItems.length > 0) return { ...item, children: dynamicCourseItems };
+          if (item.label === "Training" && dynamicTrainingItems.length > 0) return { ...item, children: dynamicTrainingItems };
+          if (item.label === "Internship" && dynamicInternshipItems.length > 0) return { ...item, children: dynamicInternshipItems };
+          return item;
+        }));
 
       } catch (error) {
         console.error("Failed to fetch header data:", error);
-        // Set fallback values on error
-        setLogo("/logo/logo.png");
-        setNavItems(defaultNavItems);
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -458,125 +439,96 @@ export default function Header() {
     }
   };
 
-  // Show loading state or nothing while fetching
-  if (isLoading && !logo && navItems.length === 0) {
-    return (
-      <header className="sticky top-0 z-40 bg-white shadow-md">
-        <div className="flex items-center justify-between h-20 px-4 md:px-12 xl:px-24">
-          <div className="w-[150px] h-10 bg-gray-200 animate-pulse rounded"></div>
-          <div className="hidden lg:flex space-x-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="w-20 h-5 bg-gray-200 animate-pulse rounded"></div>
-            ))}
-          </div>
-          <div className="w-24 h-10 bg-gray-200 animate-pulse rounded-lg"></div>
-        </div>
-      </header>
-    );
-  }
-
   return (
     <header className="sticky top-0 z-40 bg-white shadow-md">
       <div className="flex items-center justify-between h-20 px-4 md:px-12 xl:px-24">
         {/* Logo */}
         <Link href="/" className="flex items-center">
-          {logo ? (
-            <Image
-              src={logo}
-              alt="SIFS Logo"
-              width={150}
-              height={100}
-              priority
-              className="h-auto w-auto max-h-10 object-contain"
-              onError={(e) => {
-                // If logo fails to load, fallback to default
-                const target = e.target as HTMLImageElement;
-                target.onerror = null; // Prevent infinite loop
-                setLogo("/logo/logo.png");
-              }}
-            />
-          ) : (
-            <div className="w-[150px] h-10 bg-gray-200 animate-pulse rounded"></div>
-          )}
+          <Image
+            src={logo}
+            alt="SIFS Logo"
+            width={150}
+            height={100}
+            priority
+            className="h-auto w-auto max-h-10 object-contain"
+          />
         </Link>
 
         {/* ---------------- Desktop Navigation ---------------- */}
-        {navItems.length > 0 && (
-          <nav className="hidden lg:flex flex-1 justify-center space-x-6">
-            {navItems.map((item, index) =>
-              item.children && item.children.length > 0 ? (
-                <div key={`${item.label}-${index}`} className="relative group">
-                  <span className="flex items-center gap-1 font-medium text-gray-700 hover:text-indigo-600 cursor-pointer">
-                    {item.label}
-                    <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
-                  </span>
+        <nav className="hidden lg:flex flex-1 justify-center space-x-6">
+          {navItems.map((item, index) =>
+            item.children && item.children.length > 0 ? (
+              <div key={`${item.label}-${index}`} className="relative group">
+                <span className="flex items-center gap-1 font-medium text-gray-700 hover:text-indigo-600 cursor-pointer">
+                  {item.label}
+                  <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
+                </span>
 
-                  {/* Dropdown */}
-                  <div
-                    className="absolute left-0 top-full mt-3 w-64 bg-white rounded-xl shadow-xl
+                {/* Dropdown */}
+                <div
+                  className="absolute left-0 top-full mt-3 w-64 bg-white rounded-xl shadow-xl
                              opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all"
-                  >
-                    <ul className="py-2">
-                      {item.children.map((child, cIndex) => {
-                        const childTarget = getTarget(child);
-                        return (
-                          <li key={`${child.label}-${cIndex}`}>
-                            {childTarget === "_blank" ? (
-                              <a
-                                href={child.path}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-between px-4 py-2 text-sm
-                                        text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition"
-                              >
-                                {child.label}
-                                <ChevronRight className="w-4 h-4 opacity-60" />
-                              </a>
-                            ) : (
-                              <Link
-                                href={child.path || "#"}
-                                onClick={() => {
-                                  // Extract slug from path (remove leading /)
-                                  const slug = child.path?.replace(/^\//, '') || '';
-                                  handleNavItemClick(slug, item.label);
-                                }}
-                                className="flex items-center justify-between px-4 py-2 text-sm
-                                         text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition"
-                              >
-                                {child.label}
-                                <ChevronRight className="w-4 h-4 opacity-60" />
-                              </Link>
-                            )}
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  </div>
+                >
+                  <ul className="py-2">
+                    {item.children.map((child, cIndex) => {
+                      const childTarget = getTarget(child);
+                      return (
+                        <li key={`${child.label}-${cIndex}`}>
+                          {childTarget === "_blank" ? (
+                            <a
+                              href={child.path}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center justify-between px-4 py-2 text-sm
+                                      text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition"
+                            >
+                              {child.label}
+                              <ChevronRight className="w-4 h-4 opacity-60" />
+                            </a>
+                          ) : (
+                            <Link
+                              href={child.path || "#"}
+                              onClick={() => {
+                                // Extract slug from path (remove leading /)
+                                const slug = child.path?.replace(/^\//, '') || '';
+                                handleNavItemClick(slug, item.label);
+                              }}
+                              className="flex items-center justify-between px-4 py-2 text-sm
+                                       text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition"
+                            >
+                              {child.label}
+                              <ChevronRight className="w-4 h-4 opacity-60" />
+                            </Link>
+                          )}
+                        </li>
+                      )
+                    })}
+                  </ul>
                 </div>
+              </div>
+            ) : (
+              (getTarget(item) === "_blank") ? (
+                <a
+                  key={`${item.label}-${index}`}
+                  href={item.path || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-gray-700 hover:text-indigo-600"
+                >
+                  {item.label}
+                </a>
               ) : (
-                (getTarget(item) === "_blank") ? (
-                  <a
-                    key={`${item.label}-${index}`}
-                    href={item.path || "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-gray-700 hover:text-indigo-600"
-                  >
-                    {item.label}
-                  </a>
-                ) : (
-                  <Link
-                    key={`${item.label}-${index}`}
-                    href={item.path || "#"}
-                    className="font-medium text-gray-700 hover:text-indigo-600"
-                  >
-                    {item.label}
-                  </Link>
-                )
+                <Link
+                  key={`${item.label}-${index}`}
+                  href={item.path || "#"}
+                  className="font-medium text-gray-700 hover:text-indigo-600"
+                >
+                  {item.label}
+                </Link>
               )
-            )}
-          </nav>
-        )}
+            )
+          )}
+        </nav>
 
         {/* Right Section */}
         <div className="flex items-center space-x-4">
@@ -694,4 +646,5 @@ export default function Header() {
       )}
     </header>
   );
+  
 }
