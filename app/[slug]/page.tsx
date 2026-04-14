@@ -71,72 +71,86 @@ async function getApiCourses(programSlug: string, endpoint: string, page: number
 
         const json = await response.json();
 
-        // Check if data is directly in json.data (array) - No pagination
-        if (json.success && Array.isArray(json.data)) {
-            const mappedCourses = json.data.map((apiCourse: any) => ({
-                id: apiCourse.id,
-                programSlug: programSlug,
-                slug: apiCourse.slug,
-                title: apiCourse.title,
-                overview: apiCourse.sub_title || "",
-                courseCode: apiCourse.course_code,
-                heroImage: apiCourse.image_url,
-                rating: 5.0,
-                reviewsCount: 120,
-                bannerImage: "/course/hero-bg.png",
-                description: apiCourse.sub_title || ""
-            }));
-            return { courses: mappedCourses, success: true };
+        if (!json.success || !json.data) {
+            return { courses: [], success: json.success || false };
         }
 
-        // Check if data is in json.data.data (nested with pagination)
-        if (json.success && json.data && Array.isArray(json.data.data)) {
-            const mappedCourses = json.data.data.map((apiCourse: any) => ({
-                id: apiCourse.id,
-                programSlug: programSlug,
-                slug: apiCourse.slug,
-                title: apiCourse.title,
-                overview: apiCourse.sub_title || "",
-                courseCode: apiCourse.course_code,
-                heroImage: apiCourse.image_url,
-                rating: 5.0,
-                reviewsCount: 120,
-                bannerImage: "/course/hero-bg.png",
-                description: apiCourse.sub_title || ""
-            }));
+        let rawCourses: any[] = [];
 
-            return {
-                courses: mappedCourses,
-                success: true,
-                pagination: {
-                    current_page: json.data.current_page,
-                    per_page: json.data.per_page,
-                    total: json.data.total,
-                    total_pages: json.data.last_page,
-                    showing_from: ((json.data.current_page - 1) * json.data.per_page) + 1,
-                    showing_to: Math.min(json.data.current_page * json.data.per_page, json.data.total),
-                    has_previous: json.data.current_page > 1,
-                    has_next: json.data.current_page < json.data.last_page
-                }
-            };
-        } else if (json.success && json.data && Array.isArray(json.data.courses)) {
-            const mappedCourses = json.data.courses.map((apiCourse: any) => ({
-                id: apiCourse.id,
-                programSlug: programSlug,
-                slug: apiCourse.slug,
-                title: apiCourse.title,
-                overview: apiCourse.sub_title || "",
-                courseCode: apiCourse.course_code,
-                heroImage: apiCourse.image_url,
-                rating: 5.0,
-                reviewsCount: 120,
-                bannerImage: "/course/hero-bg.png",
-                description: apiCourse.sub_title || ""
-            }));
-            return { courses: mappedCourses, success: true };
+        // Determine where the courses are
+        if (Array.isArray(json.data.data)) {
+            rawCourses = json.data.data;
+        } else if (Array.isArray(json.data.courses)) {
+            rawCourses = json.data.courses;
+        } else if (Array.isArray(json.data)) {
+            rawCourses = json.data;
         }
 
-        return { courses: [], success: json.success || false };
+        const mappedCourses = rawCourses.map((apiCourse: any) => ({
+            id: apiCourse.id,
+            programSlug: programSlug,
+            slug: apiCourse.slug,
+            title: apiCourse.title,
+            overview: apiCourse.sub_title || "",
+            courseCode: apiCourse.course_code,
+            heroImage: apiCourse.image_url,
+            rating: 5.0,
+            reviewsCount: 120,
+            bannerImage: "/course/hero-bg.png",
+            description: apiCourse.sub_title || ""
+        }));
+
+        // --- EXTRACT PAGINATION ---
+        const metaSource = json.data;
+        const total = Number(metaSource.total || (metaSource.pagination && metaSource.pagination.total) || mappedCourses.length);
+        const per_page = Number(metaSource.per_page || (metaSource.pagination && metaSource.pagination.per_page) || limit);
+        const current_page = Number(metaSource.current_page || (metaSource.pagination && metaSource.pagination.current_page) || page);
+        const total_pages = Number(
+            metaSource.last_page || 
+            metaSource.total_pages || 
+            (metaSource.pagination && (metaSource.pagination.last_page || metaSource.pagination.total_pages)) || 
+            Math.max(1, Math.ceil(total / per_page))
+        );
+
+        let finalPagination: PaginationData = {
+            current_page,
+            per_page,
+            total,
+            total_pages,
+            showing_from: ((current_page - 1) * per_page) + 1,
+            showing_to: Math.min(current_page * per_page, total),
+            has_previous: current_page > 1,
+            has_next: current_page < total_pages
+        };
+
+        // If it's a flat array case that needs manual slicing
+        const isFlatArray = !Array.isArray(json.data.data) && !Array.isArray(json.data.courses) && Array.isArray(json.data);
+        
+        if (isFlatArray || (total_pages === 1 && mappedCourses.length > limit)) {
+             const realTotal = mappedCourses.length;
+             const realPages = Math.ceil(realTotal / limit);
+             const offset = (page - 1) * limit;
+             
+             finalPagination = {
+                 ...finalPagination,
+                 total: realTotal,
+                 total_pages: realPages,
+                 showing_to: Math.min(offset + limit, realTotal),
+                 has_next: page < realPages
+             };
+
+             return {
+                 courses: mappedCourses.slice(offset, offset + limit),
+                 success: true,
+                 pagination: finalPagination
+             };
+        }
+
+        return { 
+            courses: mappedCourses, 
+            success: true, 
+            pagination: finalPagination 
+        };
     } catch (error) {
         console.error(`[getApiCourses] Error fetching courses:`, error);
         return { courses: [], success: false };

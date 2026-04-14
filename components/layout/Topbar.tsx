@@ -2,7 +2,7 @@
 
 "use client";
 import React, { useEffect, useState } from "react";
-import { Phone, Mail } from 'lucide-react';
+import { Phone, Mail } from "lucide-react";
 import { API_BASE_URL } from "../../lib/config";
 
 interface Social {
@@ -22,9 +22,12 @@ const Topbar = () => {
   useEffect(() => {
     const fetchTopbarData = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`, {
-          cache: 'no-store'
-        });
+        const response = await fetch(
+          `${API_BASE_URL}/EducationAndInternship/Website/front`,
+          {
+            cache: "no-store",
+          },
+        );
         const json = await response.json();
 
         if (json.success) {
@@ -52,17 +55,26 @@ const Topbar = () => {
 
   return (
     <div className="hidden bg-white text-gray-600 border-b border-gray-100 py-2 text-xs lg:flex justify-between items-center px-12 xl:px-24">
-
       {/* Left Side: Contact */}
       <div className="flex items-center space-x-4">
-        <a href={`tel:${supportPhone.replace(/\s+/g, '')}`} className="flex items-center hover:text-indigo-600 transition-colors">
+        <a
+          href={`tel:${supportPhone.replace(/\s+/g, "")}`}
+          className="flex items-center hover:text-indigo-600 transition-colors"
+        >
           <Phone className="w-3 h-3 mr-1" />
-          <span>{supportPhone}</span>
+          <span>
+            <strong>{supportPhone}</strong>
+          </span>
         </a>
         <span className="text-gray-300">|</span>
-        <a href={`mailto:${supportEmail}`} className="flex items-center hover:text-indigo-600 transition-colors">
+        <a
+          href={`mailto:${supportEmail}`}
+          className="flex items-center hover:text-indigo-600 transition-colors"
+        >
           <Mail className="w-3 h-3 mr-1" />
-          <span>{supportEmail}</span>
+          <span>
+            <strong>{supportEmail}</strong>
+          </span>
         </a>
       </div>
 

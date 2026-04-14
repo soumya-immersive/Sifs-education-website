@@ -1,35 +1,41 @@
-import './globals.css';
-import Topbar from '../components/layout/Topbar';
-import Header from '../components/layout/Header';
-import Footer from '../components/layout/Footer';
-import RouteChangeHandler from '../components/RouteChangeHandler';
-import { ReactNode } from 'react'; // Add this import
-import { Metadata } from 'next';
-import { API_BASE_URL, BASE_URL } from '../lib/config';
-import { Toaster } from 'react-hot-toast';
-import MaintenanceView from '../components/common/MaintenanceView';
-import CookieAlert from '../components/common/CookieAlert';
-import AnnouncementPopup from '../components/common/AnnouncementPopup';
+import "./globals.css";
 
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 export const revalidate = 0;
+
+import Topbar from "../components/layout/Topbar";
+import Header from "../components/layout/Header";
+import Footer from "../components/layout/Footer";
+import RouteChangeHandler from "../components/RouteChangeHandler";
+import { ReactNode } from "react"; // Add this import
+import { Metadata } from "next";
+import { API_BASE_URL, BASE_URL } from "../lib/config";
+import { Toaster } from "react-hot-toast";
+import MaintenanceView from "../components/common/MaintenanceView";
+import CookieAlert from "../components/common/CookieAlert";
+import AnnouncementPopup from "../components/common/AnnouncementPopup";
 
 export async function generateMetadata(): Promise<Metadata> {
   const defaultTitle = "Sherlock Institute of Forensic Science";
-  const defaultDesc = "Industry-specific and Job-ready Forensic Science Courses, Internships, and Workshops.";
+  const defaultDesc =
+    "Industry-specific and Job-ready Forensic Science Courses, Internships, and Workshops.";
 
   try {
-    const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`, {
-      cache: 'no-store',
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/EducationAndInternship/Website/front`,
+      {
+        cache: "no-store",
+      },
+    );
     const json = await response.json();
 
     if (json.success && json.data) {
       if (json.data.bs?.maintainance_mode === 1) {
         return {
           title: "Maintenance Mode | SIFS India",
-          description: "Our website is currently under maintenance. We will be back soon.",
+          description:
+            "Our website is currently under maintenance. We will be back soon.",
         };
       }
 
@@ -82,9 +88,12 @@ export default async function RootLayout({
   let jsonData: any = null;
 
   try {
-    const response = await fetch(`${API_BASE_URL}/EducationAndInternship/Website/front`, {
-      cache: 'no-store',
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/EducationAndInternship/Website/front`,
+      {
+        cache: "no-store",
+      },
+    );
     jsonData = await response.json();
     if (jsonData.success && jsonData.data) {
       lang = jsonData.data.currentLang?.code || "en";
@@ -105,7 +114,13 @@ export default async function RootLayout({
         <link rel="icon" href={favicon} sizes="any" />
         <link rel="shortcut icon" href={favicon} />
         <link rel="apple-touch-icon" href={favicon} />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossOrigin="anonymous" referrerPolicy="no-referrer" />
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+          crossOrigin="anonymous"
+          referrerPolicy="no-referrer"
+        />
       </head>
       <body>
         <Toaster position="top-right" />
@@ -128,10 +143,14 @@ export default async function RootLayout({
         {!isMaintenance && (
           <>
             {bs?.is_analytics === 1 && bs?.google_analytics_script && (
-              <div dangerouslySetInnerHTML={{ __html: bs.google_analytics_script }} />
+              <div
+                dangerouslySetInnerHTML={{ __html: bs.google_analytics_script }}
+              />
             )}
             {bs?.is_facebook_pexel === 1 && bs?.facebook_pexel_script && (
-              <div dangerouslySetInnerHTML={{ __html: bs.facebook_pexel_script }} />
+              <div
+                dangerouslySetInnerHTML={{ __html: bs.facebook_pexel_script }}
+              />
             )}
             {bs?.is_tawkto === 1 && bs?.tawk_to_script && (
               <div dangerouslySetInnerHTML={{ __html: bs.tawk_to_script }} />
@@ -156,9 +175,18 @@ export default async function RootLayout({
         />
 
         <CookieAlert
-          status={jsonData?.data?.be?.cookie_alert_status ?? jsonData?.data?.bs?.cookie_alert_status}
-          text={jsonData?.data?.be?.cookie_alert_text ?? jsonData?.data?.bs?.cookie_alert_text}
-          buttonText={jsonData?.data?.be?.cookie_alert_button_text ?? jsonData?.data?.bs?.cookie_alert_button_text}
+          status={
+            jsonData?.data?.be?.cookie_alert_status ??
+            jsonData?.data?.bs?.cookie_alert_status
+          }
+          text={
+            jsonData?.data?.be?.cookie_alert_text ??
+            jsonData?.data?.bs?.cookie_alert_text
+          }
+          buttonText={
+            jsonData?.data?.be?.cookie_alert_button_text ??
+            jsonData?.data?.bs?.cookie_alert_button_text
+          }
         />
       </body>
     </html>

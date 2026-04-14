@@ -8,9 +8,7 @@ const studentImage = "/student-pointing.png";
 
 /* ---------------- Framer Motion Easing ---------------- */
 // Same as easeOut
-const easeOutCubic: [number, number, number, number] = [
-  0.25, 0.46, 0.45, 0.94,
-];
+const easeOutCubic: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
 
 /* ---------------- Variants ---------------- */
 
